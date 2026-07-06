@@ -1,0 +1,173 @@
+extends Node3D
+
+const STEPPE_GROUND_MATERIAL: Material = preload("res://materials/mat_steppe_ground.tres")
+const SKY_DOME_MATERIAL: Material = preload("res://materials/mat_sky_dome.tres")
+const CLOUD_DARK_MATERIAL: Material = preload("res://materials/mat_cloud_dark_ash_red.tres")
+const CLOUD_ROSE_MATERIAL: Material = preload("res://materials/mat_cloud_rose_ash_red.tres")
+
+const PYLON_SCENE_PATH := "res://assets/models/props/lowpoly_power_pylon_no_wires.glb"
+const GRASS_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_grass_patch.glb"
+const FLOWER_WHITE_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_flower_white.glb"
+const FLOWER_RED_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_flower_red.glb"
+const FLOWER_YELLOW_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_flower_yellow.glb"
+
+@export var ground_size: float = 200.0
+@export var sky_radius: float = 520.0
+@export var pylon_position := Vector3(0.0, 0.0, -92.0)
+@export_range(0.0, 3.0, 0.1) var flower_density_multiplier: float = 1.0
+
+
+func _ready() -> void:
+	_clear_existing_geometry()
+	_build_ground()
+	_build_sky_dome()
+	_build_cloud_layers()
+	_build_power_pylon()
+	_build_steppe_vegetation()
+
+
+func _clear_existing_geometry() -> void:
+	for child: Node in get_children():
+		remove_child(child)
+		child.free()
+
+
+func _build_ground() -> void:
+	var body := StaticBody3D.new()
+	body.name = "SteppeGround"
+	add_child(body)
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "MeshInstance3D"
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(ground_size, 0.08, ground_size)
+	mesh_instance.mesh = mesh
+	mesh_instance.position = Vector3(0.0, -0.04, 0.0)
+	mesh_instance.set_surface_override_material(0, STEPPE_GROUND_MATERIAL)
+	body.add_child(mesh_instance)
+
+	var collision := CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(ground_size, 0.08, ground_size)
+	collision.shape = shape
+	collision.position = Vector3(0.0, -0.04, 0.0)
+	body.add_child(collision)
+
+
+func _build_sky_dome() -> void:
+	var sky := MeshInstance3D.new()
+	sky.name = "SkyDome"
+	var mesh := SphereMesh.new()
+	mesh.radius = sky_radius
+	mesh.height = sky_radius * 2.0
+	mesh.radial_segments = 64
+	mesh.rings = 32
+	sky.mesh = mesh
+	sky.set_surface_override_material(0, SKY_DOME_MATERIAL)
+	add_child(sky)
+
+
+func _build_cloud_layers() -> void:
+	_make_cloud_layer("CloudLayerDarkAshRed", Vector3(-35.0, 75.0, -20.0), Vector2(280.0, 190.0), CLOUD_DARK_MATERIAL)
+	_make_cloud_layer("CloudLayerRoseAshRed", Vector3(42.0, 88.0, -56.0), Vector2(240.0, 170.0), CLOUD_ROSE_MATERIAL)
+
+
+func _make_cloud_layer(node_name: String, origin: Vector3, size: Vector2, material: Material) -> MeshInstance3D:
+	var layer := MeshInstance3D.new()
+	layer.name = node_name
+	var mesh := PlaneMesh.new()
+	mesh.size = size
+	layer.mesh = mesh
+	layer.position = origin
+	layer.set_surface_override_material(0, material)
+	add_child(layer)
+	return layer
+
+
+func _build_power_pylon() -> void:
+	var pylon_root := Node3D.new()
+	pylon_root.name = "PowerPylon"
+	pylon_root.position = pylon_position
+	add_child(pylon_root)
+
+	var pylon_scene := load(PYLON_SCENE_PATH) as PackedScene
+	if pylon_scene != null:
+		var pylon_model := pylon_scene.instantiate()
+		pylon_model.name = "PowerPylonModel"
+		pylon_root.add_child(pylon_model)
+
+	var base_collision := StaticBody3D.new()
+	base_collision.name = "PowerPylonBaseCollision"
+	base_collision.position = Vector3(0.0, 0.6, 0.0)
+	pylon_root.add_child(base_collision)
+
+	var collision := CollisionShape3D.new()
+	collision.name = "CollisionShape3D"
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(8.0, 1.2, 6.0)
+	collision.shape = shape
+	base_collision.add_child(collision)
+
+
+func _build_steppe_vegetation() -> void:
+	var vegetation := Node3D.new()
+	vegetation.name = "SteppeVegetation"
+	add_child(vegetation)
+
+	var grass_scene := load(GRASS_SCENE_PATH) as PackedScene
+	var white_scene := load(FLOWER_WHITE_SCENE_PATH) as PackedScene
+	var red_scene := load(FLOWER_RED_SCENE_PATH) as PackedScene
+	var yellow_scene := load(FLOWER_YELLOW_SCENE_PATH) as PackedScene
+
+	var near_exit_positions := [
+		Vector3(-5.8, 0.0, -14.5), Vector3(-3.6, 0.0, -16.0), Vector3(-1.2, 0.0, -13.6),
+		Vector3(2.4, 0.0, -15.2), Vector3(5.2, 0.0, -17.8), Vector3(-7.4, 0.0, -20.8),
+		Vector3(-4.1, 0.0, -22.6), Vector3(0.8, 0.0, -20.0), Vector3(4.7, 0.0, -23.5),
+		Vector3(7.6, 0.0, -19.4), Vector3(-2.8, 0.0, -27.5), Vector3(3.3, 0.0, -29.4)
+	]
+	var path_positions := [
+		Vector3(-9.0, 0.0, -34.0), Vector3(-2.5, 0.0, -38.0), Vector3(6.0, 0.0, -42.0),
+		Vector3(11.0, 0.0, -49.0), Vector3(-7.5, 0.0, -54.0), Vector3(3.5, 0.0, -61.0),
+		Vector3(13.5, 0.0, -68.0), Vector3(-12.0, 0.0, -73.0)
+	]
+	var sparse_far_positions := [
+		Vector3(-18.0, 0.0, -86.0), Vector3(19.0, 0.0, -82.0), Vector3(-8.0, 0.0, -94.0)
+	]
+
+	_scatter_patch(vegetation, grass_scene, white_scene, red_scene, yellow_scene, near_exit_positions, 0.95, 1.35, 0.0)
+	_scatter_patch(vegetation, grass_scene, white_scene, red_scene, null, path_positions, 0.75, 1.1, 100.0)
+	_scatter_patch(vegetation, grass_scene, white_scene, null, null, sparse_far_positions, 0.55, 0.85, 200.0)
+
+
+func _scatter_patch(parent: Node3D, grass_scene: PackedScene, white_scene: PackedScene, red_scene: PackedScene, yellow_scene: PackedScene, centers: Array, min_scale: float, max_scale: float, name_offset: float) -> void:
+	var density: int = max(0, int(round(5.0 * flower_density_multiplier)))
+	for center_index: int in range(centers.size()):
+		var center: Vector3 = centers[center_index]
+		for item_index: int in range(density):
+			var offset: Vector3 = _patch_offset(center_index, item_index)
+			var position: Vector3 = center + offset
+			var scene: PackedScene = grass_scene
+			var kind: int = (center_index + item_index) % 9
+			if kind in [0, 2, 5, 7] and white_scene != null:
+				scene = white_scene
+			elif kind == 3 and red_scene != null:
+				scene = red_scene
+			elif kind == 8 and yellow_scene != null:
+				scene = yellow_scene
+			if scene == null:
+				continue
+
+			var plant := scene.instantiate() as Node3D
+			plant.name = "SteppePlant_%03d_%02d" % [int(name_offset) + center_index, item_index]
+			plant.position = position
+			plant.rotation.y = fmod(float(center_index * 47 + item_index * 31), 360.0) * PI / 180.0
+			var plant_scale: float = lerp(min_scale, max_scale, float((center_index * 11 + item_index * 7) % 10) / 9.0)
+			plant.scale = Vector3.ONE * plant_scale
+			parent.add_child(plant)
+
+
+func _patch_offset(center_index: int, item_index: int) -> Vector3:
+	var angle := float((center_index * 83 + item_index * 137) % 360) * PI / 180.0
+	var radius := 0.45 + float((center_index * 19 + item_index * 23) % 100) / 100.0 * 2.3
+	return Vector3(cos(angle) * radius, 0.0, sin(angle) * radius)

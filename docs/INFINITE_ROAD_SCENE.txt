@@ -1,0 +1,73 @@
+Infinite Road Scene
+
+Scene path:
+- res://scenes/levels/InfiniteRoad.tscn
+
+Door transition:
+- The room door is still res://scenes/objects/InactiveDoor.tscn.
+- It uses res://scripts/interactable.gd.
+- The door has target_scene_path set to:
+  res://scenes/levels/InfiniteRoad.tscn
+- On E interaction, it shows:
+  "Door opened. Behind it is a road that does not end."
+- After transition_delay seconds, it calls:
+  get_tree().change_scene_to_file(target_scene_path)
+
+Road illusion:
+- Road material: res://materials/mat_infinite_road.tres
+- Road texture: res://assets/textures/tex_infinite_road_halftone.png
+- The material is a ShaderMaterial with UV offset.
+- res://scripts/infinite_road_controller.gd changes the shader parameter uv_offset when W/S are pressed.
+- This makes the road texture appear to move under the player.
+
+Where to change road movement speed:
+- Open res://scripts/infinite_road_controller.gd.
+- Change road_scroll_speed.
+
+Where to change far object distance:
+- Open res://scripts/infinite_road_controller.gd.
+- Change far_distance.
+- Default is 28.0.
+
+Where to change road texture:
+- Open res://materials/mat_infinite_road.tres.
+- Change the road_texture ext_resource path.
+- UV tiling is controlled by shader_parameter/uv_scale.
+
+Where to change far image:
+- Open res://materials/mat_far_green_house.tres.
+- Change the albedo texture path.
+- Current texture:
+  res://assets/textures/tex_far_green_house.png
+
+How to return:
+- Press R in InfiniteRoad.tscn.
+- It calls:
+  get_tree().change_scene_to_file("res://scenes/Main.tscn")
+
+Idle distortion and VHS return:
+- If the player stands still in InfiniteRoad.tscn for 2.0 seconds, the distortion phase starts.
+- Distortion lasts 3.0 seconds.
+- During distortion, the player camera shakes, FOV jitters, and a dark green overlay fades in.
+- If the player starts moving before VHS starts, the distortion resets and the camera returns to normal.
+- If the player keeps standing still until the VHS phase starts, movement no longer cancels it.
+- VHS static is shown fullscreen for 4.0 seconds.
+- After VHS, the scene returns to:
+  res://scenes/Main.tscn
+
+Where to change idle and VHS timings:
+- Open res://scripts/infinite_road_controller.gd.
+- idle_time_before_distortion controls how long the player can stand still before distortion.
+- distortion_duration_before_vhs controls how long the shake/distortion phase lasts.
+- vhs_duration controls how long the VHS fullscreen image stays visible.
+
+Where to change shake strength:
+- Open res://scripts/infinite_road_controller.gd.
+- max_position_shake controls camera position shake.
+- max_rotation_shake_degrees controls camera rotation shake.
+- max_fov_jitter controls FOV jitter.
+
+Where to change VHS texture:
+- Open res://scenes/levels/InfiniteRoad.tscn.
+- VHSReturnUI/VHSStaticTexture uses:
+  res://assets/textures/ui_vhs_return_static.png

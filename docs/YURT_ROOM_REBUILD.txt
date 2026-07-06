@@ -1,0 +1,60 @@
+Yurt Room Rebuild
+
+Previous room size found:
+- Floor mesh was 10m x 10m.
+- Wall meshes were 10.2m long, 8m high, and 0.2m thick.
+- Ceiling was a flat 10m x 10m box centered around Y = 8.1.
+- The room used four rectangular walls: WallNorth, WallSouth, WallEast, WallWest.
+
+Scale change:
+- Main room footprint was expanded by about 2x in X/Z.
+- The new yurt uses yurt_radius = 10.0, so it is about 20m across.
+
+Current yurt size:
+- Radius: 10m.
+- Diameter/width: about 20m.
+- Vertical wall height: 6m.
+- Roof peak / shanyrak height: about 10.3m.
+- Shanyrak opening inner radius: 3m, about 6m diameter.
+
+How the 8 walls work:
+- The old four-wall rectangular room was replaced by runtime-generated yurt geometry.
+- The builder script creates YurtWall_01 through YurtWall_08.
+- Each wall is a StaticBody3D with BoxMesh and BoxShape3D collision.
+- Wall material: res://materials/mat_wall.tres.
+
+Door:
+- Door remains an instance of res://scenes/objects/InactiveDoor.tscn.
+- It is placed on the north side of the yurt at about Vector3(0, 1.5, -9.72).
+- Door size is human-scale again: about 1.5m wide and 3m high.
+- E on the door still transitions to res://scenes/levels/InfiniteRoad.tscn.
+
+Cube:
+- Cube remains an instance of res://scenes/objects/InteractableCube.tscn.
+- It is inside the yurt near the center at about Vector3(-2.0, 0.5, -1.2).
+- It remains 1m x 1m x 1m and interactive.
+
+Shanyrak:
+- The roof is built from 8 sloped roof panels.
+- The roof leaves a large central opening.
+- A visible shanyrak ring is built from 16 small BoxMesh segments.
+- 16 radial beams run between the ring and the roof direction.
+
+Sky texture:
+- The sky visible through the shanyrak is SkyDisc.
+- It uses res://materials/mat_sky_shanyrak.tres.
+- That material uses res://assets/textures/fitted/tex_ceiling_red_cyan_noise_fit.png.
+
+Where to change yurt dimensions:
+- Open res://scripts/yurt_room_builder.gd.
+- yurt_radius controls overall width.
+- wall_height controls vertical wall height.
+- roof_peak_height controls roof and shanyrak height.
+- shanyrak_inner_radius controls the opening diameter.
+
+Where to change materials:
+- Wall: res://materials/mat_wall.tres
+- Floor: res://materials/mat_floor.tres
+- Roof: res://materials/mat_ceiling.tres
+- Door: res://materials/mat_door.tres
+- SkyDisc: res://materials/mat_sky_shanyrak.tres

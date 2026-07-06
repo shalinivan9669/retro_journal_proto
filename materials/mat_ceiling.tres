@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/fitted/tex_ceiling_red_cyan_noise_fit.png" id="1_ceiling_texture"]
+
+[resource]
+albedo_texture = ExtResource("1_ceiling_texture")
+metallic = 0.0
+roughness = 1.0
+texture_filter = 0
+texture_repeat = 0
+uv1_scale = Vector3(1, 1, 1)

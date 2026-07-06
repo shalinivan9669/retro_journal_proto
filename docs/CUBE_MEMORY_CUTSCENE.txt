@@ -1,0 +1,9 @@
+Cube memory cutscene
+
+Press E while aiming at the cube in the main yurt room to start a 13 second fullscreen memory cutscene.
+
+The cutscene uses images from res://assets/textures/cutscene/ and does not change scenes or move the player.
+During playback, WASD movement, mouse look, and interaction are locked. The center aim dot is hidden.
+
+After the cutscene ends, player control returns and MemoryPainting becomes visible on the yurt wall.
+The cutscene can be replayed by interacting with the cube again. The painting stays visible.

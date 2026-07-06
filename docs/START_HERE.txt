@@ -1,0 +1,32 @@
+﻿Retro first-person 3D prototype
+
+This project folder is intended for a retro first-person 3D prototype.
+
+Next step:
+Create a new Godot project in this folder:
+C:\GameDev\retro_journal_proto
+
+Style references:
+Doom 1-2 / Blood / Duke Nukem 3D / Silent Hill 4 / old 2000s online worlds.
+
+First goal:
+Build one room, one corridor, WASD movement, mouse look, and a first-person camera.
+
+Current prototype:
+- Main scene: res://scenes/Main.tscn
+- Player: res://scenes/player/Player.tscn
+- Interactable cube: res://scenes/objects/InteractableCube.tscn
+- Inactive door: res://scenes/objects/InactiveDoor.tscn
+- Dialogue UI: res://scenes/ui/DialogueUI.tscn
+
+Controls:
+- WASD: move
+- Mouse: look
+- E: interact / close dialogue
+- Esc: close dialogue or release mouse
+
+Where to edit:
+- Dialogue text: InteractableCube.tscn and InactiveDoor.tscn, property dialogue_text
+- Movement and interaction range: scripts/player_controller.gd
+- UI layout: scenes/ui/DialogueUI.tscn
+- Placeholder materials: material sub-resources in Main.tscn, InteractableCube.tscn, and InactiveDoor.tscn

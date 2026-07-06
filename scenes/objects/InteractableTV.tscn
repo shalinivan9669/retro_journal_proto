@@ -1,0 +1,127 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://scripts/interactable.gd" id="1_interactable"]
+[ext_resource type="PackedScene" path="res://assets/models/tv_old_ussr/old_tv_ussr.glb" id="2_tv_model"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_tv_body"]
+size = Vector3(1.2, 0.86, 0.72)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tv_screen"]
+size = Vector3(0.72, 0.46, 0.035)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tv_panel"]
+size = Vector3(0.22, 0.46, 0.04)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_tv_knob"]
+top_radius = 0.07
+bottom_radius = 0.07
+height = 0.045
+radial_segments = 24
+
+[sub_resource type="BoxMesh" id="BoxMesh_tv_leg"]
+size = Vector3(0.12, 0.16, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tv_antenna"]
+size = Vector3(0.035, 0.55, 0.035)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tv_body"]
+size = Vector3(1.2, 0.86, 0.72)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tv_frame"]
+albedo_color = Color(0.48, 0.4, 0.3, 1)
+roughness = 0.82
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tv_screen"]
+albedo_color = Color(0.055, 0.075, 0.07, 1)
+emission_enabled = true
+emission = Color(0.08, 0.18, 0.14, 1)
+emission_energy_multiplier = 0.45
+roughness = 0.35
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tv_top"]
+albedo_color = Color(0.42, 0.36, 0.29, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tv_trim"]
+albedo_color = Color(0.77, 0.67, 0.48, 1)
+roughness = 0.65
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tv_metal"]
+albedo_color = Color(0.78, 0.78, 0.72, 1)
+metallic = 0.35
+roughness = 0.38
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tv_black"]
+albedo_color = Color(0.025, 0.022, 0.02, 1)
+roughness = 0.75
+
+[node name="InteractableTV" type="StaticBody3D"]
+script = ExtResource("1_interactable")
+starts_cube_memory_cutscene = true
+dialogue_text = "Interactive television."
+
+[node name="TVModel" parent="." instance=ExtResource("2_tv_model")]
+transform = Transform3D(0.0043, 0, 0, 0, 0.0043, 0, 0, 0, 0.0043, 0, 0, 0)
+visible = false
+
+[node name="TV_frame_0" parent="TVModel/Sketchfab_model/Oldtv_fbx/RootNode/TV" index="0"]
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_frame")
+
+[node name="TV_front_0" parent="TVModel/Sketchfab_model/Oldtv_fbx/RootNode/TV" index="1"]
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_screen")
+
+[node name="TV_top_0" parent="TVModel/Sketchfab_model/Oldtv_fbx/RootNode/TV" index="2"]
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_top")
+
+[node name="VisibleTVModel" type="Node3D" parent="."]
+
+[node name="Body" type="MeshInstance3D" parent="VisibleTVModel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.43, -0.23)
+mesh = SubResource("BoxMesh_tv_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_frame")
+
+[node name="Screen" type="MeshInstance3D" parent="VisibleTVModel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.13, 0.5, 0.15)
+mesh = SubResource("BoxMesh_tv_screen")
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_screen")
+
+[node name="ControlPanel" type="MeshInstance3D" parent="VisibleTVModel"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.42, 0.5, 0.155)
+mesh = SubResource("BoxMesh_tv_panel")
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_trim")
+
+[node name="UpperKnob" type="MeshInstance3D" parent="VisibleTVModel"]
+transform = Transform3D(-0.0000000437114, 0, 1, 0, 1, 0, -1, 0, -0.0000000437114, 0.42, 0.58, 0.19)
+mesh = SubResource("CylinderMesh_tv_knob")
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_metal")
+
+[node name="LowerKnob" type="MeshInstance3D" parent="VisibleTVModel"]
+transform = Transform3D(-0.0000000437114, 0, 1, 0, 1, 0, -1, 0, -0.0000000437114, 0.42, 0.42, 0.19)
+mesh = SubResource("CylinderMesh_tv_knob")
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_metal")
+
+[node name="LeftFrontLeg" type="MeshInstance3D" parent="VisibleTVModel"]
+transform = Transform3D(1, 0, 0, 0, 0.939693, -0.34202, 0, 0.34202, 0.939693, -0.42, 0.02, 0.0)
+mesh = SubResource("BoxMesh_tv_leg")
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_black")
+
+[node name="RightFrontLeg" type="MeshInstance3D" parent="VisibleTVModel"]
+transform = Transform3D(1, 0, 0, 0, 0.939693, -0.34202, 0, 0.34202, 0.939693, 0.42, 0.02, 0.0)
+mesh = SubResource("BoxMesh_tv_leg")
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_black")
+
+[node name="LeftAntenna" type="MeshInstance3D" parent="VisibleTVModel"]
+transform = Transform3D(0.707107, -0.707107, 0, 0.707107, 0.707107, 0, 0, 0, 1, -0.12, 1.08, -0.18)
+mesh = SubResource("BoxMesh_tv_antenna")
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_metal")
+
+[node name="RightAntenna" type="MeshInstance3D" parent="VisibleTVModel"]
+transform = Transform3D(0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0, 1, 0.12, 1.08, -0.18)
+mesh = SubResource("BoxMesh_tv_antenna")
+surface_material_override/0 = SubResource("StandardMaterial3D_tv_metal")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.43, -0.23)
+shape = SubResource("BoxShape3D_tv_body")
+
+[editable path="TVModel"]

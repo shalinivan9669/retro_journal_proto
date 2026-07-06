@@ -1,0 +1,117 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/infinite_road_controller.gd" id="2_controller"]
+[ext_resource type="Material" path="res://materials/mat_infinite_road.tres" id="3_road_mat"]
+[ext_resource type="Material" path="res://materials/mat_far_green_house.tres" id="4_far_mat"]
+[ext_resource type="Texture2D" path="res://assets/textures/fitted/ui_vhs_return_static_wide_fit.png" id="5_vhs_static"]
+
+[sub_resource type="Environment" id="Environment_infinite_road"]
+background_mode = 1
+background_color = Color(0.015, 0.012, 0.018, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.22, 0.2, 0.26, 1)
+ambient_light_energy = 0.35
+
+[sub_resource type="BoxMesh" id="BoxMesh_road"]
+size = Vector3(10, 0.2, 240)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_road"]
+size = Vector3(10, 0.2, 240)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_side_wall"]
+size = Vector3(0.4, 6, 260)
+
+[sub_resource type="QuadMesh" id="QuadMesh_far_object"]
+size = Vector2(10, 16)
+
+[node name="InfiniteRoad" type="Node3D"]
+script = ExtResource("2_controller")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_infinite_road")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 8, 8)
+light_energy = 0.9
+
+[node name="RoadLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -8)
+light_energy = 1.3
+omni_range = 24.0
+
+[node name="Road" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, -85)
+
+[node name="RoadMesh" type="MeshInstance3D" parent="Road"]
+mesh = SubResource("BoxMesh_road")
+surface_material_override/0 = ExtResource("3_road_mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Road"]
+shape = SubResource("BoxShape3D_road")
+
+[node name="LeftInvisibleWall" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.3, 3, -85)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LeftInvisibleWall"]
+shape = SubResource("BoxShape3D_side_wall")
+
+[node name="RightInvisibleWall" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.3, 3, -85)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RightInvisibleWall"]
+shape = SubResource("BoxShape3D_side_wall")
+
+[node name="FarObject" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, -28)
+mesh = SubResource("QuadMesh_far_object")
+surface_material_override/0 = ExtResource("4_far_mat")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+
+[node name="HintUI" type="CanvasLayer" parent="."]
+layer = 15
+
+[node name="ReturnHint" type="Label" parent="HintUI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -180.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 42.0
+text = "R - return"
+horizontal_alignment = 2
+
+[node name="DistortionUI" type="CanvasLayer" parent="."]
+layer = 30
+
+[node name="DistortionOverlay" type="ColorRect" parent="DistortionUI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 2
+color = Color(0.0, 0.08, 0.035, 0.0)
+
+[node name="VHSReturnUI" type="CanvasLayer" parent="."]
+visible = false
+layer = 40
+
+[node name="VHSStaticTexture" type="TextureRect" parent="VHSReturnUI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 2
+texture = ExtResource("5_vhs_static")
+expand_mode = 1
+stretch_mode = 6

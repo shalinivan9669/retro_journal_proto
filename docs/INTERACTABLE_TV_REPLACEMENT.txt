@@ -1,0 +1,66 @@
+Interactable TV Replacement
+
+1. TV model location
+- Main model path used by the TV scene:
+  res://assets/models/tv_old_ussr/old_tv_ussr.glb
+- The downloaded file in this project was originally named old_tv_usssr.glb.
+  A correctly named copy was added so Godot can load the requested path.
+
+2. TV scene
+- Scene path:
+  res://scenes/objects/InteractableTV.tscn
+- Root node:
+  InteractableTV / StaticBody3D
+- The scene uses the existing gameplay script:
+  res://scripts/interactable.gd
+- The visible in-game TV is:
+  InteractableTV/VisibleTVModel
+- The imported GLB remains in the scene as TVModel, but it is hidden because its imported
+  materials can appear transparent/invisible in the current project setup.
+
+3. Collision
+- Collision is a manual BoxShape3D.
+- It does not use collision imported from the GLB mesh.
+- Current CollisionShape3D transform:
+  origin = Vector3(0, 0.43, -0.23)
+- Current BoxShape3D size:
+  Vector3(1.2, 0.86, 0.72)
+- The bottom of the box is at about y = 0, so the TV stands on the floor.
+
+4. Where to change visual scale
+- Open:
+  res://scenes/objects/InteractableTV.tscn
+- Change the mesh sizes or transforms under:
+  InteractableTV/VisibleTVModel
+- TVModel is the imported GLB reference and is currently hidden.
+- Keep collision adjusted manually if the visible model size changes.
+
+5. Where to change collision size
+- Open:
+  res://scenes/objects/InteractableTV.tscn
+- Change the BoxShape3D_tv_body sub-resource size.
+- If the TV scale changes, also adjust CollisionShape3D origin so the bottom stays on the floor.
+
+6. How interact() works
+- Player input is handled by:
+  res://scripts/player_controller.gd
+- Pressing E updates Head/Camera3D/InteractionRay.
+- The player script walks up the hit node parents until it finds a node with interact().
+- InteractableTV uses res://scripts/interactable.gd with:
+  starts_cube_memory_cutscene = true
+- That calls CubeMemoryCutsceneUI.play_cutscene() through the cube_memory_cutscene_ui group.
+
+7. How to restore the old cube
+- In res://scenes/Main.tscn, change the ext_resource path back to:
+  res://scenes/objects/InteractableCube.tscn
+- Rename the instance back to InteractableCube if needed.
+- Restore the old cube transform:
+  Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0, 0.5, -1.2)
+
+8. If E does not trigger on the TV
+- Check that InteractableTV has script res://scripts/interactable.gd.
+- Check that starts_cube_memory_cutscene is true.
+- Check that CollisionShape3D is enabled and has BoxShape3D_tv_body.
+- Check Player.tscn:
+  Head/Camera3D/InteractionRay must be enabled and target_position should reach the TV.
+- Aim at the TV body from 1-4 meters and press E.

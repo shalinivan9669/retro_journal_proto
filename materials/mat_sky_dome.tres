@@ -1,0 +1,12 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/sky/sky_mud_road_puresky_1k_tonemap.png" id="1_sky_texture"]
+
+[resource]
+albedo_texture = ExtResource("1_sky_texture")
+metallic = 0.0
+roughness = 1.0
+texture_filter = 0
+texture_repeat = 0
+shading_mode = 0
+cull_mode = 2

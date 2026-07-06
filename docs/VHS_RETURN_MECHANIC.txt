@@ -1,0 +1,56 @@
+VHS Return Mechanic
+
+Changed files:
+- res://scripts/infinite_road_controller.gd
+- res://scenes/levels/InfiniteRoad.tscn
+- res://docs/INFINITE_ROAD_SCENE.txt
+- res://docs/VHS_RETURN_MECHANIC.txt
+
+How idle detection works:
+- The controller watches WASD input, player position delta, and CharacterBody3D velocity.
+- If there is no movement, idle_timer increases.
+- If the player moves during normal state, idle_timer resets.
+- Default idle delay is 2.0 seconds.
+
+State machine:
+- normal
+  Player movement resets idle_timer. Standing still eventually enters distorting.
+
+- distorting
+  Camera shake, FOV jitter, and green-black overlay ramp up for 3.0 seconds.
+  If the player moves before VHS starts, distortion is cancelled and the camera is restored.
+
+- vhs_returning
+  Fullscreen VHS static appears for 4.0 seconds.
+  Movement no longer cancels the return.
+  After the timer, the scene changes back to res://scenes/Main.tscn.
+
+Important parameters:
+- idle_time_before_distortion = 2.0
+- distortion_duration_before_vhs = 3.0
+- vhs_duration = 4.0
+- max_position_shake = 0.18
+- max_rotation_shake_degrees = 4.0
+- max_fov_jitter = 8.0
+
+Where to change them:
+- Open res://scripts/infinite_road_controller.gd.
+- Edit the exported variables near the top of the file.
+
+VHS texture:
+- res://assets/textures/ui_vhs_return_static.png
+- The scene uses fitted widescreen texture:
+  res://assets/textures/fitted/ui_vhs_return_static_wide_fit.png
+- This keeps the source image visible on a 16:9 screen without cropping.
+- It is used by VHSReturnUI/VHSStaticTexture in res://scenes/levels/InfiniteRoad.tscn.
+
+How to disable the mechanic:
+- Open res://scripts/infinite_road_controller.gd.
+- Set idle_time_before_distortion to a very large value, for example 999999.0.
+- Or remove the _update_idle_return_state(delta, moving) call from _process().
+
+How to change the return scene:
+- Open res://scripts/infinite_road_controller.gd.
+- Change return_scene_path.
+- Current value:
+  res://scenes/Main.tscn

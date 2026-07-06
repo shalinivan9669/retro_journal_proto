@@ -1,0 +1,43 @@
+Room Height And Texture Fixes
+
+Changed room objects:
+- res://scenes/Main.tscn
+- Room/Floor stayed 10m x 10m with collision.
+- Room/WallNorth, Room/WallSouth, Room/WallEast, and Room/WallWest were updated to 8m height.
+- Room/Ceiling was moved to the top of the room.
+- Room/WallOppositePanel was added as a decorative panel on the south wall.
+- DirectionalLight3D was raised slightly and RoomFillLight was added so the taller room remains visible.
+
+Wall height:
+- The four wall meshes and collision shapes are now 8m high.
+- Wall centers are at Y = 4, so their lower edges start at floor level.
+
+Ceiling height:
+- Ceiling is a thin 10m x 10m box centered at Y = 8.1.
+- Its lower face is around Y = 8.
+
+South wall / opposite wall:
+- WallSouth now uses res://materials/mat_wall.tres like the other main walls.
+- The forest/opposite-wall image is no longer stretched over the full 10m x 8m wall.
+- Room/WallOppositePanel is a separate 5m x 5m MeshInstance3D placed slightly in front of WallSouth at Z = 4.94.
+- WallOppositePanel uses res://materials/mat_wall_opposite.tres and has no collision.
+
+Current UV scale:
+- res://materials/mat_wall.tres: Vector3(3, 3, 1)
+- res://materials/mat_floor.tres: Vector3(4, 4, 1)
+- res://materials/mat_ceiling.tres: Vector3(2, 2, 1)
+- res://materials/mat_cube.tres: Vector3(1, 1, 1)
+- res://materials/mat_door.tres: Vector3(1, 1, 1)
+- res://materials/mat_wall_opposite.tres: Vector3(1, 1, 1)
+
+If a texture still looks stretched:
+- First adjust uv1_scale in the relevant res://materials/*.tres file.
+- For walls and floor, increase X/Y scale to repeat the texture more.
+- For door, cube, and WallOppositePanel, keep scale near Vector3(1, 1, 1) unless you intentionally want tiling.
+- If material UV scale is not enough, create fitted textures under res://assets/textures/fitted/ from the already imported project images.
+
+Files to edit next:
+- Room size and wall/ceiling placement: res://scenes/Main.tscn
+- Wall/floor/ceiling/cube/door/panel UV: res://materials/*.tres
+- Dialogue background layout: res://scenes/ui/DialogueUI.tscn
+- Movement and interaction settings: res://scripts/player_controller.gd

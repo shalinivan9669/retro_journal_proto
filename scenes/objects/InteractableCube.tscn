@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/interactable.gd" id="1_interactable"]
+[ext_resource type="Material" path="res://materials/mat_cube.tres" id="2_mat_cube"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_cube"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cube"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_interaction"]
+size = Vector3(2.5, 2.6, 2.5)
+
+[node name="InteractableCube" type="StaticBody3D"]
+script = ExtResource("1_interactable")
+starts_cube_memory_cutscene = true
+dialogue_text = "Это тестовый объект. Позже сюда можно будет навесить текстуру и сюжетную функцию."
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_cube")
+surface_material_override/0 = ExtResource("2_mat_cube")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_cube")
+
+[node name="InteractionArea" type="Area3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0)
+shape = SubResource("BoxShape3D_interaction")

@@ -1,0 +1,38 @@
+Codex quick context
+
+Project folder:
+C:\GameDev\retro_journal_proto
+
+This is an existing Godot 4.x retro first-person prototype. Do not recreate it.
+
+Read first:
+AGENTS.md
+
+Main scene:
+res://scenes/Main.tscn
+
+Main gameplay files:
+res://scripts/player_controller.gd
+res://scripts/interactable.gd
+res://scripts/yurt_room_builder.gd
+res://scripts/cube_memory_cutscene.gd
+res://scripts/infinite_road_controller.gd
+
+Important scenes:
+res://scenes/player/Player.tscn
+res://scenes/objects/InteractableCube.tscn
+res://scenes/objects/InactiveDoor.tscn
+res://scenes/ui/CubeMemoryCutsceneUI.tscn
+res://scenes/levels/InfiniteRoad.tscn
+
+Core behavior:
+- WASD and mouse first-person movement.
+- E interacts through the center dot.
+- Cube starts a 13 second fullscreen memory cutscene.
+- During the cutscene, player control is locked.
+- After the cutscene, MemoryPainting appears on the yurt wall.
+- Door changes to InfiniteRoad.tscn.
+- InfiniteRoad has VHS return behavior.
+
+Verify after changes:
+Run the headless Godot commands from AGENTS.md.

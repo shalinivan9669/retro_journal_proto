@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/cutscene/cs_painting_05.png" id="1_painting"]
+
+[resource]
+albedo_texture = ExtResource("1_painting")
+metallic = 0.0
+roughness = 1.0
+texture_filter = 0
+texture_repeat = 0
+uv1_scale = Vector3(1, 1, 1)

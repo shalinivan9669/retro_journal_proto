@@ -1,0 +1,84 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/cockroach_escape.gd" id="1_escape"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_shell"]
+albedo_color = Color(0.018, 0.012, 0.009, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_leg"]
+albedo_color = Color(0.006, 0.004, 0.003, 1)
+roughness = 0.92
+
+[sub_resource type="SphereMesh" id="SphereMesh_body"]
+radius = 0.11
+height = 0.18
+radial_segments = 8
+rings = 4
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+radius = 0.055
+height = 0.08
+radial_segments = 8
+rings = 3
+
+[sub_resource type="BoxMesh" id="BoxMesh_leg"]
+size = Vector3(0.18, 0.012, 0.018)
+
+[sub_resource type="BoxMesh" id="BoxMesh_antenna"]
+size = Vector3(0.13, 0.006, 0.009)
+
+[node name="Cockroach" type="Node3D"]
+script = ExtResource("1_escape")
+
+[node name="Visual" type="Node3D" parent="."]
+
+[node name="Body" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1.7, 0, 0, 0, 0.34, 0, 0, 0, 0.78, 0, 0.045, 0)
+mesh = SubResource("SphereMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_shell")
+
+[node name="Head" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(1.05, 0, 0, 0, 0.45, 0, 0, 0, 0.75, 0, 0.048, -0.12)
+mesh = SubResource("SphereMesh_head")
+surface_material_override/0 = SubResource("StandardMaterial3D_shell")
+
+[node name="LegL1" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, 0.707107, -0.1, 0.032, -0.06)
+mesh = SubResource("BoxMesh_leg")
+surface_material_override/0 = SubResource("StandardMaterial3D_leg")
+
+[node name="LegR1" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, 0.1, 0.032, -0.06)
+mesh = SubResource("BoxMesh_leg")
+surface_material_override/0 = SubResource("StandardMaterial3D_leg")
+
+[node name="LegL2" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.422618, 0, 0.906308, 0, 1, 0, -0.906308, 0, 0.422618, -0.11, 0.032, 0.02)
+mesh = SubResource("BoxMesh_leg")
+surface_material_override/0 = SubResource("StandardMaterial3D_leg")
+
+[node name="LegR2" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.422618, 0, -0.906308, 0, 1, 0, 0.906308, 0, 0.422618, 0.11, 0.032, 0.02)
+mesh = SubResource("BoxMesh_leg")
+surface_material_override/0 = SubResource("StandardMaterial3D_leg")
+
+[node name="LegL3" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.642788, 0, -0.766044, 0, 1, 0, 0.766044, 0, 0.642788, -0.09, 0.032, 0.1)
+mesh = SubResource("BoxMesh_leg")
+surface_material_override/0 = SubResource("StandardMaterial3D_leg")
+
+[node name="LegR3" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.642788, 0, 0.766044, 0, 1, 0, -0.766044, 0, 0.642788, 0.09, 0.032, 0.1)
+mesh = SubResource("BoxMesh_leg")
+surface_material_override/0 = SubResource("StandardMaterial3D_leg")
+
+[node name="AntennaL" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.34202, 0, 0.939693, 0, 1, 0, -0.939693, 0, 0.34202, -0.035, 0.072, -0.17)
+mesh = SubResource("BoxMesh_antenna")
+surface_material_override/0 = SubResource("StandardMaterial3D_leg")
+
+[node name="AntennaR" type="MeshInstance3D" parent="Visual"]
+transform = Transform3D(0.34202, 0, -0.939693, 0, 1, 0, 0.939693, 0, 0.34202, 0.035, 0.072, -0.17)
+mesh = SubResource("BoxMesh_antenna")
+surface_material_override/0 = SubResource("StandardMaterial3D_leg")

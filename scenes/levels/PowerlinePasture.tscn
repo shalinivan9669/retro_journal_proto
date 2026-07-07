@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/powerline_pasture_controller.gd" id="2_pasture_controller"]
 [ext_resource type="Script" path="res://scripts/procedural_horse_builder.gd" id="3_horse_builder"]
 [ext_resource type="Script" path="res://scripts/horse_guard_zone.gd" id="4_horse_zone"]
 [ext_resource type="Script" path="res://scripts/albasty_spawner.gd" id="5_albasty_spawner"]
+[ext_resource type="PackedScene" path="res://scenes/ui/AlbastyScareWindow.tscn" id="6_scare_window"]
 
 [sub_resource type="Environment" id="Environment_powerline_pasture"]
 background_mode = 1
@@ -75,3 +76,5 @@ respawn_delay = 35.0
 max_alive = 1
 spawn_on_ready = true
 repeat_spawn = true
+
+[node name="AlbastyScareWindow" parent="." instance=ExtResource("6_scare_window")]

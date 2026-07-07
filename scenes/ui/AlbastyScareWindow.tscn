@@ -1,0 +1,51 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/albasty_scare_window.gd" id="1_scare_window"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.015, 0.014, 0.013, 0.82)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.78, 0.78, 0.74, 0.18)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="LabelSettings" id="LabelSettings_667"]
+font_size = 116
+font_color = Color(0.94, 0.94, 0.9, 1)
+
+[node name="AlbastyScareWindow" type="CanvasLayer"]
+visible = false
+layer = 78
+script = ExtResource("1_scare_window")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 0
+anchor_left = 0.15
+anchor_top = 0.3
+anchor_right = 0.85
+anchor_bottom = 0.7
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Label" type="Label" parent="Panel"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 2
+text = "667"
+horizontal_alignment = 1
+vertical_alignment = 1
+label_settings = SubResource("LabelSettings_667")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3]
+[gd_scene load_steps=46 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/objects/InteractableTV.tscn" id="2_tv"]
@@ -22,6 +22,12 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/SignalDialogueWindow.tscn" id="20_signal_dialogue"]
 [ext_resource type="Script" path="res://scripts/signal_state_manager.gd" id="21_signal_manager"]
 [ext_resource type="PackedScene" path="res://scenes/yurt/YurtFloorRich.tscn" id="22_yurt_floor"]
+[ext_resource type="Script" path="res://scripts/yurt_window_vision.gd" id="23_yurt_window_vision"]
+[ext_resource type="PackedScene" path="res://scenes/objects/CarpetCoverInteractable.tscn" id="24_carpet_cover"]
+[ext_resource type="PackedScene" path="res://scenes/props/Cockroach.tscn" id="25_cockroach"]
+[ext_resource type="PackedScene" path="res://scenes/props/SignalCenterStand.tscn" id="26_signal_stand"]
+[ext_resource type="PackedScene" path="res://scenes/ui/AlbastyScareWindow.tscn" id="27_albasty_scare_window"]
+[ext_resource type="PackedScene" path="res://scenes/ui/IntroSplash.tscn" id="28_intro_splash"]
 
 [sub_resource type="Environment" id="Environment_room"]
 background_mode = 1
@@ -110,6 +116,9 @@ script = ExtResource("13_cloud_controller")
 
 [node name="SignalStateManager" type="Node" parent="."]
 script = ExtResource("21_signal_manager")
+
+[node name="YurtWindowVision" type="Node3D" parent="."]
+script = ExtResource("23_yurt_window_vision")
 
 [node name="OldBrokenYurt_Disabled" type="Node3D" parent="."]
 visible = false
@@ -324,14 +333,29 @@ transform = Transform3D(-1, 0, -0.0000000874228, 0, 1, 0, 0.0000000874228, 0, -1
 [node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtEntrance_TopCollision"]
 shape = SubResource("BoxShape3D_yurt_entrance_top_collision")
 
+[node name="SignalCenterStand" parent="." instance=ExtResource("26_signal_stand")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.76, 0, -1.62)
+
+[node name="SignalCenterGlow" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.18, 1.72, -0.72)
+light_color = Color(0.62, 0.92, 0.76, 1)
+light_energy = 0.76
+omni_range = 4.2
+
 [node name="InteractableTV" parent="." instance=ExtResource("2_tv")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0, 0, -1.2)
+transform = Transform3D(1.64, 0, 0, 0, 1.64, 0, 0, 0, 1.64, -1.93, 1.02, -1.55)
 
 [node name="RadioOnBox" parent="." instance=ExtResource("18_radio")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 0, -1.15)
+transform = Transform3D(1.06, 0, 0, 0, 1.06, 0, 0, 0, 1.06, -0.14, 1.62, -1.82)
 
 [node name="FloorHatch" parent="." instance=ExtResource("19_hatch")]
 transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, 2.65, 0.01, -1.45)
+
+[node name="CarpetCoverInteractable" parent="." instance=ExtResource("24_carpet_cover")]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, 2.65, 0.045, -1.45)
+
+[node name="Cockroach" parent="." instance=ExtResource("25_cockroach")]
+transform = Transform3D(0.766044, 0, -0.642788, 0, 1, 0, 0.642788, 0, 0.766044, 1.94, 0.075, -0.78)
 
 [node name="TemporarySignalDoor" parent="." instance=ExtResource("3_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -9.72)
@@ -378,5 +402,9 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_aim_dot")
 [node name="SignalDialogueWindow" parent="." instance=ExtResource("20_signal_dialogue")]
 
 [node name="CubeMemoryCutsceneUI" parent="." instance=ExtResource("10_cutscene_ui")]
+
+[node name="AlbastyScareWindow" parent="." instance=ExtResource("27_albasty_scare_window")]
+
+[node name="IntroSplash" parent="." instance=ExtResource("28_intro_splash")]
 
 [editable path="CleanYurt"]

@@ -10,6 +10,7 @@ class_name AlbastySpawner
 @export var max_alive: int = 1
 @export var spawn_on_ready: bool = true
 @export var repeat_spawn: bool = true
+@export var model_scale: float = 3.5
 
 var _timer := 0.0
 var _active_albasty: Node3D
@@ -68,6 +69,8 @@ func spawn_albasty() -> Node3D:
 
 	var model := albasty_model.instantiate()
 	model.name = "AlbastyModel"
+	if model is Node3D:
+		(model as Node3D).scale = Vector3.ONE * model_scale
 	albasty.add_child(model)
 
 	var detection_area := Area3D.new()
@@ -79,10 +82,10 @@ func spawn_albasty() -> Node3D:
 	var shape := CollisionShape3D.new()
 	shape.name = "CollisionShape3D"
 	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.75
-	capsule.height = 2.8
+	capsule.radius = 8.0
+	capsule.height = 12.0
 	shape.shape = capsule
-	shape.position = Vector3(0.0, 1.4, 0.0)
+	shape.position = Vector3(0.0, 5.0, 0.0)
 	detection_area.add_child(shape)
 
 	return albasty

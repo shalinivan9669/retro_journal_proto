@@ -1,0 +1,36 @@
+{
+  "notes": "Godot-ready TV channels. Copy assets/ into the project root. Use .ogv files with VideoStreamPlayer.",
+  "channels": [
+    {
+      "channel": 1,
+      "file": "res://assets/videos/tv/tv_ch01.ogv",
+      "title": "Baikonur 1960 catastrophe archive",
+      "source_uploaded_file": "Катастрофа на космодроме Байконур 1960.mp4"
+    },
+    {
+      "channel": 2,
+      "file": "res://assets/videos/tv/tv_ch02.ogv",
+      "title": "Semipalatinsk / Lake Chagan archive clip A",
+      "source_uploaded_file": "SOVIET ATOMIC BOMB & HYDROGEN BOMB TESTS SEMIPALATINSK TEST SITE LAKE CHAGAN XD30071 (online-video-cutter.com)(2).mp4"
+    },
+    {
+      "channel": 3,
+      "file": "res://assets/videos/tv/tv_ch03.ogv",
+      "title": "Semipalatinsk / Lake Chagan archive clip B",
+      "source_uploaded_file": "SOVIET ATOMIC BOMB & HYDROGEN BOMB TESTS SEMIPALATINSK TEST SITE LAKE CHAGAN XD30071 (online-video-cutter.com).mp4"
+    },
+    {
+      "channel": 4,
+      "file": "res://assets/videos/tv/tv_ch04.ogv",
+      "title": "Semipalatinsk / Lake Chagan archive clip C",
+      "source_uploaded_file": "SOVIET ATOMIC BOMB & HYDROGEN BOMB TESTS SEMIPALATINSK TEST SITE LAKE CHAGAN XD30071 (online-video-cutter.com)(1).mp4"
+    },
+    {
+      "channel": 5,
+      "file": "res://assets/videos/tv/tv_ch05.ogv",
+      "title": "First Soviet atomic bomb test 1949",
+      "source_uploaded_file": "First Soviet atomic bomb test (1949).mp4"
+    }
+  ],
+  "fallback": "res://assets/videos/tv/tv_static_fallback.ogv"
+}

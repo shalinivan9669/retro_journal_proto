@@ -2,6 +2,14 @@ extends StaticBody3D
 
 @export_multiline var dialogue_text: String = "Interactive television."
 
+@onready var video_screen: TVVideoScreen = get_node_or_null("TVVideoScreen")
+
+
+func _ready() -> void:
+	var manager := _get_signal_manager()
+	if manager != null:
+		_update_video(int(manager.call("get_tv_channel")), false)
+
 
 func interact(dialogue_ui: Node) -> void:
 	var manager := _get_signal_manager()
@@ -11,6 +19,7 @@ func interact(dialogue_ui: Node) -> void:
 
 	var current: int = int(manager.call("get_tv_channel"))
 	manager.call("set_tv_channel", current + 1)
+	_update_video(int(manager.call("get_tv_channel")), true)
 	_show_dialogue(dialogue_ui, String(manager.call("get_tv_status_text")))
 
 
@@ -35,3 +44,8 @@ func _get_signal_manager() -> Node:
 func _show_dialogue(dialogue_ui: Node, text: String) -> void:
 	if dialogue_ui != null and dialogue_ui.has_method("show_message"):
 		dialogue_ui.call("show_message", text)
+
+
+func _update_video(channel: int, flash_static: bool) -> void:
+	if video_screen != null:
+		video_screen.set_channel(channel, flash_static)

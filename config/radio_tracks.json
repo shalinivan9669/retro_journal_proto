@@ -1,0 +1,31 @@
+{
+  "notes": "Godot-ready radio music tracks. Copy assets/ into the project root. Use .ogg with AudioStreamPlayer3D.",
+  "tracks": [
+    {
+      "id": "custom_cinematic_violin",
+      "file": "res://assets/audio/radio/radio_custom_cinematic_violin.ogg",
+      "source_uploaded_file": "852565__beaconstudio__cinematic-violin_gm_80bpm_delay-reverb.wav",
+      "recommended_use": "short unsettling radio sting / one secret wave"
+    },
+    {
+      "id": "custom_ancient_ambient",
+      "file": "res://assets/audio/radio/radio_custom_ancient_ambient.ogg",
+      "source_uploaded_file": "samuelfjohanns-ancient-ambient-144655.mp3",
+      "recommended_use": "main radio music / hidden frequency"
+    },
+    {
+      "id": "custom_nurken_abdirov_13",
+      "file": "res://assets/audio/radio/radio_custom_nurken_abdirov_13.ogg",
+      "source_uploaded_file": "проспект Нуркена Абдирова 13.m4a",
+      "duration_seconds": 60.8,
+      "recommended_use": "clean converted radio track / spoken or field-recording style wave"
+    },
+    {
+      "id": "custom_nurken_abdirov_13_radio_lq",
+      "file": "res://assets/audio/radio/radio_custom_nurken_abdirov_13_radio_lq.ogg",
+      "source_uploaded_file": "проспект Нуркена Абдирова 13.m4a",
+      "duration_seconds": 60.78,
+      "recommended_use": "lo-fi radio processed version for distorted frequency"
+    }
+  ]
+}

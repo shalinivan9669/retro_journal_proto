@@ -91,17 +91,17 @@ func get_radio_status_text() -> String:
 		1:
 			return "RADIO FR 01\nБелый шум."
 		2:
-			return "RADIO FR 02\nВетер идёт через динамик."
+			return "RADIO FR 02\nСкрипка идёт через динамик слишком близко."
 		3:
-			return "RADIO FR 03\nЭлектрический гул держит дверь на краю."
+			return "RADIO FR 03\nНизкое радио с Нуркена Абдирова держит дверь на краю."
 		4:
 			return "RADIO FR 04\nКапли. Подземная влага."
 		5:
-			return "RADIO FR 05\nДалёкие голоса почти совпали."
+			return "RADIO FR 05\nДревний гул почти совпал."
 		6:
 			return "RADIO FR 06\nЧистый неприятный тон."
 		7:
-			return "RADIO FR 07\nСкрытая частота."
+			return "RADIO FR 07\nЧистая запись проступает сквозь скрытую частоту."
 		8:
 			return "RADIO FR 08\nСигнал идёт из-под пола."
 		9:

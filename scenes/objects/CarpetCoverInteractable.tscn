@@ -1,0 +1,59 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/carpet_cover_interactable.gd" id="1_cover"]
+[ext_resource type="Material" path="res://materials/yurt_floor/mat_yurt_center_red_felt.tres" id="2_red_felt"]
+[ext_resource type="Material" path="res://materials/yurt_floor/mat_yurt_base_felt.tres" id="3_base_felt"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_cover"]
+size = Vector3(2.45, 0.035, 1.72)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tension"]
+size = Vector3(1.66, 0.06, 1.03)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wrinkle_long"]
+size = Vector3(1.52, 0.035, 0.075)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wrinkle_short"]
+size = Vector3(0.62, 0.03, 0.07)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cover"]
+size = Vector3(2.55, 0.18, 1.82)
+
+[node name="CarpetCoverInteractable" type="StaticBody3D"]
+script = ExtResource("1_cover")
+
+[node name="CoverVisual" type="Node3D" parent="."]
+
+[node name="MainFelt" type="MeshInstance3D" parent="CoverVisual"]
+transform = Transform3D(0.99863, 0, -0.052336, 0, 1, 0, 0.052336, 0, 0.99863, 0, 0.052, 0)
+mesh = SubResource("BoxMesh_cover")
+surface_material_override/0 = ExtResource("2_red_felt")
+
+[node name="HiddenHatchTension" type="MeshInstance3D" parent="CoverVisual"]
+transform = Transform3D(0.984808, 0, 0.173648, 0, 1, 0, -0.173648, 0, 0.984808, 0.04, 0.086, -0.02)
+mesh = SubResource("BoxMesh_tension")
+surface_material_override/0 = ExtResource("3_base_felt")
+
+[node name="WrinkleNorth" type="MeshInstance3D" parent="CoverVisual"]
+transform = Transform3D(0.978148, 0.0189234, -0.207055, 0, 0.995853, 0.0909475, 0.207912, -0.0889598, 0.974093, -0.12, 0.12, -0.55)
+mesh = SubResource("BoxMesh_wrinkle_long")
+surface_material_override/0 = ExtResource("2_red_felt")
+
+[node name="WrinkleSouth" type="MeshInstance3D" parent="CoverVisual"]
+transform = Transform3D(0.965926, -0.0235585, 0.257743, 0, 0.995851, 0.090979, -0.258819, -0.0878788, 0.961918, 0.18, 0.118, 0.54)
+mesh = SubResource("BoxMesh_wrinkle_long")
+surface_material_override/0 = ExtResource("2_red_felt")
+
+[node name="WrinkleWest" type="MeshInstance3D" parent="CoverVisual"]
+transform = Transform3D(0.642788, 0, -0.766044, 0, 1, 0, 0.766044, 0, 0.642788, -0.78, 0.113, 0.1)
+mesh = SubResource("BoxMesh_wrinkle_short")
+surface_material_override/0 = ExtResource("3_base_felt")
+
+[node name="WrinkleEast" type="MeshInstance3D" parent="CoverVisual"]
+transform = Transform3D(0.34202, 0, 0.939693, 0, 1, 0, -0.939693, 0, 0.34202, 0.82, 0.11, -0.18)
+mesh = SubResource("BoxMesh_wrinkle_short")
+surface_material_override/0 = ExtResource("3_base_felt")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.095, 0)
+shape = SubResource("BoxShape3D_cover")

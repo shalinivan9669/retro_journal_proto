@@ -1,0 +1,46 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/intro_splash.gd" id="1_intro_splash"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_black"]
+bg_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_intro"]
+font_size = 82
+line_spacing = 20.0
+font_color = Color(1, 1, 1, 1)
+
+[node name="IntroSplash" type="CanvasLayer"]
+layer = 120
+script = ExtResource("1_intro_splash")
+
+[node name="BlackBackground" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 0.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_black")
+
+[node name="TextMargin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 80.0
+offset_top = 80.0
+offset_right = -80.0
+offset_bottom = -80.0
+mouse_filter = 2
+
+[node name="IntroLabel" type="Label" parent="TextMargin"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+text = "ЧЕЛОВЕК ПРИЕХАЛ ИСПОЛЬЗОВАТЬ ЗЕМЛЮ\nА ЗЕМЛЯ ЗАСТАВИЛА ЕГО СМОТРЕТЬ"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 0
+label_settings = SubResource("LabelSettings_intro")

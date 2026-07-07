@@ -9,10 +9,11 @@ signal scared_away
 @export var move_speed: float = 0.85
 @export var turn_speed: float = 3.0
 @export var stop_distance: float = 1.8
-@export var scare_distance: float = 12.0
+@export var scare_distance: float = 58.0
+@export var easy_interaction_distance: float = 58.0
 @export var retreat_speed: float = 4.5
 @export var retreat_duration: float = 2.0
-@export var auto_repel_distance: float = 3.0
+@export var auto_repel_distance: float = 8.0
 
 var _target: Node3D
 var _player: Node3D
@@ -64,7 +65,8 @@ func interact(_dialogue_ui: Node = null) -> void:
 		_player = get_tree().get_first_node_in_group("player") as Node3D
 	if _player == null:
 		return
-	if global_position.distance_to(_player.global_position) > scare_distance:
+	var allowed_distance: float = maxf(scare_distance, easy_interaction_distance)
+	if global_position.distance_to(_player.global_position) > allowed_distance:
 		return
 	scare_away(_player)
 
@@ -81,6 +83,7 @@ func scare_away(source: Node3D) -> void:
 	_retreat_timer = retreat_duration
 	_state = "scared"
 	scared_away.emit()
+	_show_scare_window()
 	print("Albasty scared away")
 
 
@@ -112,3 +115,9 @@ func _slow_look_at(world_target: Vector3, delta: float) -> void:
 		return
 	var desired_yaw := atan2(direction.x, direction.z)
 	rotation.y = lerp_angle(rotation.y, desired_yaw, clamp(turn_speed * delta, 0.0, 1.0))
+
+
+func _show_scare_window() -> void:
+	var scare_window := get_tree().get_first_node_in_group("albasty_scare_window")
+	if scare_window != null and scare_window.has_method("show_667"):
+		scare_window.call("show_667")

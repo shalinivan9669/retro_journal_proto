@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=35 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/objects/InteractableTV.tscn" id="2_tv"]
@@ -13,6 +13,10 @@
 [ext_resource type="Material" path="res://materials/mat_memory_painting.tres" id="11_memory_mat"]
 [ext_resource type="Script" path="res://scripts/steppe_environment_builder.gd" id="12_steppe_builder"]
 [ext_resource type="Script" path="res://scripts/sky_clouds_controller.gd" id="13_cloud_controller"]
+[ext_resource type="PackedScene" path="res://assets/models/yurt/clean_lowpoly_yurt_with_open_shanyrak.glb" id="14_clean_yurt"]
+[ext_resource type="Material" path="res://materials/mat_yurt_wall.tres" id="15_yurt_wall"]
+[ext_resource type="Material" path="res://materials/mat_yurt_roof.tres" id="16_yurt_roof"]
+[ext_resource type="Material" path="res://materials/mat_yurt_wood_dark.tres" id="17_yurt_wood"]
 
 [sub_resource type="Environment" id="Environment_room"]
 background_mode = 1
@@ -67,6 +71,18 @@ corner_radius_bottom_left = 4
 [sub_resource type="BoxMesh" id="BoxMesh_memory_painting"]
 size = Vector3(3.4, 2.8, 0.06)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_yurt_floor_collision"]
+size = Vector3(20, 0.08, 20)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_yurt_wall_collision"]
+size = Vector3(7.75, 4.7, 0.34)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_yurt_entrance_side_collision"]
+size = Vector3(1.95, 4.7, 0.34)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_yurt_entrance_top_collision"]
+size = Vector3(4.4, 1.6, 0.34)
+
 [node name="Main" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -89,8 +105,211 @@ script = ExtResource("13_cloud_controller")
 cloud_dark_path = NodePath("../SteppeEnvironment/CloudLayerDarkAshRed")
 cloud_rose_path = NodePath("../SteppeEnvironment/CloudLayerRoseAshRed")
 
-[node name="Room" type="Node3D" parent="."]
-script = ExtResource("9_yurt_builder")
+[node name="OldBrokenYurt_Disabled" type="Node3D" parent="."]
+visible = false
+
+[node name="CleanYurt" parent="." instance=ExtResource("14_clean_yurt")]
+transform = Transform3D(-1, 0, -0.0000000874228, 0, 1, 0, 0.0000000874228, 0, -1, 0, 0, 0)
+
+[node name="YurtOctagonFloor" parent="CleanYurt/world" index="0"]
+surface_material_override/0 = ExtResource("15_yurt_wall")
+
+[node name="YurtWall_Entrance_LeftJamb" parent="CleanYurt/world" index="1"]
+surface_material_override/0 = ExtResource("15_yurt_wall")
+
+[node name="YurtWall_Entrance_RightJamb" parent="CleanYurt/world" index="2"]
+surface_material_override/0 = ExtResource("15_yurt_wall")
+
+[node name="YurtWall_Entrance_TopLintel" parent="CleanYurt/world" index="3"]
+surface_material_override/0 = ExtResource("15_yurt_wall")
+
+[node name="YurtWall_01" parent="CleanYurt/world" index="4"]
+surface_material_override/0 = ExtResource("15_yurt_wall")
+
+[node name="YurtWall_02" parent="CleanYurt/world" index="5"]
+surface_material_override/0 = ExtResource("15_yurt_wall")
+
+[node name="YurtWall_03" parent="CleanYurt/world" index="6"]
+surface_material_override/0 = ExtResource("15_yurt_wall")
+
+[node name="YurtWall_04" parent="CleanYurt/world" index="7"]
+surface_material_override/0 = ExtResource("15_yurt_wall")
+
+[node name="YurtWall_05" parent="CleanYurt/world" index="8"]
+surface_material_override/0 = ExtResource("15_yurt_wall")
+
+[node name="YurtWall_06" parent="CleanYurt/world" index="9"]
+surface_material_override/0 = ExtResource("15_yurt_wall")
+
+[node name="YurtWall_07" parent="CleanYurt/world" index="10"]
+surface_material_override/0 = ExtResource("15_yurt_wall")
+
+[node name="YurtRoofSegment_00" parent="CleanYurt/world" index="11"]
+surface_material_override/0 = ExtResource("16_yurt_roof")
+
+[node name="YurtRoofSegment_01" parent="CleanYurt/world" index="12"]
+surface_material_override/0 = ExtResource("16_yurt_roof")
+
+[node name="YurtRoofSegment_02" parent="CleanYurt/world" index="13"]
+surface_material_override/0 = ExtResource("16_yurt_roof")
+
+[node name="YurtRoofSegment_03" parent="CleanYurt/world" index="14"]
+surface_material_override/0 = ExtResource("16_yurt_roof")
+
+[node name="YurtRoofSegment_04" parent="CleanYurt/world" index="15"]
+surface_material_override/0 = ExtResource("16_yurt_roof")
+
+[node name="YurtRoofSegment_05" parent="CleanYurt/world" index="16"]
+surface_material_override/0 = ExtResource("16_yurt_roof")
+
+[node name="YurtRoofSegment_06" parent="CleanYurt/world" index="17"]
+surface_material_override/0 = ExtResource("16_yurt_roof")
+
+[node name="YurtRoofSegment_07" parent="CleanYurt/world" index="18"]
+surface_material_override/0 = ExtResource("16_yurt_roof")
+
+[node name="LargeOpenShanyrakRing" parent="CleanYurt/world" index="19"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="RoofRadialBeam_00" parent="CleanYurt/world" index="20"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="RoofRadialBeam_01" parent="CleanYurt/world" index="21"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="RoofRadialBeam_02" parent="CleanYurt/world" index="22"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="RoofRadialBeam_03" parent="CleanYurt/world" index="23"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="RoofRadialBeam_04" parent="CleanYurt/world" index="24"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="RoofRadialBeam_05" parent="CleanYurt/world" index="25"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="RoofRadialBeam_06" parent="CleanYurt/world" index="26"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="RoofRadialBeam_07" parent="CleanYurt/world" index="27"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="ShanyrakCrossbar_00" parent="CleanYurt/world" index="28"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="ShanyrakCrossbar_04" parent="CleanYurt/world" index="29"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="ShanyrakCrossbar_08" parent="CleanYurt/world" index="30"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="ShanyrakCrossbar_12" parent="CleanYurt/world" index="31"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="ShanyrakCrossbar_16" parent="CleanYurt/world" index="32"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="ShanyrakCrossbar_20" parent="CleanYurt/world" index="33"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="ShanyrakCrossbar_24" parent="CleanYurt/world" index="34"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="ShanyrakCrossbar_28" parent="CleanYurt/world" index="35"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="TopWallBelt_00" parent="CleanYurt/world" index="36"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="TopWallBelt_01" parent="CleanYurt/world" index="37"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="TopWallBelt_02" parent="CleanYurt/world" index="38"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="TopWallBelt_03" parent="CleanYurt/world" index="39"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="TopWallBelt_04" parent="CleanYurt/world" index="40"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="TopWallBelt_05" parent="CleanYurt/world" index="41"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="TopWallBelt_06" parent="CleanYurt/world" index="42"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="TopWallBelt_07" parent="CleanYurt/world" index="43"]
+surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="YurtCollision" type="Node3D" parent="."]
+
+[node name="YurtFloorCollision" type="StaticBody3D" parent="YurtCollision"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtFloorCollision"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.04, 0)
+shape = SubResource("BoxShape3D_yurt_floor_collision")
+
+[node name="YurtWallCollision_01" type="StaticBody3D" parent="YurtCollision"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.35, 9.24)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtWallCollision_01"]
+shape = SubResource("BoxShape3D_yurt_wall_collision")
+
+[node name="YurtWallCollision_02" type="StaticBody3D" parent="YurtCollision"]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, -6.53, 2.35, 6.53)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtWallCollision_02"]
+shape = SubResource("BoxShape3D_yurt_wall_collision")
+
+[node name="YurtWallCollision_03" type="StaticBody3D" parent="YurtCollision"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -9.24, 2.35, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtWallCollision_03"]
+shape = SubResource("BoxShape3D_yurt_wall_collision")
+
+[node name="YurtWallCollision_04" type="StaticBody3D" parent="YurtCollision"]
+transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, -6.53, 2.35, -6.53)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtWallCollision_04"]
+shape = SubResource("BoxShape3D_yurt_wall_collision")
+
+[node name="YurtWallCollision_05" type="StaticBody3D" parent="YurtCollision"]
+transform = Transform3D(-1, 0, -0.0000000874228, 0, 1, 0, 0.0000000874228, 0, -1, 0, 2.35, -9.24)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtWallCollision_05"]
+shape = SubResource("BoxShape3D_yurt_wall_collision")
+
+[node name="YurtWallCollision_06" type="StaticBody3D" parent="YurtCollision"]
+transform = Transform3D(-0.707107, 0, 0.707107, 0, 1, 0, -0.707107, 0, -0.707107, 6.53, 2.35, -6.53)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtWallCollision_06"]
+shape = SubResource("BoxShape3D_yurt_wall_collision")
+
+[node name="YurtWallCollision_07" type="StaticBody3D" parent="YurtCollision"]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 9.24, 2.35, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtWallCollision_07"]
+shape = SubResource("BoxShape3D_yurt_wall_collision")
+
+[node name="YurtEntrance_LeftCollision" type="StaticBody3D" parent="YurtCollision"]
+transform = Transform3D(-1, 0, -0.0000000874228, 0, 1, 0, 0.0000000874228, 0, -1, -3.18, 2.35, -9.24)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtEntrance_LeftCollision"]
+shape = SubResource("BoxShape3D_yurt_entrance_side_collision")
+
+[node name="YurtEntrance_RightCollision" type="StaticBody3D" parent="YurtCollision"]
+transform = Transform3D(-1, 0, -0.0000000874228, 0, 1, 0, 0.0000000874228, 0, -1, 3.18, 2.35, -9.24)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtEntrance_RightCollision"]
+shape = SubResource("BoxShape3D_yurt_entrance_side_collision")
+
+[node name="YurtEntrance_TopCollision" type="StaticBody3D" parent="YurtCollision"]
+transform = Transform3D(-1, 0, -0.0000000874228, 0, 1, 0, 0.0000000874228, 0, -1, 0, 3.8, -9.24)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtEntrance_TopCollision"]
+shape = SubResource("BoxShape3D_yurt_entrance_top_collision")
 
 [node name="InteractableTV" parent="." instance=ExtResource("2_tv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0, 0, -1.2)
@@ -137,3 +356,5 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_aim_dot")
 [node name="DialogueUI" parent="." instance=ExtResource("4_dialogue")]
 
 [node name="CubeMemoryCutsceneUI" parent="." instance=ExtResource("10_cutscene_ui")]
+
+[editable path="CleanYurt"]

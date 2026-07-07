@@ -1,0 +1,77 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/powerline_pasture_controller.gd" id="2_pasture_controller"]
+[ext_resource type="Script" path="res://scripts/procedural_horse_builder.gd" id="3_horse_builder"]
+[ext_resource type="Script" path="res://scripts/horse_guard_zone.gd" id="4_horse_zone"]
+[ext_resource type="Script" path="res://scripts/albasty_spawner.gd" id="5_albasty_spawner"]
+
+[sub_resource type="Environment" id="Environment_powerline_pasture"]
+background_mode = 1
+background_color = Color(0.42, 0.37, 0.29, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.55, 0.48, 0.4, 1)
+ambient_light_energy = 0.65
+fog_enabled = true
+fog_light_color = Color(0.47, 0.42, 0.36, 1)
+fog_density = 0.006
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_horse_guard_zone"]
+size = Vector3(16, 4, 16)
+
+[node name="PowerlinePasture" type="Node3D"]
+script = ExtResource("2_pasture_controller")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_powerline_pasture")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.819152, -0.286788, 0.496732, 0, 0.866025, 0.5, -0.573576, -0.409576, 0.709406, 0, 10, 0)
+light_energy = 1.35
+
+[node name="Player" parent="." instance=ExtResource("1_player") groups=["player"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+
+[node name="Horses" type="Node3D" parent="."]
+
+[node name="Horse_01" type="Node3D" parent="Horses"]
+transform = Transform3D(0.965926, 0, 0.258819, 0, 1, 0, -0.258819, 0, 0.965926, -3.2, 0, -8.3)
+script = ExtResource("3_horse_builder")
+coat_color = Color(0.08, 0.045, 0.027, 1)
+
+[node name="Horse_02" type="Node3D" parent="Horses"]
+transform = Transform3D(0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866025, -0.8, 0, -6.1)
+script = ExtResource("3_horse_builder")
+coat_color = Color(0.12, 0.07, 0.04, 1)
+
+[node name="Horse_03" type="Node3D" parent="Horses"]
+transform = Transform3D(0.939693, 0, 0.34202, 0, 1, 0, -0.34202, 0, 0.939693, 2.1, 0, -8.8)
+script = ExtResource("3_horse_builder")
+coat_color = Color(0.035, 0.028, 0.024, 1)
+
+[node name="Horse_04" type="Node3D" parent="Horses"]
+transform = Transform3D(0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, 4.1, 0, -5.9)
+script = ExtResource("3_horse_builder")
+coat_color = Color(0.1, 0.055, 0.035, 1)
+
+[node name="HorseGuardZone" type="Area3D" parent="." groups=["horses"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -7.4)
+script = ExtResource("4_horse_zone")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HorseGuardZone"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+shape = SubResource("BoxShape3D_horse_guard_zone")
+
+[node name="AlbastySpawnPoint" type="Marker3D" parent="." groups=["albasty_spawn_points"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -34)
+
+[node name="AlbastySpawner" type="Node3D" parent="."]
+script = ExtResource("5_albasty_spawner")
+spawn_point_path = NodePath("../AlbastySpawnPoint")
+target_path = NodePath("../HorseGuardZone")
+player_path = NodePath("../Player")
+spawn_delay = 2.0
+respawn_delay = 35.0
+max_alive = 1
+spawn_on_ready = true
+repeat_spawn = true

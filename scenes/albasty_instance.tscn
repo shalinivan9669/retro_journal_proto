@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/albasty_controller.gd" id="1_controller"]
+[ext_resource type="PackedScene" path="res://assets/models/albasty_lowpoly.glb" id="2_model"]
+
+[node name="AlbastyInstance" type="Node3D"]
+script = ExtResource("1_controller")
+move_speed = 1.15
+horse_danger_radius = 7.5
+vanish_if_player_farther_than = 60.0
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)

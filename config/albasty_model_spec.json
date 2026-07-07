@@ -1,0 +1,44 @@
+{
+  "asset_name": "Albasty Low-Poly",
+  "version": "0.1.0",
+  "intended_engine": "Godot 4.x",
+  "model_generator": "blender_scripts/create_albasty_lowpoly.py",
+  "output_model": "assets/models/albasty_lowpoly.glb",
+  "scale": {
+    "unit": "meters",
+    "height": 2.8,
+    "origin": "bottom_center"
+  },
+  "visual": {
+    "style": "clean low-poly, large readable facets, no photoreal noise",
+    "pose": "hunched, head lower than shoulders, body leaning forward",
+    "silhouette": "tall female/yeti-like steppe spirit with hair-cloak",
+    "face": "beautiful pale female face partly hidden by black hair",
+    "arms": "very long disproportionate arms, hands almost to knees, long claw fingers",
+    "hair": "black branch/root-like hair forming cloak",
+    "clothes": "triangular feather/leaf/rag panels",
+    "accessories": [
+      "golden diadem",
+      "dangling head ornaments",
+      "chest amulets",
+      "red threads",
+      "turquoise beads",
+      "bone charms"
+    ]
+  },
+  "materials": {
+    "hair_black": "near black",
+    "cloak_dark": "charcoal and dead grass brown",
+    "skin": "pale ash clay",
+    "gold": "old muted gold",
+    "turquoise": "dark turquoise",
+    "red_thread": "deep red"
+  },
+  "gameplay": {
+    "spawn_context": "rare appearance near powerline towers in steppe",
+    "target_group": "horses",
+    "player_goal": "prevent Albasty from reaching horses",
+    "movement": "slow stalking, not sprinting",
+    "failure_condition": "Albasty enters horse guard radius"
+  }
+}

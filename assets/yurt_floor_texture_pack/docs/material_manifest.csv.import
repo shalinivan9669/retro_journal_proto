@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://boauchvym25ll"
+
+[deps]
+
+files=["res://assets/yurt_floor_texture_pack/docs/material_manifest.prepared.translation", "res://assets/yurt_floor_texture_pack/docs/material_manifest.original.translation", "res://assets/yurt_floor_texture_pack/docs/material_manifest.note.translation"]
+
+source_file="res://assets/yurt_floor_texture_pack/docs/material_manifest.csv"
+dest_files=["res://assets/yurt_floor_texture_pack/docs/material_manifest.prepared.translation", "res://assets/yurt_floor_texture_pack/docs/material_manifest.original.translation", "res://assets/yurt_floor_texture_pack/docs/material_manifest.note.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

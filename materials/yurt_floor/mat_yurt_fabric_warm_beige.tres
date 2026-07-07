@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" load_steps=3 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/yurt_floor_texture_pack/textures/A_blue_fabric/derived/fabric_warm_beige_albedo.png" id="1_albedo"]
+[ext_resource type="Texture2D" path="res://assets/yurt_floor_texture_pack/textures/A_blue_fabric/roughness_or_ao_preview.jpg" id="2_roughness"]
+
+[resource]
+albedo_texture = ExtResource("1_albedo")
+albedo_color = Color(0.96, 0.88, 0.74, 1)
+metallic = 0.0
+metallic_specular = 0.16
+roughness = 0.9
+roughness_texture = ExtResource("2_roughness")
+texture_repeat = 1
+cull_mode = 2
+uv1_scale = Vector3(2.35, 2.35, 1)

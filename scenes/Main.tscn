@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3]
+[gd_scene load_steps=40 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/objects/InteractableTV.tscn" id="2_tv"]
@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" path="res://scenes/objects/FloorHatch.tscn" id="19_hatch"]
 [ext_resource type="PackedScene" path="res://scenes/ui/SignalDialogueWindow.tscn" id="20_signal_dialogue"]
 [ext_resource type="Script" path="res://scripts/signal_state_manager.gd" id="21_signal_manager"]
+[ext_resource type="PackedScene" path="res://scenes/yurt/YurtFloorRich.tscn" id="22_yurt_floor"]
 
 [sub_resource type="Environment" id="Environment_room"]
 background_mode = 1
@@ -117,6 +118,7 @@ visible = false
 transform = Transform3D(-1, 0, -0.0000000874228, 0, 1, 0, 0.0000000874228, 0, -1, 0, 0, 0)
 
 [node name="YurtOctagonFloor" parent="CleanYurt/world" index="0"]
+visible = false
 surface_material_override/0 = ExtResource("15_yurt_wall")
 
 [node name="YurtWall_Entrance_LeftJamb" parent="CleanYurt/world" index="1"]
@@ -247,6 +249,11 @@ surface_material_override/0 = ExtResource("17_yurt_wood")
 
 [node name="TopWallBelt_07" parent="CleanYurt/world" index="43"]
 surface_material_override/0 = ExtResource("17_yurt_wood")
+
+[node name="YurtFloorRich" parent="." instance=ExtResource("22_yurt_floor")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, 0)
+floor_radius = 9.35
+mat_count = 11
 
 [node name="YurtCollision" type="Node3D" parent="."]
 

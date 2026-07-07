@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/yurt/YurtFloorGenerator.gd" id="1_generator"]
+
+[node name="YurtFloorRoot" type="Node3D"]
+script = ExtResource("1_generator")
+floor_radius = 9.35
+mat_count = 11
+random_seed = 1947
+edge_irregularity = 0.055
+wave_strength = 0.018

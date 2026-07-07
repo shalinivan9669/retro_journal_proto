@@ -1,0 +1,25 @@
+set,prepared_name,original_file,note
+A_blue_fabric,basecolor_preview.jpg,e314361d-bbf7-559d-bb76-43a7353ee019.jpg,Blue woven fabric / denim-like textile set. Best used as a small accent mat or recolored into warm tones.
+A_blue_fabric,height_or_displacement_preview.png,9fe28483-9a75-509d-9879-07318e42f7eb.png,Blue woven fabric / denim-like textile set. Best used as a small accent mat or recolored into warm tones.
+A_blue_fabric,roughness_or_ao_preview.jpg,7aee14d5-bce4-5057-a591-f6455cbca0ec.jpg,Blue woven fabric / denim-like textile set. Best used as a small accent mat or recolored into warm tones.
+A_blue_fabric,additional_map.exr,fac77633-8a37-5bd4-9881-e706248542f3.exr,Blue woven fabric / denim-like textile set. Best used as a small accent mat or recolored into warm tones.
+B_ornamental_pattern,woven_diagonal_support.png,042c043d-188e-53ff-8697-ea39fe750fd3.png,Ornamental repeating pattern set. Good candidate for the main decorative carpet field or border strips.
+B_ornamental_pattern,pattern_light_preview.png,22cbeec4-2d7b-56a5-b16b-2da6ea0621a1.png,Ornamental repeating pattern set. Good candidate for the main decorative carpet field or border strips.
+B_ornamental_pattern,flat_red_basecolor.jpg,9d53b19c-3e91-5b6d-9648-69a88a6293bf.jpg,Ornamental repeating pattern set. Good candidate for the main decorative carpet field or border strips.
+B_ornamental_pattern,pattern_dark_preview.png,85af205d-eaf5-5982-bff1-f712165d44ae.png,Ornamental repeating pattern set. Good candidate for the main decorative carpet field or border strips.
+B_ornamental_pattern,pattern_mid_preview.png,2ccef9c8-9355-5224-8159-b50b6840c6da.png,Ornamental repeating pattern set. Good candidate for the main decorative carpet field or border strips.
+B_ornamental_pattern,map_01.exr,85581e84-7166-5b2f-80a5-aa0e12c9ab87.exr,Ornamental repeating pattern set. Good candidate for the main decorative carpet field or border strips.
+B_ornamental_pattern,map_02.exr,adcb3cb4-4c21-5869-aa54-087b908c8c33.exr,Ornamental repeating pattern set. Good candidate for the main decorative carpet field or border strips.
+B_ornamental_pattern,map_03.exr,97ece2e3-ae3c-5a7b-8767-7571d1b464f8.exr,Ornamental repeating pattern set. Good candidate for the main decorative carpet field or border strips.
+C_felt_pile,subtle_detail_preview.png,b5f9b179-0703-5b7a-aaac-7655d1d5e725.png,Felt / wool / pile-like material set. Good as base underlay and central red carpet layer.
+C_felt_pile,gray_felt_basecolor.jpg,698b2554-b565-502e-a884-76124d0423f2.png,Felt / wool / pile-like material set. Good as base underlay and central red carpet layer.
+C_felt_pile,red_felt_basecolor.jpg,64287b15-b257-5587-91ca-1fe795bf99bb.jpg,Felt / wool / pile-like material set. Good as base underlay and central red carpet layer.
+C_felt_pile,pile_height_or_detail.png,d18667ec-e14d-552d-8b19-43694ba15107.png,Felt / wool / pile-like material set. Good as base underlay and central red carpet layer.
+C_felt_pile,soft_roughness_or_ao.png,fceb3c8e-7153-5e75-b9d5-0f39a49e5c88.png,Felt / wool / pile-like material set. Good as base underlay and central red carpet layer.
+C_felt_pile,map_01.exr,b3f77e53-f5c3-5ddc-9555-cd8bc1f6156b.exr,Felt / wool / pile-like material set. Good as base underlay and central red carpet layer.
+C_felt_pile,map_02.exr,ef28b446-09aa-56bc-818c-e817581702da.exr,Felt / wool / pile-like material set. Good as base underlay and central red carpet layer.
+C_felt_pile,map_03.exr,f3583fd5-14a8-595e-81aa-2ac57eb3292d.exr,Felt / wool / pile-like material set. Good as base underlay and central red carpet layer.
+D_checkered,checkered_basecolor.png,3a1f4eb8-8674-55fd-8abe-474f06dac5f3.png,"Red-white checkered woven fabric. Best as small seating mats, folded cloth, or accent strips instead of the whole floor."
+D_checkered,checkered_detail_or_roughness.jpg,34048e02-06f3-5381-805e-4fb7e3ccc901.jpg,"Red-white checkered woven fabric. Best as small seating mats, folded cloth, or accent strips instead of the whole floor."
+D_checkered,checkered_map.exr,ef921054-62ac-55d1-bd4b-20c46b173ce6.exr,"Red-white checkered woven fabric. Best as small seating mats, folded cloth, or accent strips instead of the whole floor."
+D_checkered,fabric_pattern_07_1k.blend,fabric_pattern_07_1k.blend,"Red-white checkered woven fabric. Best as small seating mats, folded cloth, or accent strips instead of the whole floor."

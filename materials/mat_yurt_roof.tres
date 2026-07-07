@@ -4,3 +4,4 @@
 albedo_color = Color(0.32, 0.12, 0.1, 1)
 metallic = 0.0
 roughness = 0.94
+cull_mode = 2

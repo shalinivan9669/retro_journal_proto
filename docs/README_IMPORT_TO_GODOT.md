@@ -1,45 +1,43 @@
-# Godot Steppe + Sky Complete Asset Pack
+# Godot Steppe + Sky Asset Notes
 
-Скопируй папку `assets/` и `scripts/` в корень проекта:
+Copy/import assets into:
 
 `C:\GameDev\retro_journal_proto\`
 
-После копирования в Godot пути будут такими:
-
 ## Sky / Clouds
-- `res://assets/textures/sky/sky_mud_road_puresky_1k.exr` — основная HDRI/EXR текстура неба.
-- `res://assets/textures/sky/sky_mud_road_puresky_1k_tonemap.png` — PNG fallback/preview, если EXR неудобно быстро тестить.
-- `res://assets/textures/sky/cloud_dark_ash_red_alpha.png` — тёмное пепельно-красное облако с альфой.
-- `res://assets/textures/sky/cloud_rose_ash_red_alpha.png` — розово-пепельное облако с альфой.
+
+- `res://assets/textures/sky/sky_mud_road_puresky_1k.exr` is the base sky texture.
+- `res://assets/textures/sky/sky_mud_road_puresky_1k_tonemap.png` is only a preview/fallback and is not used as a cloud.
+- Cleaned transparent cloud PNGs in `res://assets/textures/sky/clouds_runtime_clean/` are loaded at runtime by `res://scripts/sky_clouds_controller.gd`.
+- Source cloud PNGs in `res://assets/textures/sky/` are kept for reference and should not be rendered directly if they contain baked-in checkerboard backgrounds.
+- Files with `checkerboard`, `source`, or `tonemap` in the name are ignored by the cloud scanner.
+- Runtime layers are `SkyClouds/FAR_CLOUDS`, `SkyClouds/MID_CLOUDS`, and `SkyClouds/ACCENT_CLOUDS`.
+
+See `res://docs/SKY_CLOUDS_SETUP.md` for the current cloud list and tuning notes.
 
 ## Ground
-- `res://assets/textures/ground/tex_steppe_dry_ground_1024.png` — сухая степная земля.
-- `res://assets/textures/ground/tex_steppe_dry_ground_dark_1024.png` — более тёмная версия.
-- `res://assets/textures/ground/tex_steppe_detail_mask_1024.png` — маска/шум для вариации.
+
+- `res://assets/textures/ground/tex_steppe_dry_ground_1024.png`
+- `res://assets/textures/ground/tex_steppe_dry_ground_dark_1024.png`
+- `res://assets/textures/ground/tex_steppe_detail_mask_1024.png`
 
 ## Models
-- `res://assets/models/flowers/low_poly_flowers_uploaded.glb` — твой загруженный цветочный пак.
-- `res://assets/models/flowers/flowers_uploaded.glb` — второй загруженный цветочный пак.
-- `res://assets/models/props/lowpoly_power_pylon_no_wires.glb` — простая ЛЭП без проводов.
-- `res://assets/models/vegetation_fallback/fallback_grass_patch.glb` — запасная трава.
-- `res://assets/models/vegetation_fallback/fallback_flower_red.glb` — запасной красный цветок.
-- `res://assets/models/vegetation_fallback/fallback_flower_white.glb` — запасной белый цветок.
-- `res://assets/models/vegetation_fallback/fallback_flower_yellow.glb` — запасной жёлтый цветок.
 
-## Script
-- `res://scripts/sky_clouds_controller.gd` — простой контроллер движения облачных слоёв.
+- `res://assets/models/flowers/low_poly_flowers_uploaded.glb`
+- `res://assets/models/flowers/flowers_uploaded.glb`
+- `res://assets/models/props/lowpoly_power_pylon_no_wires.glb`
+- `res://assets/models/vegetation_fallback/fallback_grass_patch.glb`
+- `res://assets/models/vegetation_fallback/fallback_flower_red.glb`
+- `res://assets/models/vegetation_fallback/fallback_flower_white.glb`
+- `res://assets/models/vegetation_fallback/fallback_flower_yellow.glb`
 
-## Как использовать небо
-1. Создай `SkyDome` как огромный SphereMesh вокруг сцены, без коллизии.
-2. Материал: unshaded, видимый изнутри, texture = `sky_mud_road_puresky_1k.exr`.
-3. Добавь 2 больших PlaneMesh/QuadMesh слоя высоко в небе:
-   - `CloudLayerDarkAshRed` с `cloud_dark_ash_red_alpha.png`.
-   - `CloudLayerRoseAshRed` с `cloud_rose_ash_red_alpha.png`.
-4. Материал облаков: unshaded + transparency alpha + cull disabled.
-5. На Main.tscn добавь `SkyCloudsController` со скриптом `sky_clouds_controller.gd`.
+## Scripts
 
-## Важно
-- SkyDome и CloudLayer не должны иметь коллизии.
-- Цветы размещать пятнами, не сеткой.
-- ЛЭП ставить в 70–120 метрах от выхода юрты.
-- Туман нужен, чтобы скрыть край карты.
+- `res://scripts/steppe_environment_builder.gd` builds the ground, sky dome, power pylon, and vegetation.
+- `res://scripts/sky_clouds_controller.gd` builds and animates the dynamic cloud field.
+
+## Notes
+
+- SkyDome and cloud planes should not have collision.
+- Cloud materials are created unshaded, transparent, cull-disabled, and shadowless.
+- The cloud field follows the player on X/Z and wraps individual clouds inside the field.

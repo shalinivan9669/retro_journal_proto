@@ -1,0 +1,78 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/radio_interactable.gd" id="1_radio"]
+[ext_resource type="Material" path="res://materials/mat_radio_body.tres" id="2_body"]
+[ext_resource type="Material" path="res://materials/mat_radio_knob.tres" id="3_knob"]
+[ext_resource type="Material" path="res://materials/mat_radio_display.tres" id="4_display"]
+[ext_resource type="Material" path="res://materials/mat_radio_box.tres" id="5_box"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_stand"]
+size = Vector3(1.25, 0.64, 0.78)
+
+[sub_resource type="BoxMesh" id="BoxMesh_radio_body"]
+size = Vector3(0.92, 0.38, 0.38)
+
+[sub_resource type="BoxMesh" id="BoxMesh_display"]
+size = Vector3(0.46, 0.12, 0.035)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_knob"]
+top_radius = 0.06
+bottom_radius = 0.06
+height = 0.045
+radial_segments = 20
+
+[sub_resource type="BoxMesh" id="BoxMesh_button"]
+size = Vector3(0.12, 0.08, 0.045)
+
+[sub_resource type="BoxMesh" id="BoxMesh_antenna"]
+size = Vector3(0.025, 0.58, 0.025)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_interaction"]
+size = Vector3(1.35, 1.22, 0.95)
+
+[node name="RadioOnBox" type="StaticBody3D"]
+script = ExtResource("1_radio")
+
+[node name="BoxStand" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.32, 0)
+mesh = SubResource("BoxMesh_stand")
+surface_material_override/0 = ExtResource("5_box")
+
+[node name="RadioBody" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.83, 0.0)
+mesh = SubResource("BoxMesh_radio_body")
+surface_material_override/0 = ExtResource("2_body")
+
+[node name="Display" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 0.88, 0.21)
+mesh = SubResource("BoxMesh_display")
+surface_material_override/0 = ExtResource("4_display")
+
+[node name="LeftKnob" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.0000000437114, 0, 1, 0, 1, 0, -1, 0, -0.0000000437114, 0.27, 0.89, 0.235)
+mesh = SubResource("CylinderMesh_knob")
+surface_material_override/0 = ExtResource("3_knob")
+
+[node name="RightKnob" type="MeshInstance3D" parent="."]
+transform = Transform3D(-0.0000000437114, 0, 1, 0, 1, 0, -1, 0, -0.0000000437114, 0.37, 0.77, 0.235)
+mesh = SubResource("CylinderMesh_knob")
+surface_material_override/0 = ExtResource("3_knob")
+
+[node name="TuningButton" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.36, 1.05, 0.02)
+mesh = SubResource("BoxMesh_button")
+surface_material_override/0 = ExtResource("3_knob")
+
+[node name="Antenna" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.819152, -0.573576, 0, 0.573576, 0.819152, 0, 0, 0, 1, -0.36, 1.25, -0.05)
+mesh = SubResource("BoxMesh_antenna")
+surface_material_override/0 = ExtResource("3_knob")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.61, 0)
+shape = SubResource("BoxShape3D_interaction")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="."]
+volume_db = -7.0
+unit_size = 4.0
+max_distance = 12.0

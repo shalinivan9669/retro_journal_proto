@@ -1,0 +1,37 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/return_hatch_interactable.gd" id="1_return_hatch"]
+[ext_resource type="Material" path="res://materials/mat_underground_concrete.tres" id="2_concrete"]
+[ext_resource type="Material" path="res://materials/mat_radio_knob.tres" id="3_handle_mat"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_hatch"]
+size = Vector3(1.8, 0.1, 1.2)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_handle"]
+top_radius = 0.055
+bottom_radius = 0.055
+height = 0.42
+radial_segments = 20
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hatch"]
+size = Vector3(1.8, 0.16, 1.2)
+
+[node name="ReturnHatch" type="StaticBody3D"]
+script = ExtResource("1_return_hatch")
+dialogue_text = "Наверх."
+target_scene_path = "res://scenes/Main.tscn"
+transition_delay = 0.25
+
+[node name="HatchPanel" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+mesh = SubResource("BoxMesh_hatch")
+surface_material_override/0 = ExtResource("2_concrete")
+
+[node name="Handle" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -0.0000000437114, -1, 0, 1, -0.0000000437114, 0, 0.15, 0.18)
+mesh = SubResource("CylinderMesh_handle")
+surface_material_override/0 = ExtResource("3_handle_mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)
+shape = SubResource("BoxShape3D_hatch")

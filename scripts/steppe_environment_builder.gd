@@ -2,8 +2,6 @@ extends Node3D
 
 const STEPPE_GROUND_MATERIAL: Material = preload("res://materials/mat_steppe_ground.tres")
 const SKY_DOME_MATERIAL: Material = preload("res://materials/mat_sky_dome.tres")
-const CLOUD_DARK_MATERIAL: Material = preload("res://materials/mat_cloud_dark_ash_red.tres")
-const CLOUD_ROSE_MATERIAL: Material = preload("res://materials/mat_cloud_rose_ash_red.tres")
 
 const PYLON_SCENE_PATH := "res://assets/models/props/lowpoly_power_pylon_no_wires.glb"
 const GRASS_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_grass_patch.glb"
@@ -21,7 +19,6 @@ func _ready() -> void:
 	_clear_existing_geometry()
 	_build_ground()
 	_build_sky_dome()
-	_build_cloud_layers()
 	_build_power_pylon()
 	_build_steppe_vegetation()
 
@@ -66,23 +63,6 @@ func _build_sky_dome() -> void:
 	sky.mesh = mesh
 	sky.set_surface_override_material(0, SKY_DOME_MATERIAL)
 	add_child(sky)
-
-
-func _build_cloud_layers() -> void:
-	_make_cloud_layer("CloudLayerDarkAshRed", Vector3(-35.0, 75.0, -20.0), Vector2(280.0, 190.0), CLOUD_DARK_MATERIAL)
-	_make_cloud_layer("CloudLayerRoseAshRed", Vector3(42.0, 88.0, -56.0), Vector2(240.0, 170.0), CLOUD_ROSE_MATERIAL)
-
-
-func _make_cloud_layer(node_name: String, origin: Vector3, size: Vector2, material: Material) -> MeshInstance3D:
-	var layer := MeshInstance3D.new()
-	layer.name = node_name
-	var mesh := PlaneMesh.new()
-	mesh.size = size
-	layer.mesh = mesh
-	layer.position = origin
-	layer.set_surface_override_material(0, material)
-	add_child(layer)
-	return layer
 
 
 func _build_power_pylon() -> void:

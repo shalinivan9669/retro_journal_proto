@@ -1,0 +1,37 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/floor_hatch_interactable.gd" id="1_hatch"]
+[ext_resource type="Material" path="res://materials/mat_radio_box.tres" id="2_hatch_mat"]
+[ext_resource type="Material" path="res://materials/mat_radio_knob.tres" id="3_handle_mat"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_hatch"]
+size = Vector3(1.8, 0.08, 1.2)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_handle"]
+top_radius = 0.055
+bottom_radius = 0.055
+height = 0.42
+radial_segments = 20
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hatch"]
+size = Vector3(1.8, 0.14, 1.2)
+
+[node name="FloorHatch" type="StaticBody3D"]
+script = ExtResource("1_hatch")
+dialogue_text = "Под полом влажно."
+target_scene_path = "res://scenes/levels/UndergroundSteppe.tscn"
+transition_delay = 0.55
+
+[node name="HatchPanel" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.045, 0)
+mesh = SubResource("BoxMesh_hatch")
+surface_material_override/0 = ExtResource("2_hatch_mat")
+
+[node name="Handle" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -0.0000000437114, -1, 0, 1, -0.0000000437114, 0, 0.13, 0.18)
+mesh = SubResource("CylinderMesh_handle")
+surface_material_override/0 = ExtResource("3_handle_mat")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.07, 0)
+shape = SubResource("BoxShape3D_hatch")

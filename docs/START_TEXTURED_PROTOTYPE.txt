@@ -125,18 +125,36 @@ Controls:
 - WASD: walk
 - Mouse: look
 - E: interact / close dialogue
+- F while aiming at the TV: trigger the current TV + Radio signal combo
 - Esc: close dialogue / release mouse
-- E on the TV: starts the CubeMemoryCutsceneUI cutscene.
-- E on the door: opens the transition to res://scenes/levels/InfiniteRoad.tscn
+- E on the TV: cycles TV channels 1..6.
+- E on the radio: cycles radio frequencies 1..9 and triggers RADIO combo evaluation.
+- TV 5 + Radio 2 + F on the TV starts the existing CubeMemoryCutsceneUI cutscene.
+- TV 2 + Radio 3 + E on the radio shows the temporary door to res://scenes/levels/InfiniteRoad.tscn.
+- E on the floor hatch opens res://scenes/levels/UndergroundSteppe.tscn.
 - R in InfiniteRoad.tscn: return to the room
+- R in UndergroundSteppe.tscn: return to the room
 
 Interactive TV:
 - Scene: res://scenes/objects/InteractableTV.tscn
 - Model: res://assets/models/tv_old_ussr/old_tv_ussr.glb
-- Script: res://scripts/interactable.gd
+- Script: res://scripts/tv_interactable.gd
 - Visual scale is set on InteractableTV/TVModel.
 - Collision is a manual BoxShape3D on InteractableTV/CollisionShape3D.
 - If E on the TV does not work, check CollisionShape3D and Player.tscn Head/Camera3D/InteractionRay.
+
+Signal system:
+- Manager: res://scripts/signal_state_manager.gd
+- Radio scene: res://scenes/objects/RadioOnBox.tscn
+- Signal dialogue window: res://scenes/ui/SignalDialogueWindow.tscn
+- Temporary door scene: res://scenes/objects/TemporarySignalDoor.tscn
+- Full mapping: res://docs/SIGNAL_SYSTEM_TV_RADIO.txt
+
+Underground steppe:
+- Entry hatch scene: res://scenes/objects/FloorHatch.tscn
+- Underground scene: res://scenes/levels/UndergroundSteppe.tscn
+- Controller: res://scripts/underground_steppe_controller.gd
+- Details: res://docs/UNDERGROUND_STEPPE_LEVEL.txt
 
 Infinite road scene:
 - Scene: res://scenes/levels/InfiniteRoad.tscn

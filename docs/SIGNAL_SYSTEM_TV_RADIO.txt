@@ -1,0 +1,57 @@
+Signal System: TV + Radio
+
+Core node:
+- Main.tscn contains SignalStateManager.
+- Script: res://scripts/signal_state_manager.gd
+
+Interaction:
+- Aim at InteractableTV and press E to cycle TV channels 1..6.
+- Aim at InteractableTV and press F to trigger TV evaluation.
+- Aim at RadioOnBox and press E to cycle radio frequencies 1..9 and trigger RADIO evaluation.
+
+Special combos:
+1. TV 5 + Radio 2 + TV trigger
+   Starts the existing CubeMemoryCutsceneUI through the cube_memory_cutscene_ui group.
+
+2. TV 2 + Radio 3 + RADIO trigger
+   Activates TemporarySignalDoor in Main.tscn.
+   The door leads to res://scenes/levels/InfiniteRoad.tscn.
+   The door hides and disables itself before changing scenes.
+   Returning to Main.tscn loads it hidden again.
+   To use it again, tune TV 2 + Radio 3 and trigger RADIO again.
+
+3. TV 1 + Radio 7 + TV trigger
+   Shows the centered signal dialogue window.
+
+4. TV 3 + Radio 5 + TV trigger
+   Shows the centered signal dialogue window.
+
+5. TV 4 + Radio 8 + TV trigger
+   Shows the centered signal dialogue window.
+
+6. TV 6 + Radio 9 + RADIO trigger
+   Shows the centered signal dialogue window.
+
+Where to edit:
+- Combo mapping and dialogue texts:
+  res://scripts/signal_state_manager.gd
+
+- TV channel behavior:
+  res://scripts/tv_interactable.gd
+  res://scenes/objects/InteractableTV.tscn
+
+- Radio frequency behavior:
+  res://scripts/radio_interactable.gd
+  res://scenes/objects/RadioOnBox.tscn
+
+- Temporary door behavior:
+  res://scripts/temporary_signal_door.gd
+  res://scenes/objects/TemporarySignalDoor.tscn
+
+- Centered half-screen signal window:
+  res://scripts/signal_dialogue_window.gd
+  res://scenes/ui/SignalDialogueWindow.tscn
+
+- Placeholder radio audio:
+  res://assets/audio/radio/
+- RadioOnBox has an AudioStreamPlayer3D. Frequency changes play the matching placeholder WAV from that folder.

@@ -55,6 +55,14 @@ Keep these working unless the user specifically asks to replace them:
 - `scripts/interactable.gd` - shared interaction behavior for cube and door-like objects.
 - `scenes/objects/InteractableCube.tscn` - cube visual, collision, large interaction area.
 - `scenes/objects/InactiveDoor.tscn` - door to infinite road.
+- `scenes/objects/TemporarySignalDoor.tscn` - hidden signal door to infinite road, activated by TV 2 + Radio 3 + RADIO trigger.
+- `scenes/objects/RadioOnBox.tscn` - primitive radio and low box inside the yurt.
+- `scenes/objects/FloorHatch.tscn` - permanent yurt floor hatch to the underground steppe.
+- `scenes/levels/UndergroundSteppe.tscn` - generated concrete underground steppe with wet grass and white flowers.
+- `scripts/signal_state_manager.gd` - shared TV/radio state and combo mapping.
+- `scripts/tv_interactable.gd` - TV channel cycling and TV-trigger entry point.
+- `scripts/radio_interactable.gd` - radio frequency cycling and RADIO-trigger entry point.
+- `scenes/ui/SignalDialogueWindow.tscn` - centered half-screen signal dialogue window.
 - `scripts/cube_memory_cutscene.gd` - deterministic 13 second memory cutscene.
 - `scenes/ui/CubeMemoryCutsceneUI.tscn` - fullscreen cutscene layer.
 - `materials/mat_memory_painting.tres` - material using `cs_painting_05.png`.
@@ -121,3 +129,4 @@ When a user asks to make interaction easier, prefer enlarging invisible `Area3D`
 When a user complains that an image is stretched or cropped, first check `TextureRect.stretch_mode`, material UV scale, mesh proportions, and whether the image has been imported.
 
 When changing gameplay, verify `Main.tscn` and `InfiniteRoad.tscn` with the headless Godot commands above.
+Also verify `res://scenes/levels/UndergroundSteppe.tscn` when touching the floor hatch or underground controller.

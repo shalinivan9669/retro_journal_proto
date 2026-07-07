@@ -1,8 +1,8 @@
-[gd_scene load_steps=35 format=3]
+[gd_scene load_steps=39 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/objects/InteractableTV.tscn" id="2_tv"]
-[ext_resource type="PackedScene" path="res://scenes/objects/InactiveDoor.tscn" id="3_door"]
+[ext_resource type="PackedScene" path="res://scenes/objects/TemporarySignalDoor.tscn" id="3_door"]
 [ext_resource type="PackedScene" path="res://scenes/ui/DialogueUI.tscn" id="4_dialogue"]
 [ext_resource type="Material" path="res://materials/mat_wall.tres" id="5_mat_wall"]
 [ext_resource type="Material" path="res://materials/mat_floor.tres" id="6_mat_floor"]
@@ -13,10 +13,14 @@
 [ext_resource type="Material" path="res://materials/mat_memory_painting.tres" id="11_memory_mat"]
 [ext_resource type="Script" path="res://scripts/steppe_environment_builder.gd" id="12_steppe_builder"]
 [ext_resource type="Script" path="res://scripts/sky_clouds_controller.gd" id="13_cloud_controller"]
-[ext_resource type="PackedScene" path="res://assets/models/yurt/clean_lowpoly_yurt_with_open_shanyrak.glb" id="14_clean_yurt"]
+[ext_resource type="PackedScene" path="res://assets/models/clean_lowpoly_yurt_with_open_shanyrak.glb" id="14_clean_yurt"]
 [ext_resource type="Material" path="res://materials/mat_yurt_wall.tres" id="15_yurt_wall"]
 [ext_resource type="Material" path="res://materials/mat_yurt_roof.tres" id="16_yurt_roof"]
 [ext_resource type="Material" path="res://materials/mat_yurt_wood_dark.tres" id="17_yurt_wood"]
+[ext_resource type="PackedScene" path="res://scenes/objects/RadioOnBox.tscn" id="18_radio"]
+[ext_resource type="PackedScene" path="res://scenes/objects/FloorHatch.tscn" id="19_hatch"]
+[ext_resource type="PackedScene" path="res://scenes/ui/SignalDialogueWindow.tscn" id="20_signal_dialogue"]
+[ext_resource type="Script" path="res://scripts/signal_state_manager.gd" id="21_signal_manager"]
 
 [sub_resource type="Environment" id="Environment_room"]
 background_mode = 1
@@ -102,8 +106,9 @@ script = ExtResource("12_steppe_builder")
 
 [node name="SkyCloudsController" type="Node" parent="."]
 script = ExtResource("13_cloud_controller")
-cloud_dark_path = NodePath("../SteppeEnvironment/CloudLayerDarkAshRed")
-cloud_rose_path = NodePath("../SteppeEnvironment/CloudLayerRoseAshRed")
+
+[node name="SignalStateManager" type="Node" parent="."]
+script = ExtResource("21_signal_manager")
 
 [node name="OldBrokenYurt_Disabled" type="Node3D" parent="."]
 visible = false
@@ -279,6 +284,7 @@ shape = SubResource("BoxShape3D_yurt_wall_collision")
 transform = Transform3D(-1, 0, -0.0000000874228, 0, 1, 0, 0.0000000874228, 0, -1, 0, 2.35, -9.24)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="YurtCollision/YurtWallCollision_05"]
+disabled = true
 shape = SubResource("BoxShape3D_yurt_wall_collision")
 
 [node name="YurtWallCollision_06" type="StaticBody3D" parent="YurtCollision"]
@@ -314,10 +320,17 @@ shape = SubResource("BoxShape3D_yurt_entrance_top_collision")
 [node name="InteractableTV" parent="." instance=ExtResource("2_tv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0, 0, -1.2)
 
-[node name="InactiveDoor" parent="." instance=ExtResource("3_door")]
+[node name="RadioOnBox" parent="." instance=ExtResource("18_radio")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.45, 0, -1.15)
+
+[node name="FloorHatch" parent="." instance=ExtResource("19_hatch")]
+transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, 2.65, 0.01, -1.45)
+
+[node name="TemporarySignalDoor" parent="." instance=ExtResource("3_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -9.72)
 
 [node name="DoorMarker" type="StaticBody3D" parent="."]
+visible = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25, -9.5)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="DoorMarker"]
@@ -354,6 +367,8 @@ mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_aim_dot")
 
 [node name="DialogueUI" parent="." instance=ExtResource("4_dialogue")]
+
+[node name="SignalDialogueWindow" parent="." instance=ExtResource("20_signal_dialogue")]
 
 [node name="CubeMemoryCutsceneUI" parent="." instance=ExtResource("10_cutscene_ui")]
 

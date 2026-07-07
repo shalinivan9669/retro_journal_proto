@@ -1,6 +1,6 @@
 [gd_scene load_steps=19 format=3]
 
-[ext_resource type="Script" path="res://scripts/interactable.gd" id="1_interactable"]
+[ext_resource type="Script" path="res://scripts/tv_interactable.gd" id="1_interactable"]
 [ext_resource type="PackedScene" path="res://assets/models/tv_old_ussr/old_tv_ussr.glb" id="2_tv_model"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_tv_body"]
@@ -57,7 +57,6 @@ roughness = 0.75
 
 [node name="InteractableTV" type="StaticBody3D"]
 script = ExtResource("1_interactable")
-starts_cube_memory_cutscene = true
 dialogue_text = "Interactive television."
 
 [node name="TVModel" parent="." instance=ExtResource("2_tv_model")]

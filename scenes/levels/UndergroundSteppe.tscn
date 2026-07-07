@@ -1,0 +1,80 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://scripts/underground_steppe_controller.gd" id="2_controller"]
+[ext_resource type="PackedScene" path="res://scenes/objects/ReturnHatch.tscn" id="3_return_hatch"]
+[ext_resource type="PackedScene" path="res://scenes/ui/DialogueUI.tscn" id="4_dialogue"]
+
+[sub_resource type="Environment" id="Environment_underground"]
+background_mode = 1
+background_color = Color(0.012, 0.018, 0.016, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.34, 0.47, 0.39, 1)
+ambient_light_energy = 0.52
+fog_enabled = true
+fog_light_color = Color(0.16, 0.26, 0.21, 1)
+fog_density = 0.022
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aim_dot"]
+bg_color = Color(0.92, 0.96, 0.86, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="UndergroundSteppe" type="Node3D"]
+script = ExtResource("2_controller")
+return_scene_path = "res://scenes/Main.tscn"
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_underground")
+
+[node name="ColdFillLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 2.65, 1.2)
+light_color = Color(0.67, 0.9, 0.78, 1)
+light_energy = 2.3
+omni_range = 18.0
+
+[node name="LowWhiteFlowerLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.4, 1.4, -4.6)
+light_color = Color(0.82, 0.88, 0.78, 1)
+light_energy = 0.8
+omni_range = 8.0
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6.2)
+
+[node name="ReturnHatch" parent="." instance=ExtResource("3_return_hatch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 7.7)
+
+[node name="AimDotUI" type="CanvasLayer" parent="."]
+layer = 20
+
+[node name="CenterDot" type="Panel" parent="AimDotUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -3.0
+offset_top = -3.0
+offset_right = 3.0
+offset_bottom = 3.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_aim_dot")
+
+[node name="ReturnHintUI" type="CanvasLayer" parent="."]
+layer = 15
+
+[node name="ReturnHint" type="Label" parent="ReturnHintUI"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -230.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 42.0
+text = "E on hatch / R - return"
+horizontal_alignment = 2
+
+[node name="DialogueUI" parent="." instance=ExtResource("4_dialogue")]

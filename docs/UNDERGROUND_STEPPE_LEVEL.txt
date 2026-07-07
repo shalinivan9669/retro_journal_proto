@@ -1,0 +1,37 @@
+Underground Steppe Level
+
+Entry:
+- Main.tscn contains FloorHatch near one side of the yurt floor.
+- Scene: res://scenes/objects/FloorHatch.tscn
+- Script: res://scripts/floor_hatch_interactable.gd
+- Target: res://scenes/levels/UndergroundSteppe.tscn
+
+Level:
+- Scene: res://scenes/levels/UndergroundSteppe.tscn
+- Controller: res://scripts/underground_steppe_controller.gd
+- Uses the existing res://scenes/player/Player.tscn.
+
+Return:
+- Aim at ReturnHatch and press E.
+- R also returns to res://scenes/Main.tscn as fallback.
+- Return hatch scene: res://scenes/objects/ReturnHatch.tscn
+- Return hatch script: res://scripts/return_hatch_interactable.gd
+
+Materials:
+- res://materials/mat_underground_concrete.tres
+- res://materials/mat_underground_wet_grass.tres
+- res://materials/mat_underground_water.tres
+- res://materials/mat_underground_flower_white.tres
+
+Vegetation:
+- Uses fallback scenes when available:
+  res://assets/models/vegetation_fallback/fallback_grass_patch.glb
+  res://assets/models/vegetation_fallback/fallback_flower_white.glb
+- If these scenes cannot load, the controller creates simple placeholder flowers from meshes.
+
+Where to edit:
+- Change hall_width, hall_depth, and ceiling_height exports in:
+  res://scripts/underground_steppe_controller.gd
+- Change flower_density_multiplier in the same script to increase or reduce flowers and grass.
+- Change the centers array in _build_vegetation() to move vegetation patches.
+- Change FloorHatch placement in res://scenes/Main.tscn.

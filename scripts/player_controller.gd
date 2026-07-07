@@ -29,6 +29,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE:
+			var signal_dialogue := _get_signal_dialogue_window()
+			if _is_signal_dialogue_open(signal_dialogue):
+				signal_dialogue.call("hide_signal_message")
+				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+				return
+
 			var dialogue_ui := _get_dialogue_ui()
 			if _is_dialogue_open(dialogue_ui):
 				dialogue_ui.call("hide_message")
@@ -37,12 +43,25 @@ func _unhandled_input(event: InputEvent) -> void:
 				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 		if event.keycode == KEY_E:
+			var signal_dialogue := _get_signal_dialogue_window()
+			if _is_signal_dialogue_open(signal_dialogue):
+				signal_dialogue.call("hide_signal_message")
+				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+				return
+
 			var dialogue_ui := _get_dialogue_ui()
 			if _is_dialogue_open(dialogue_ui):
 				dialogue_ui.call("hide_message")
 				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 			else:
 				_try_interact()
+
+		if event.keycode == KEY_F:
+			var signal_dialogue := _get_signal_dialogue_window()
+			if _is_signal_dialogue_open(signal_dialogue):
+				return
+
+			_try_signal_trigger()
 
 
 func _physics_process(delta: float) -> void:
@@ -75,23 +94,46 @@ func _physics_process(delta: float) -> void:
 
 
 func _try_interact() -> void:
-	interaction_ray.force_raycast_update()
-	if not interaction_ray.is_colliding():
-		return
-
-	var target := interaction_ray.get_collider()
-	while target != null and not target.has_method("interact"):
-		target = target.get_parent()
+	var target := _get_ray_target_with_method("interact")
 
 	if target != null:
 		target.call("interact", _get_dialogue_ui())
+
+
+func _try_signal_trigger() -> void:
+	var target := _get_ray_target_with_method("trigger_signal")
+
+	if target != null:
+		target.call("trigger_signal", _get_dialogue_ui())
+
+
+func _get_ray_target_with_method(method_name: String) -> Node:
+	interaction_ray.force_raycast_update()
+	if not interaction_ray.is_colliding():
+		return null
+
+	var target := interaction_ray.get_collider() as Node
+	while target != null and not target.has_method(method_name):
+		target = target.get_parent()
+
+	return target
 
 
 func _get_dialogue_ui() -> Node:
 	return get_tree().get_first_node_in_group("dialogue_ui")
 
 
+func _get_signal_dialogue_window() -> Node:
+	return get_tree().get_first_node_in_group("signal_dialogue_window")
+
+
 func _is_dialogue_open(dialogue_ui: Node) -> bool:
 	if dialogue_ui == null or not dialogue_ui.has_method("is_open"):
 		return false
 	return bool(dialogue_ui.call("is_open"))
+
+
+func _is_signal_dialogue_open(signal_dialogue: Node) -> bool:
+	if signal_dialogue == null or not signal_dialogue.has_method("is_open"):
+		return false
+	return bool(signal_dialogue.call("is_open"))

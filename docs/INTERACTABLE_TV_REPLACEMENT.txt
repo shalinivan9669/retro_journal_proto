@@ -11,8 +11,8 @@ Interactable TV Replacement
   res://scenes/objects/InteractableTV.tscn
 - Root node:
   InteractableTV / StaticBody3D
-- The scene uses the existing gameplay script:
-  res://scripts/interactable.gd
+- The scene now uses the TV signal script:
+  res://scripts/tv_interactable.gd
 - The visible in-game TV is:
   InteractableTV/VisibleTVModel
 - The imported GLB remains in the scene as TVModel, but it is hidden because its imported
@@ -41,14 +41,17 @@ Interactable TV Replacement
 - Change the BoxShape3D_tv_body sub-resource size.
 - If the TV scale changes, also adjust CollisionShape3D origin so the bottom stays on the floor.
 
-6. How interact() works
+6. How TV interaction works
 - Player input is handled by:
   res://scripts/player_controller.gd
 - Pressing E updates Head/Camera3D/InteractionRay.
 - The player script walks up the hit node parents until it finds a node with interact().
-- InteractableTV uses res://scripts/interactable.gd with:
-  starts_cube_memory_cutscene = true
-- That calls CubeMemoryCutsceneUI.play_cutscene() through the cube_memory_cutscene_ui group.
+- InteractableTV uses res://scripts/tv_interactable.gd.
+- E cycles TV channels 1..6.
+- F while aiming at the TV calls trigger_signal().
+- trigger_signal() asks SignalStateManager to evaluate the current TV + Radio combo.
+- CubeMemoryCutsceneUI.play_cutscene() is only called by SignalStateManager for:
+  TV 5 + Radio 2 + TV trigger.
 
 7. How to restore the old cube
 - In res://scenes/Main.tscn, change the ext_resource path back to:
@@ -57,10 +60,11 @@ Interactable TV Replacement
 - Restore the old cube transform:
   Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0, 0.5, -1.2)
 
-8. If E does not trigger on the TV
-- Check that InteractableTV has script res://scripts/interactable.gd.
-- Check that starts_cube_memory_cutscene is true.
+8. If TV tuning does not work
+- Check that InteractableTV has script res://scripts/tv_interactable.gd.
+- Check that Main.tscn contains SignalStateManager using res://scripts/signal_state_manager.gd.
 - Check that CollisionShape3D is enabled and has BoxShape3D_tv_body.
 - Check Player.tscn:
   Head/Camera3D/InteractionRay must be enabled and target_position should reach the TV.
-- Aim at the TV body from 1-4 meters and press E.
+- Aim at the TV body from 1-4 meters and press E to cycle channels.
+- Aim at the TV body and press F to trigger the TV combo.

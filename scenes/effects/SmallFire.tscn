@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/small_fire_effect.gd" id="1_small_fire_script"]
+
+[node name="SmallFire" type="Node3D"]
+script = ExtResource("1_small_fire_script")

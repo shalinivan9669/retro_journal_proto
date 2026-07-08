@@ -14,6 +14,8 @@ const TEX_HORIZON_FOG := BACKDROP_DIR + "/balkhash_horizon_fog_01.png"
 
 func _ready() -> void:
 	_extend_player_interaction_ray()
+	_tag_existing_horses()
+	_ensure_yurt_entrance_marker()
 	_build_ground()
 	_build_distant_balkhash_view()
 	_build_powerlines()
@@ -24,6 +26,25 @@ func _extend_player_interaction_ray() -> void:
 	if ray != null:
 		ray.target_position = Vector3(0.0, 0.0, -interaction_distance)
 		ray.collide_with_areas = true
+
+
+func _tag_existing_horses() -> void:
+	var horses := get_node_or_null("Horses")
+	if horses == null:
+		return
+	for child in horses.get_children():
+		if child is Node3D:
+			child.add_to_group("horse")
+
+
+func _ensure_yurt_entrance_marker() -> void:
+	if get_tree().get_first_node_in_group("yurt_entrance") != null:
+		return
+	var marker := Marker3D.new()
+	marker.name = "YurtEntranceMarker"
+	marker.position = Vector3(0.0, 0.0, 6.0)
+	marker.add_to_group("yurt_entrance")
+	add_child(marker)
 
 
 func _build_ground() -> void:

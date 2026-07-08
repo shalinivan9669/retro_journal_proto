@@ -334,19 +334,19 @@ transform = Transform3D(-1, 0, -0.0000000874228, 0, 1, 0, 0.0000000874228, 0, -1
 shape = SubResource("BoxShape3D_yurt_entrance_top_collision")
 
 [node name="SignalCenterStand" parent="." instance=ExtResource("26_signal_stand")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.76, 0, -1.62)
+transform = Transform3D(0.642788, 0, 0.766044, 0, 1, 0, -0.766044, 0, 0.642788, -8.3, 0, -1.75)
 
 [node name="SignalCenterGlow" type="OmniLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.18, 1.72, -0.72)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.15, 1.72, -1.76)
 light_color = Color(0.62, 0.92, 0.76, 1)
 light_energy = 0.76
 omni_range = 4.2
 
 [node name="InteractableTV" parent="." instance=ExtResource("2_tv")]
-transform = Transform3D(1.64, 0, 0, 0, 1.64, 0, 0, 0, 1.64, -1.93, 1.02, -1.55)
+transform = Transform3D(1.05417, 0, 1.25631, 0, 1.64, 0, -1.25631, 0, 1.05417, -8.58, 1.02, -1.26)
 
 [node name="RadioOnBox" parent="." instance=ExtResource("18_radio")]
-transform = Transform3D(1.06, 0, 0, 0, 1.06, 0, 0, 0, 1.06, -0.14, 1.62, -1.82)
+transform = Transform3D(0.681355, 0, 0.812007, 0, 1.06, 0, -0.812007, 0, 0.681355, -8.06, 1.62, -2.35)
 
 [node name="FloorHatch" parent="." instance=ExtResource("19_hatch")]
 transform = Transform3D(0.965926, 0, -0.258819, 0, 1, 0, 0.258819, 0, 0.965926, 2.65, 0.01, -1.45)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/radio_interactable.gd" id="1_radio"]
 [ext_resource type="Material" path="res://materials/mat_radio_body.tres" id="2_body"]
@@ -23,6 +23,9 @@ radial_segments = 20
 
 [sub_resource type="BoxMesh" id="BoxMesh_button"]
 size = Vector3(0.12, 0.08, 0.045)
+
+[sub_resource type="BoxMesh" id="BoxMesh_power_button"]
+size = Vector3(0.14, 0.08, 0.045)
 
 [sub_resource type="BoxMesh" id="BoxMesh_antenna"]
 size = Vector3(0.025, 0.58, 0.025)
@@ -61,6 +64,11 @@ surface_material_override/0 = ExtResource("3_knob")
 [node name="TuningButton" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.36, 0.61, 0.02)
 mesh = SubResource("BoxMesh_button")
+surface_material_override/0 = ExtResource("3_knob")
+
+[node name="PowerButton" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.19, 0.61, 0.02)
+mesh = SubResource("BoxMesh_power_button")
 surface_material_override/0 = ExtResource("3_knob")
 
 [node name="Antenna" type="MeshInstance3D" parent="."]

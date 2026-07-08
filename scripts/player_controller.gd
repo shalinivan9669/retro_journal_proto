@@ -21,6 +21,7 @@ extends CharacterBody3D
 var pitch := 0.0
 var _capsule_shape: CapsuleShape3D
 var _is_crouching := false
+var _has_triggered_crouch_lore := false
 
 
 func _ready() -> void:
@@ -192,10 +193,14 @@ func _get_easy_albasty_target() -> Node:
 
 func _update_crouch(delta: float) -> void:
 	var wants_crouch := _is_crouch_pressed()
+	var was_crouching := _is_crouching
 	if wants_crouch:
 		_is_crouching = true
 	elif _is_crouching and _can_stand():
 		_is_crouching = false
+
+	if _is_crouching and not was_crouching:
+		_try_show_crouch_lore()
 
 	var target_height := crouch_height if _is_crouching else standing_height
 	var target_head_y := crouch_head_y if _is_crouching else standing_head_y
@@ -209,6 +214,16 @@ func _update_crouch(delta: float) -> void:
 		collision_shape.position.y = current_height * 0.5
 	if head != null:
 		head.position.y = lerpf(head.position.y, target_head_y, weight)
+
+
+func _try_show_crouch_lore() -> void:
+	if _has_triggered_crouch_lore:
+		return
+	_has_triggered_crouch_lore = true
+
+	var overlay := get_tree().get_first_node_in_group("crouch_lore_overlay")
+	if overlay != null and overlay.has_method("show_lore"):
+		overlay.call("show_lore")
 
 
 func _can_stand() -> bool:

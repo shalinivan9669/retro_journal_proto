@@ -26,10 +26,12 @@ const RADIO_FALLBACK_STREAM_PATHS: Array[String] = [
 
 @onready var audio_player: AudioStreamPlayer3D = $AudioStreamPlayer3D
 
+var is_powered_on := true
+
 
 func _ready() -> void:
 	audio_player.finished.connect(_on_audio_finished)
-	if not _is_headless():
+	if is_powered_on and not _is_headless():
 		call_deferred("_play_initial_frequency")
 
 
@@ -45,12 +47,29 @@ func interact(dialogue_ui: Node) -> void:
 		_show_dialogue(dialogue_ui, "Radio signal manager is missing.")
 		return
 
+	if not is_powered_on:
+		is_powered_on = true
+		_play_frequency(int(manager.call("get_radio_frequency")))
+		_show_dialogue(dialogue_ui, String(manager.call("get_radio_status_text")))
+		return
+
 	var current: int = int(manager.call("get_radio_frequency"))
 	manager.call("set_radio_frequency", current + 1)
 	_play_frequency(int(manager.call("get_radio_frequency")))
 	var triggered: bool = bool(manager.call("trigger_from_radio"))
 	if not triggered:
 		_show_dialogue(dialogue_ui, String(manager.call("get_radio_status_text")))
+
+
+func trigger_signal(dialogue_ui: Node) -> void:
+	if not is_powered_on:
+		_show_dialogue(dialogue_ui, "RADIO OFF")
+		return
+
+	is_powered_on = false
+	if audio_player != null:
+		audio_player.stop()
+	_show_dialogue(dialogue_ui, "RADIO OFF")
 
 
 func _get_signal_manager() -> Node:
@@ -63,7 +82,7 @@ func _show_dialogue(dialogue_ui: Node, text: String) -> void:
 
 
 func _play_frequency(frequency: int) -> void:
-	if _is_headless():
+	if not is_powered_on or _is_headless():
 		return
 	var index := clampi(frequency - 1, 0, RADIO_STREAM_PATHS.size() - 1)
 	var stream := _load_stream_for_index(index)

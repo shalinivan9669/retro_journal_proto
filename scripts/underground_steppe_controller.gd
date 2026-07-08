@@ -5,25 +5,28 @@ const WET_GRASS_MATERIAL: Material = preload("res://materials/mat_underground_we
 const WATER_MATERIAL: Material = preload("res://materials/mat_underground_water.tres")
 const FLOWER_WHITE_MATERIAL: Material = preload("res://materials/mat_underground_flower_white.tres")
 const FAKE_SKY_SCRIPT: Script = preload("res://scripts/fake_sky_hole_clouds.gd")
+const SMALL_FIRE_SCENE: PackedScene = preload("res://scenes/effects/SmallFire.tscn")
+const SOLDIER_SCENE: PackedScene = preload("res://scenes/actors/SovietSoldierEnemy.tscn")
+const FINAL_SOLDIER_ROOM_EVENT_SCRIPT: Script = preload("res://scripts/final_soldier_room_event.gd")
 
 const GRASS_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_grass_patch.glb"
 const FLOWER_WHITE_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_flower_white.glb"
 const CLOUD_TEXTURE_DIR := "res://assets/textures/sky/clouds_runtime_clean"
 
 const MAZE := [
-	"###############",
-	"#S#.#.........#",
-	"#.#.#.#.#####.#",
-	"#.#...#....o#.#",
-	"#.#.#######.#.#",
-	"#.#.#...#...#l#",
-	"#.#.###.#.###.#",
-	"#.#.....#.#...#",
-	"#.#.#####.#.###",
-	"#l#.#..h#.#...#",
-	"#.###.#.#.###.#",
-	"#.....#...#..E#",
-	"###############"
+	"#######################",
+	"#S#.#.........#########",
+	"#.#.#.#.#####.#########",
+	"#.#...#....o#.#########",
+	"#.#.#######.#.#########",
+	"#.#.#.f.#...#l#########",
+	"#.#.###.#.###.#########",
+	"#.#.....#.#.f.#########",
+	"#.#.#####.#.###RRRRRR##",
+	"#l#.#..h#.#...#RPRPRR##",
+	"#.###.#.#.###.#RPRRRR##",
+	"#.....#...#.F.RRPRPRE##",
+	"#######################"
 ]
 
 const TILE_SIZE := 3.0
@@ -59,6 +62,8 @@ var _maze_origin := Vector3.ZERO
 var _maze_col_axis := Vector3(0.0, 0.0, -TILE_SIZE)
 var _maze_row_axis := Vector3(TILE_SIZE, 0.0, 0.0)
 var _passable_cells: Array[Vector2i] = []
+var _soldier_spawn_cells: Array[Vector2i] = []
+var _final_room_cells: Array[Vector2i] = []
 
 
 func _ready() -> void:
@@ -87,6 +92,7 @@ func _build_level() -> void:
 	_build_water()
 	_build_vegetation()
 	_build_exit_marker()
+	_build_final_soldier_room()
 
 
 func _position_player_at_entry() -> void:
@@ -220,6 +226,8 @@ func _build_stair_to_maze_connector() -> void:
 
 func _build_maze() -> void:
 	_passable_cells.clear()
+	_soldier_spawn_cells.clear()
+	_final_room_cells.clear()
 	for y in range(MAZE.size()):
 		var row: String = MAZE[y]
 		for x in range(row.length()):
@@ -245,6 +253,10 @@ func _build_maze() -> void:
 				continue
 
 			_passable_cells.append(grid_position)
+			if cell == "P":
+				_soldier_spawn_cells.append(grid_position)
+			if cell == "R" or cell == "P" or cell == "E":
+				_final_room_cells.append(grid_position)
 			_add_static_box(
 				"MazeFloor_%02d_%02d" % [x, y],
 				Vector3(TILE_SIZE, 0.16, TILE_SIZE),
@@ -257,6 +269,9 @@ func _build_maze() -> void:
 			else:
 				_add_ceiling_panel("MazeCeiling_%02d_%02d" % [x, y], center, _ceiling_height_for_cell(cell), cell == "l")
 
+			if cell == "f" or cell == "F":
+				_build_fire_marker(center, cell == "F")
+
 
 func _add_ceiling_panel(node_name: String, center: Vector3, height: float, is_low: bool) -> void:
 	var size := Vector3(TILE_SIZE + 0.08, CEILING_THICKNESS, TILE_SIZE + 0.08)
@@ -266,6 +281,8 @@ func _add_ceiling_panel(node_name: String, center: Vector3, height: float, is_lo
 
 
 func _ceiling_height_for_cell(cell: String) -> float:
+	if cell == "R" or cell == "P" or cell == "E":
+		return HIGH_CEILING_HEIGHT
 	if cell == "l":
 		return LOW_CEILING_HEIGHT
 	if cell == "h":
@@ -276,7 +293,7 @@ func _ceiling_height_for_cell(cell: String) -> float:
 func _build_water() -> void:
 	for cell in _passable_cells:
 		var marker := _maze_cell(cell.x, cell.y)
-		if marker == "S" or marker == "E" or marker == "l" or marker == "o":
+		if marker == "S" or marker == "E" or marker == "R" or marker == "P" or marker == "l" or marker == "o" or marker == "f" or marker == "F":
 			continue
 		if int(cell.x * 17 + cell.y * 11) % 10 != 0:
 			continue
@@ -294,7 +311,7 @@ func _build_vegetation() -> void:
 
 	for cell in _passable_cells:
 		var marker := _maze_cell(cell.x, cell.y)
-		if marker == "S" or marker == "E" or marker == "l" or marker == "o":
+		if marker == "S" or marker == "E" or marker == "R" or marker == "P" or marker == "l" or marker == "o" or marker == "f" or marker == "F":
 			continue
 		if int(cell.x * 23 + cell.y * 19) % 7 != 0:
 			continue
@@ -335,6 +352,72 @@ func _build_exit_marker() -> void:
 	_generated_root.add_child(light)
 
 
+func _build_final_soldier_room() -> void:
+	if _final_room_cells.is_empty() or _soldier_spawn_cells.is_empty():
+		return
+
+	var soldiers: Array[Node3D] = []
+	for index in range(_soldier_spawn_cells.size()):
+		var soldier := SOLDIER_SCENE.instantiate() as Node3D
+		if soldier == null:
+			continue
+
+		var center := _maze_cell_to_world(_soldier_spawn_cells[index])
+		soldier.name = "FinalSoldier_%02d" % index
+		soldier.scale = Vector3.ONE * 1.02
+		_generated_root.add_child(soldier)
+		soldier.global_position = center + Vector3(0.0, 0.02, 0.0)
+		soldiers.append(soldier)
+
+	var room_bounds := _final_room_bounds()
+	var room_center: Vector3 = room_bounds["center"]
+	var room_size: Vector3 = room_bounds["size"]
+
+	var event := Node3D.new()
+	event.name = "FinalSoldierRoomEvent"
+	event.set_script(FINAL_SOLDIER_ROOM_EVENT_SCRIPT)
+	_generated_root.add_child(event)
+	event.global_position = room_center
+	if event.has_method("setup"):
+		event.call("setup", soldiers, room_size, return_scene_path)
+
+	_add_final_room_light("FinalRoomColdLightA", room_center + Vector3(-3.0, 2.25, 2.2), 0.72, 8.0)
+	_add_final_room_light("FinalRoomColdLightB", room_center + Vector3(3.4, 2.4, -2.6), 0.44, 7.2)
+
+
+func _final_room_bounds() -> Dictionary:
+	var first := _maze_cell_to_world(_final_room_cells[0])
+	var min_x := first.x
+	var max_x := first.x
+	var min_z := first.z
+	var max_z := first.z
+
+	for cell in _final_room_cells:
+		var position := _maze_cell_to_world(cell)
+		min_x = minf(min_x, position.x)
+		max_x = maxf(max_x, position.x)
+		min_z = minf(min_z, position.z)
+		max_z = maxf(max_z, position.z)
+
+	var center := Vector3((min_x + max_x) * 0.5, MAZE_FLOOR_Y + 1.2, (min_z + max_z) * 0.5)
+	var size := Vector3(
+		(max_x - min_x) + TILE_SIZE * 1.08,
+		2.8,
+		(max_z - min_z) + TILE_SIZE * 1.08
+	)
+	return {"center": center, "size": size}
+
+
+func _add_final_room_light(node_name: String, position: Vector3, energy: float, radius: float) -> void:
+	var light := OmniLight3D.new()
+	light.name = node_name
+	light.position = position
+	light.light_color = Color(0.48, 0.58, 0.62, 1.0)
+	light.light_energy = energy
+	light.omni_range = radius
+	_generated_root.add_child(light)
+
+
 func _build_fake_sky_hole(center: Vector3) -> void:
 	var shaft_height := 5.8
 	var shaft_center_y := NORMAL_CEILING_HEIGHT + shaft_height * 0.5
@@ -357,32 +440,123 @@ func _build_fake_sky_hole(center: Vector3) -> void:
 	sky_mesh.size = Vector2(TILE_SIZE * 1.5, TILE_SIZE * 1.5)
 	sky_plane.mesh = sky_mesh
 	sky_plane.position = Vector3(0.0, shaft_height - 0.25, 0.0)
-	sky_plane.set_surface_override_material(0, _make_unshaded_material(Color(0.07, 0.075, 0.08, 1.0), null))
+	sky_plane.set_surface_override_material(0, _make_fake_sky_material())
 	sky_root.add_child(sky_plane)
 
 	var cloud_paths := _discover_cloud_pngs()
-	var cloud_count: int = mini(13, cloud_paths.size())
+	var cloud_count: int = mini(9, cloud_paths.size())
+	var built_cloud_count := 0
 	for index in range(cloud_count):
+		var texture := load(cloud_paths[index]) as Texture2D
+		if texture == null:
+			continue
+
 		var cloud := MeshInstance3D.new()
 		cloud.name = "Cloud_%02d" % index
 		var mesh := PlaneMesh.new()
-		mesh.size = Vector2(2.2 + float(index % 4) * 0.34, 1.15 + float((index + 2) % 5) * 0.18)
+		mesh.size = Vector2(1.65 + float(index % 4) * 0.28, 0.82 + float((index + 2) % 5) * 0.13)
 		cloud.mesh = mesh
 		var angle := float(index) * TAU / float(cloud_count)
 		var radius := 0.25 + float((index * 7) % 9) * 0.08
-		cloud.position = Vector3(cos(angle) * radius, shaft_height - 0.1 + float(index % 3) * 0.08, sin(angle) * radius)
+		cloud.position = Vector3(cos(angle) * radius, shaft_height - 0.9 + float(index % 3) * 0.22, sin(angle) * radius)
 		cloud.rotation_degrees = Vector3(0.0, float((index * 37) % 360), 0.0)
-		var texture := load(cloud_paths[index]) as Texture2D
-		cloud.set_surface_override_material(0, _make_unshaded_material(Color(0.52, 0.52, 0.5, 0.72), texture))
+		cloud.set_surface_override_material(0, _make_fake_cloud_material(texture, Color(0.58, 0.61, 0.58, 0.66)))
+		sky_root.add_child(cloud)
+		built_cloud_count += 1
+
+	if built_cloud_count == 0:
+		_build_fallback_clouds(sky_root, shaft_height)
+
+	var light := SpotLight3D.new()
+	light.name = "FakeSkyHoleColdSpot"
+	light.position = center + Vector3(0.0, NORMAL_CEILING_HEIGHT + 3.2, 0.0)
+	light.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
+	light.light_color = Color(0.48, 0.64, 0.7, 1.0)
+	light.light_energy = 1.05
+	light.spot_range = 5.8
+	light.spot_angle = 32.0
+	light.spot_attenuation = 1.7
+	_generated_root.add_child(light)
+
+
+func _make_fake_sky_material() -> StandardMaterial3D:
+	return _make_unshaded_material(Color(0.22, 0.31, 0.34, 1.0), null)
+
+
+func _make_fake_cloud_material(texture: Texture2D, color: Color) -> Material:
+	if texture != null:
+		return _make_unshaded_material(color, texture)
+
+	var shader := Shader.new()
+	shader.code = """
+shader_type spatial;
+render_mode unshaded, cull_disabled, blend_mix, depth_draw_never;
+
+uniform vec4 cloud_color : source_color = vec4(0.55, 0.59, 0.58, 0.52);
+uniform float patch_scale = 4.0;
+
+float hash(vec2 point) {
+	return fract(sin(dot(point, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float value_noise(vec2 point) {
+	vec2 cell = floor(point);
+	vec2 local = fract(point);
+	vec2 smooth_local = local * local * (3.0 - 2.0 * local);
+	float a = hash(cell);
+	float b = hash(cell + vec2(1.0, 0.0));
+	float c = hash(cell + vec2(0.0, 1.0));
+	float d = hash(cell + vec2(1.0, 1.0));
+	return mix(mix(a, b, smooth_local.x), mix(c, d, smooth_local.x), smooth_local.y);
+}
+
+void fragment() {
+	vec2 centered = UV * 2.0 - vec2(1.0);
+	float soft_edge = 1.0 - smoothstep(0.34, 1.0, length(centered * vec2(0.78, 1.35)));
+	float patches = value_noise(UV * patch_scale + vec2(TIME * 0.035, -TIME * 0.018));
+	patches = smoothstep(0.28, 0.86, patches);
+	ALBEDO = cloud_color.rgb;
+	ALPHA = cloud_color.a * soft_edge * (0.38 + patches * 0.62);
+}
+"""
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	material.set_shader_parameter("cloud_color", color)
+	return material
+
+
+func _build_fallback_clouds(sky_root: Node3D, shaft_height: float) -> void:
+	var cloud_colors: Array[Color] = [
+		Color(0.56, 0.6, 0.58, 0.48),
+		Color(0.48, 0.56, 0.58, 0.42),
+		Color(0.62, 0.62, 0.57, 0.36)
+	]
+
+	for index in range(6):
+		var cloud := MeshInstance3D.new()
+		cloud.name = "FallbackCloud_%02d" % index
+		var mesh := PlaneMesh.new()
+		mesh.size = Vector2(1.55 + float(index % 3) * 0.32, 0.74 + float((index + 1) % 3) * 0.16)
+		cloud.mesh = mesh
+		var angle := float(index) * TAU / 6.0
+		var radius := 0.22 + float((index * 5) % 6) * 0.09
+		cloud.position = Vector3(cos(angle) * radius, shaft_height - 1.0 + float(index % 3) * 0.24, sin(angle) * radius)
+		cloud.rotation_degrees = Vector3(0.0, float((index * 41) % 360), 0.0)
+		cloud.set_surface_override_material(0, _make_fake_cloud_material(null, cloud_colors[index % cloud_colors.size()]))
 		sky_root.add_child(cloud)
 
-	var light := OmniLight3D.new()
-	light.name = "FakeSkyHoleLight"
-	light.position = center + Vector3(0.0, NORMAL_CEILING_HEIGHT + 0.4, 0.0)
-	light.light_color = Color(0.52, 0.62, 0.68, 1.0)
-	light.light_energy = 1.4
-	light.omni_range = 8.5
-	_generated_root.add_child(light)
+
+func _build_fire_marker(center: Vector3, final: bool) -> void:
+	var fire := SMALL_FIRE_SCENE.instantiate() as Node3D
+	if fire == null:
+		return
+
+	fire.name = "MazeFinalFire" if final else "MazeSmallFire"
+	fire.position = center + (Vector3(0.9, 0.04, 0.0) if final else Vector3(-0.72, 0.04, 0.58))
+	fire.rotation_degrees.y = -22.0 if final else 31.0
+	if fire.has_method("configure"):
+		fire.call("configure", final)
+	_generated_root.add_child(fire)
 
 
 func _make_unshaded_material(color: Color, texture: Texture2D) -> StandardMaterial3D:
@@ -390,6 +564,9 @@ func _make_unshaded_material(color: Color, texture: Texture2D) -> StandardMateri
 	material.albedo_color = color
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	if color.a < 1.0:
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	if texture != null:
 		material.albedo_texture = texture
 		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA

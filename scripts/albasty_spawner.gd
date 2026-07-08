@@ -66,6 +66,8 @@ func spawn_albasty() -> Node3D:
 		albasty.global_transform = spawn_point.global_transform
 	else:
 		albasty.global_position = global_position
+	if albasty.has_method("set_spawn_position"):
+		albasty.call("set_spawn_position", albasty.global_position)
 
 	var model := albasty_model.instantiate()
 	model.name = "AlbastyModel"

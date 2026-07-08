@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/soviet_soldier_enemy.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/soviet_soldier/ww2_soviet_soldier_black_gray_face_preserved.glb" id="2_model"]
+
+[node name="SovietSoldierEnemy" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="ModelPivot" type="Node3D" parent="."]
+rotation = Vector3(0, 3.14159, 0)
+
+[node name="ww2_soviet_soldier_black_gray_face_preserved" parent="ModelPivot" instance=ExtResource("2_model")]

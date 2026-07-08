@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/infinite_road_controller.gd" id="2_controller"]
 [ext_resource type="Material" path="res://materials/mat_infinite_road.tres" id="3_road_mat"]
 [ext_resource type="Material" path="res://materials/mat_far_green_house.tres" id="4_far_mat"]
 [ext_resource type="Texture2D" path="res://assets/textures/fitted/ui_vhs_return_static_wide_fit.png" id="5_vhs_static"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/VisualEffectsRuntime.tscn" id="6_visual_runtime"]
 
 [sub_resource type="Environment" id="Environment_infinite_road"]
 background_mode = 1
@@ -34,6 +35,19 @@ environment = SubResource("Environment_infinite_road")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 8, 8)
 light_energy = 0.9
+
+[node name="VisualEffectsRuntime" parent="." instance=ExtResource("6_visual_runtime")]
+tune_world_environment = false
+apply_tv_radio_emission = false
+enable_device_glitch_overlay = false
+enable_outdoor_sandstorm = true
+sandstorm_position = Vector3(0, 2.1, -24)
+sandstorm_size = Vector3(44, 5.6, 86)
+sandstorm_wind_direction = Vector2(0.45, -1)
+sandstorm_intensity = 0.9
+sandstorm_sheet_count = 26
+sandstorm_speed = 1.65
+sandstorm_sheet_alpha = 0.6
 
 [node name="RoadLight" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -8)

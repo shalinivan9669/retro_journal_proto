@@ -62,16 +62,46 @@ Original source-to-cleaned mapping and transparency notes are in:
 Edit `res://scripts/sky_clouds_controller.gd`.
 
 - Overall speed: `speed_multiplier`
-- Side drift and vertical breathing strength: `chaos_multiplier`
+- Legacy side drift multiplier: `chaos_multiplier`
 - Overall scale/density feel: `density_multiplier`
 - Vertical offset for the whole field: `cloud_height_offset`
+- Shared wind vector: `wind_direction`
+- Overall wind force: `wind_strength`
+- Per-layer wind speeds:
+  - `far_layer_speed`
+  - `mid_layer_speed`
+  - `accent_layer_speed`
+- Internal wind/noise force: `turbulence_strength`
+- Tiny per-cloud yaw motion: `rotation_drift_strength`
+- Tiny per-cloud scale motion: `scale_breath_strength`
 - Wrap/follow field size: `FIELD_HALF_EXTENTS`
-- Per-layer positions, scale, alpha, speed and movement direction:
+- Per-layer positions, scale, alpha and ash-red tint:
   - `_far_layout()`
   - `_mid_layout()`
   - `_accent_layout()`
 
-The current layout uses a wider `FIELD_HALF_EXTENTS` and scattered X/Z coordinates so the 13 clouds do not sit in one tight clump. Each cloud also gets a deterministic side-drift axis in `_drift_axis()`, so movement is less uniform while staying stable between launches.
+The current layout uses a wider `FIELD_HALF_EXTENTS` and scattered X/Z coordinates so the 13 clouds do not sit in one tight clump. Clouds are tinted toward a dirty ash-red palette in the layout tables and in the runtime cloud shader, so they should not read as neutral gray.
+
+## Wind Flow
+
+Cloud motion is still handled by the existing `SkyCloudsController` and the existing runtime `MeshInstance3D` planes. The movement now has several layers:
+
+- shared wind from `wind_direction`, scaled by `wind_strength`;
+- layer speeds through `far_layer_speed`, `mid_layer_speed`, and `accent_layer_speed`;
+- per-cloud `wind_factor` and small individual velocity offsets;
+- slow drift waves through `turbulence_axis`, `turbulence_speed`, and `turbulence_amount`;
+- secondary crosswind flow through `flow_phase`, `flow_speed`, and `flow_amount`;
+- vertical breathing through `vertical_phase`, `vertical_speed`, and `vertical_amount`;
+- tiny yaw drift through `rotation_phase`, `rotation_speed`, and `rotation_amount`;
+- weak scale breathing through `scale_phase`, `scale_speed`, and `scale_amount`.
+
+`FAR_CLOUDS` should move heavily and slowly, but still drift over 10-20 seconds. `MID_CLOUDS` carry the main readable wind motion. `ACCENT_CLOUDS` move a little faster and can feel more nervous, but their speed and rotation are still capped to avoid an arcade look.
+
+## Shader Turbulence
+
+Cloud planes now use a lightweight runtime `ShaderMaterial` instead of `StandardMaterial3D`. The shader keeps the cleaned PNG alpha, stays transparent, disables shadows and depth writes, and adds a very weak UV distortion/flow using `TIME`.
+
+The shader turbulence is deliberately minimal. It is meant to make the cloud mass feel like it is being pulled by wind, not to deform the PNG into a cartoon cloud or create rectangular cards.
 
 ## Adding New Cloud PNGs
 

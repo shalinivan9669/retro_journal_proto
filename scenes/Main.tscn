@@ -120,8 +120,12 @@ script = ExtResource("29_visual_preset")
 
 [node name="VisualEffectsRuntime" parent="." instance=ExtResource("30_visual_runtime")]
 enable_outdoor_sandstorm = true
-sandstorm_position = Vector3(0, 1.55, -18)
-sandstorm_size = Vector3(34, 3.4, 24)
+sandstorm_position = Vector3(56, 3.0, -158)
+sandstorm_size = Vector3(92, 8, 54)
+sandstorm_intensity = 0.85
+sandstorm_sheet_count = 24
+sandstorm_speed = 1.4
+sandstorm_sheet_alpha = 0.55
 
 [node name="SteppeEnvironment" type="Node3D" parent="."]
 script = ExtResource("12_steppe_builder")

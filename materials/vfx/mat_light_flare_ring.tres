@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/vfx/light_flare_ring_minimal.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/inner_color = Vector3(0.55, 0.78, 1.0)
+shader_parameter/outer_color = Vector3(0.95, 0.38, 0.18)
+shader_parameter/emission_power = 2.2
+shader_parameter/ring_radius = 0.42
+shader_parameter/ring_width = 0.055
+shader_parameter/pulse_speed = 1.1
+shader_parameter/alpha_power = 2.0

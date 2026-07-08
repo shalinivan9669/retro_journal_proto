@@ -95,6 +95,7 @@ func _prepare_screen_material() -> void:
 	_screen_material.emission_enabled = true
 	_screen_material.emission = Color(0.08, 0.22, 0.16, 1.0)
 	_screen_material.emission_energy_multiplier = screen_emission_energy
+	screen_mesh.material_override = null
 	screen_mesh.set_surface_override_material(0, _screen_material)
 
 
@@ -106,6 +107,7 @@ func _apply_video_texture() -> void:
 	if texture == null:
 		return
 
+	screen_mesh.material_override = null
 	_screen_material.albedo_texture = texture
 	_screen_material.emission_texture = texture
 	_screen_material.emission_energy_multiplier = screen_emission_energy

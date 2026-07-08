@@ -18,6 +18,8 @@ const TEX_BACKDROP_MAIN := BACKDROP_DIR + "/balkhash_far_backdrop_main_01.png"
 const TEX_BACKDROP_ALT := BACKDROP_DIR + "/balkhash_far_backdrop_alt_01.png"
 const TEX_INDUSTRIAL := BACKDROP_DIR + "/balkhash_industrial_smudge_01.png"
 const TEX_HORIZON_FOG := BACKDROP_DIR + "/balkhash_horizon_fog_01.png"
+const TEX_LOW_CLOUD_DARK := "res://assets/textures/sky/cloud_dark_ash_red_alpha.png"
+const TEX_LOW_CLOUD_ROSE := "res://assets/textures/sky/cloud_rose_ash_red_alpha.png"
 
 @export var ground_size: float = 200.0
 @export var sky_radius: float = 520.0
@@ -36,8 +38,9 @@ func _ready() -> void:
 	_clear_existing_geometry()
 	_build_ground()
 	_build_sky_dome()
+	_build_stage1_sky_atmosphere()
+	_build_vista_environment()
 	_build_yurt_entrance_marker()
-	_build_distant_balkhash_view()
 	_build_power_pylon()
 	_build_secondary_powerline()
 	_build_rear_powerline()
@@ -86,6 +89,31 @@ func _build_sky_dome() -> void:
 	sky.mesh = mesh
 	sky.set_surface_override_material(0, SKY_DOME_MATERIAL)
 	add_child(sky)
+
+
+func _build_stage1_sky_atmosphere() -> void:
+	var root := Node3D.new()
+	root.name = "Stage1SkyAtmosphereRoot"
+	add_child(root)
+
+	var front_cloud_mat := _make_unshaded_alpha_material("mat_stage1_front_ash_cloud_mass", TEX_LOW_CLOUD_DARK, Color(0.42, 0.34, 0.34, 0.46), true)
+	var rose_cloud_mat := _make_unshaded_alpha_material("mat_stage1_rose_cloud_mass", TEX_LOW_CLOUD_ROSE, Color(0.58, 0.36, 0.34, 0.36), true)
+	var upper_haze_mat := _make_unshaded_alpha_material("mat_stage1_upper_blood_dust_haze", "", Color(0.36, 0.25, 0.24, 0.18), true)
+	var ash_haze_mat := _make_unshaded_alpha_material("mat_stage1_ash_gray_sky_haze", "", Color(0.23, 0.24, 0.23, 0.22), true)
+
+	var front_bank := _add_backdrop_card(root, "FrontAshRedSkyBank", Vector3(0.0, 128.0, -330.0), Vector2(560.0, 170.0), front_cloud_mat, 0.0)
+	front_bank.rotation_degrees.z = -1.2
+	var low_front_bank := _add_backdrop_card(root, "LowFrontDirtyRoseCloudShelf", Vector3(24.0, 88.0, -292.0), Vector2(470.0, 118.0), rose_cloud_mat, 0.0)
+	low_front_bank.rotation_degrees.z = 1.5
+	var rear_bank := _add_backdrop_card(root, "RearAshSkyBank", Vector3(-20.0, 122.0, 318.0), Vector2(500.0, 148.0), front_cloud_mat, deg_to_rad(180.0))
+	rear_bank.rotation_degrees.z = 0.8
+	var left_bank := _add_backdrop_card(root, "LeftBalkhashSkyShelf", Vector3(-310.0, 106.0, -24.0), Vector2(420.0, 130.0), rose_cloud_mat, deg_to_rad(90.0))
+	left_bank.rotation_degrees.z = -1.0
+
+	var upper_haze := _add_horizontal_plane(root, "UpperBloodDustSkyWash", Vector3(0.0, 155.0, -42.0), Vector2(520.0, 430.0), upper_haze_mat)
+	upper_haze.rotation_degrees.x = 8.0
+	var ash_haze := _add_horizontal_plane(root, "UpperAshGraySkyWash", Vector3(0.0, 124.0, 34.0), Vector2(560.0, 460.0), ash_haze_mat)
+	ash_haze.rotation_degrees.x = -5.0
 
 
 func _build_yurt_entrance_marker() -> void:
@@ -166,27 +194,90 @@ func _add_power_pylon(parent: Node3D, node_name: String, position: Vector3, scal
 	return pylon_root
 
 
-func _build_distant_balkhash_view() -> void:
+func _build_vista_environment() -> void:
 	var root := Node3D.new()
-	root.name = "DistantBalkhashRoot"
+	root.name = "VistaEnvironmentRoot"
 	add_child(root)
 
-	var salt_mat := _make_unshaded_alpha_material("mat_main_balkhash_salt_flat", TEX_SALT_FLAT, Color(0.86, 0.80, 0.62, 0.92), true)
-	var shore_mat := _make_unshaded_alpha_material("mat_main_balkhash_shore_strip", TEX_SHORE_STRIP, Color(0.24, 0.20, 0.17, 0.94), true)
-	var water_mat := _make_unshaded_alpha_material("mat_main_balkhash_far_water", "", Color(0.31, 0.45, 0.47, 0.68), true)
-	var backdrop_main_mat := _make_unshaded_alpha_material("mat_main_balkhash_backdrop_main", TEX_BACKDROP_MAIN, Color(0.62, 0.67, 0.66, 0.82), true)
-	var backdrop_alt_mat := _make_unshaded_alpha_material("mat_main_balkhash_backdrop_alt", TEX_BACKDROP_ALT, Color(0.46, 0.55, 0.55, 0.34), true)
-	var fog_mat := _make_unshaded_alpha_material("mat_main_balkhash_horizon_fog", TEX_HORIZON_FOG, Color(0.54, 0.56, 0.53, 0.48), true)
-	var industrial_mat := _make_unshaded_alpha_material("mat_main_balkhash_industrial_smudge", TEX_INDUSTRIAL, Color(0.16, 0.17, 0.16, 0.28), true)
+	var salt_mat := _make_unshaded_alpha_material("mat_vista_left_salt_flat_blend", TEX_SALT_FLAT, Color(0.58, 0.54, 0.43, 0.58), true)
+	var mineral_mud_mat := _make_unshaded_alpha_material("mat_vista_mineral_mud_edge", TEX_SHORE_STRIP, Color(0.47, 0.43, 0.34, 0.72), true)
+	var shallow_water_mat := _make_unshaded_alpha_material("mat_vista_brackish_shallow_water", "", Color(0.30, 0.43, 0.42, 0.42), true)
+	var lake_water_mat := _make_lake_water_material()
+	var shore_mat := _make_unshaded_alpha_material("mat_vista_dusty_far_shore", TEX_SHORE_STRIP, Color(0.56, 0.48, 0.37, 0.72), true)
+	var rear_shore_mat := _make_unshaded_alpha_material("mat_vista_pale_rear_shore", TEX_BACKDROP_ALT, Color(0.61, 0.56, 0.49, 0.46), true)
+	var industrial_mat := _make_unshaded_alpha_material("mat_vista_industrial_silhouette", "", Color(0.07, 0.073, 0.068, 0.45), true)
+	var industrial_smudge_mat := _make_unshaded_alpha_material("mat_vista_industrial_smudge", TEX_INDUSTRIAL, Color(0.18, 0.17, 0.16, 0.22), true)
+	var haze_mat := _make_unshaded_alpha_material("mat_vista_low_horizon_haze", TEX_HORIZON_FOG, Color(0.55, 0.53, 0.49, 0.48), true)
+	var upper_haze_mat := _make_unshaded_alpha_material("mat_vista_upper_dirty_rose_haze", TEX_HORIZON_FOG, Color(0.52, 0.46, 0.44, 0.23), true)
+	var low_cloud_dark_mat := _make_unshaded_alpha_material("mat_vista_low_cloud_dark", TEX_LOW_CLOUD_DARK, Color(0.34, 0.29, 0.29, 0.30), true)
+	var low_cloud_rose_mat := _make_unshaded_alpha_material("mat_vista_low_cloud_rose", TEX_LOW_CLOUD_ROSE, Color(0.49, 0.37, 0.36, 0.22), true)
 
-	_add_horizontal_plane(root, "SaltFlatExtensionPlane", Vector3(82.0, 0.016, -42.0), Vector2(72.0, 168.0), salt_mat)
-	_add_horizontal_plane(root, "ShoreMudStrip", Vector3(116.0, 0.022, -44.0), Vector2(11.0, 172.0), shore_mat)
-	_add_horizontal_plane(root, "LakeWaterPlane", Vector3(142.0, 0.018, -46.0), Vector2(52.0, 184.0), water_mat)
+	_build_lake_vista_left(root, salt_mat, mineral_mud_mat, shallow_water_mat)
+	_add_horizontal_plane(root, "LakeWaterFar", Vector3(-154.0, 0.018, -20.0), Vector2(92.0, 212.0), lake_water_mat)
+	_build_distant_shore_backdrop(root, shore_mat, rear_shore_mat)
+	_build_industrial_horizon_silhouettes(root, industrial_mat, industrial_smudge_mat)
+	_build_horizon_haze_band(root, haze_mat, upper_haze_mat)
+	_build_low_cloud_mass_cards(root, low_cloud_dark_mat, low_cloud_rose_mat)
 
-	_add_backdrop_card(root, "FarBackdropCard", Vector3(171.0, 10.2, -48.0), Vector2(188.0, 28.0), backdrop_main_mat, deg_to_rad(90.0))
-	_add_backdrop_card(root, "FarBackdropAltLowShore", Vector3(165.0, 7.0, -24.0), Vector2(136.0, 18.0), backdrop_alt_mat, deg_to_rad(90.0))
-	_add_backdrop_card(root, "HorizonFogCard", Vector3(160.0, 9.4, -48.0), Vector2(202.0, 22.0), fog_mat, deg_to_rad(90.0))
-	_add_backdrop_card(root, "FarIndustrialOverlay", Vector3(162.0, 9.0, -80.0), Vector2(46.0, 8.0), industrial_mat, deg_to_rad(90.0))
+
+func _build_lake_vista_left(parent: Node3D, salt_mat: Material, mineral_mud_mat: Material, shallow_water_mat: Material) -> void:
+	var root := Node3D.new()
+	root.name = "LakeVistaLeft"
+	parent.add_child(root)
+
+	_add_horizontal_plane(root, "DrySaltFlatBlendLeft", Vector3(-92.0, 0.016, -22.0), Vector2(17.0, 176.0), salt_mat)
+	_add_horizontal_plane(root, "MineralMudLakeEdge", Vector3(-103.5, 0.019, -20.0), Vector2(18.0, 196.0), mineral_mud_mat)
+	_add_horizontal_plane(root, "BrackishShallowWater", Vector3(-118.0, 0.021, -22.0), Vector2(28.0, 204.0), shallow_water_mat)
+
+
+func _build_distant_shore_backdrop(parent: Node3D, shore_mat: Material, rear_shore_mat: Material) -> void:
+	var root := Node3D.new()
+	root.name = "DistantShoreBackdrop"
+	parent.add_child(root)
+
+	_add_horizontal_plane(root, "FarExposedShoreFlat", Vector3(-204.0, 0.026, -18.0), Vector2(31.0, 216.0), shore_mat)
+	_add_backdrop_card(root, "LongLowDustyShoreStrip", Vector3(-214.0, 4.3, -18.0), Vector2(250.0, 8.5), shore_mat, deg_to_rad(90.0))
+	_add_backdrop_card(root, "PaleRearShoreWash", Vector3(-220.0, 6.2, 58.0), Vector2(170.0, 11.0), rear_shore_mat, deg_to_rad(90.0))
+
+
+func _build_industrial_horizon_silhouettes(parent: Node3D, silhouette_mat: Material, smudge_mat: Material) -> void:
+	var root := Node3D.new()
+	root.name = "IndustrialHorizonSilhouettes"
+	parent.add_child(root)
+
+	_add_backdrop_card(root, "IndustrialSmudgeCard", Vector3(-204.0, 6.0, -56.0), Vector2(78.0, 11.0), smudge_mat, deg_to_rad(90.0))
+	_add_silhouette_box(root, "LowFactoryBlockA", Vector3(-198.0, 1.45, -78.0), Vector3(0.9, 2.9, 12.0), silhouette_mat)
+	_add_silhouette_box(root, "LowFactoryBlockB", Vector3(-198.2, 1.1, -62.0), Vector3(0.9, 2.2, 18.0), silhouette_mat)
+	_add_silhouette_box(root, "ThinChimneyA", Vector3(-197.8, 5.0, -68.5), Vector3(0.55, 10.0, 0.55), silhouette_mat)
+	_add_silhouette_box(root, "ThinChimneyB", Vector3(-197.9, 4.1, -51.0), Vector3(0.48, 8.2, 0.48), silhouette_mat)
+	_add_silhouette_box(root, "DistantWarehouseSlab", Vector3(-199.0, 1.0, 72.0), Vector3(0.9, 2.0, 22.0), silhouette_mat)
+
+	_add_horizon_power_tower(root, "TinyPowerlineTowerA", Vector3(-196.0, 0.18, 18.0), 8.8, 5.6, silhouette_mat)
+	_add_horizon_power_tower(root, "TinyPowerlineTowerB", Vector3(-198.0, 0.16, 46.0), 7.2, 4.8, silhouette_mat)
+	_add_silhouette_segment(root, "FarPowerCableA", Vector3(-196.4, 7.2, 18.0), Vector3(-198.4, 6.4, 46.0), 0.07, silhouette_mat)
+	_add_silhouette_segment(root, "FarPowerCableB", Vector3(-196.4, 6.0, 18.0), Vector3(-198.4, 5.4, 46.0), 0.06, silhouette_mat)
+
+
+func _build_horizon_haze_band(parent: Node3D, haze_mat: Material, upper_haze_mat: Material) -> void:
+	var root := Node3D.new()
+	root.name = "HorizonHazeBand"
+	parent.add_child(root)
+
+	_add_backdrop_card(root, "LowDustHazeCard", Vector3(-162.0, 8.3, -16.0), Vector2(276.0, 20.0), haze_mat, deg_to_rad(90.0))
+	_add_backdrop_card(root, "UpperDirtyRoseHazeCard", Vector3(-168.0, 18.0, -10.0), Vector2(288.0, 28.0), upper_haze_mat, deg_to_rad(90.0))
+
+
+func _build_low_cloud_mass_cards(parent: Node3D, dark_mat: Material, rose_mat: Material) -> void:
+	var root := Node3D.new()
+	root.name = "LowCloudMassCards"
+	parent.add_child(root)
+
+	var west_bank := _add_backdrop_card(root, "LowAshRedCloudMassWest", Vector3(-184.0, 31.0, -92.0), Vector2(160.0, 34.0), dark_mat, deg_to_rad(90.0))
+	west_bank.rotation_degrees.z = -1.5
+	var long_bank := _add_backdrop_card(root, "LowDirtyRoseCloudMassCenter", Vector3(-198.0, 27.0, 12.0), Vector2(218.0, 42.0), rose_mat, deg_to_rad(90.0))
+	long_bank.rotation_degrees.z = 1.0
+	var north_bank := _add_backdrop_card(root, "LowGrayCloudMassNorth", Vector3(-188.0, 35.0, 104.0), Vector2(132.0, 30.0), dark_mat, deg_to_rad(90.0))
+	north_bank.rotation_degrees.z = -0.75
 
 
 func _build_steppe_vegetation() -> void:
@@ -366,6 +457,56 @@ func _add_backdrop_card(parent: Node3D, node_name: String, position: Vector3, si
 	return mesh_instance
 
 
+func _add_silhouette_box(parent: Node3D, node_name: String, position: Vector3, size: Vector3, material: Material, rotation_y: float = 0.0) -> MeshInstance3D:
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = node_name
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mesh_instance.mesh = mesh
+	mesh_instance.position = position
+	mesh_instance.rotation.y = rotation_y
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mesh_instance.set_surface_override_material(0, material)
+	parent.add_child(mesh_instance)
+	return mesh_instance
+
+
+func _add_silhouette_segment(parent: Node3D, node_name: String, start: Vector3, end: Vector3, thickness: float, material: Material) -> MeshInstance3D:
+	var direction := end - start
+	var length := direction.length()
+	if length <= 0.001:
+		return null
+
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = node_name
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(thickness, thickness, length)
+	mesh_instance.mesh = mesh
+	mesh_instance.position = (start + end) * 0.5
+	mesh_instance.look_at_from_position(mesh_instance.position, end, Vector3.UP)
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mesh_instance.set_surface_override_material(0, material)
+	parent.add_child(mesh_instance)
+	return mesh_instance
+
+
+func _add_horizon_power_tower(parent: Node3D, node_name: String, base_position: Vector3, height: float, span: float, material: Material) -> Node3D:
+	var tower := Node3D.new()
+	tower.name = node_name
+	tower.position = base_position
+	parent.add_child(tower)
+
+	var half_span := span * 0.5
+	_add_silhouette_segment(tower, "LeftLeg", Vector3(0.0, 0.0, -half_span), Vector3(0.0, height, -half_span * 0.24), 0.14, material)
+	_add_silhouette_segment(tower, "RightLeg", Vector3(0.0, 0.0, half_span), Vector3(0.0, height, half_span * 0.24), 0.14, material)
+	_add_silhouette_segment(tower, "LeftDiagonal", Vector3(0.0, height * 0.18, -half_span * 0.78), Vector3(0.0, height * 0.66, half_span * 0.34), 0.1, material)
+	_add_silhouette_segment(tower, "RightDiagonal", Vector3(0.0, height * 0.18, half_span * 0.78), Vector3(0.0, height * 0.66, -half_span * 0.34), 0.1, material)
+	_add_silhouette_box(tower, "LowerCrossbar", Vector3(0.0, height * 0.54, 0.0), Vector3(0.16, 0.16, span), material)
+	_add_silhouette_box(tower, "UpperCrossbar", Vector3(0.0, height * 0.78, 0.0), Vector3(0.16, 0.16, span * 0.78), material)
+	_add_silhouette_box(tower, "TopMast", Vector3(0.0, height * 0.91, 0.0), Vector3(0.18, height * 0.18, 0.18), material)
+	return tower
+
+
 func _build_sagging_wire(parent: Node3D, node_name: String, start: Vector3, end: Vector3, sag: float, material: Material, segments: int) -> void:
 	var root := Node3D.new()
 	root.name = node_name
@@ -416,6 +557,33 @@ func _make_unshaded_alpha_material(name: String, texture_path: String = "", colo
 		if texture != null:
 			material.albedo_texture = texture
 
+	return material
+
+
+func _make_lake_water_material() -> ShaderMaterial:
+	var shader := Shader.new()
+	shader.code = """
+shader_type spatial;
+render_mode unshaded, blend_mix, cull_disabled, depth_draw_never;
+
+uniform vec4 water_color : source_color = vec4(0.24, 0.36, 0.38, 0.58);
+uniform vec4 mineral_color : source_color = vec4(0.46, 0.55, 0.50, 0.36);
+
+void fragment() {
+	vec2 long_uv = UV * vec2(8.0, 22.0);
+	float long_ripple = sin(long_uv.x * 1.35 + long_uv.y * 0.18 + TIME * 0.055) * 0.5 + 0.5;
+	float mineral_mottle = sin(long_uv.x * 3.1 - long_uv.y * 0.42 + TIME * 0.025) * 0.5 + 0.5;
+	float mix_amount = long_ripple * 0.055 + mineral_mottle * 0.045;
+	ALBEDO = mix(water_color.rgb, mineral_color.rgb, mix_amount);
+	ALPHA = water_color.a;
+	ROUGHNESS = 1.0;
+	METALLIC = 0.0;
+}
+"""
+
+	var material := ShaderMaterial.new()
+	material.resource_name = "mat_vista_lake_water_subtle_noise"
+	material.shader = shader
 	return material
 
 

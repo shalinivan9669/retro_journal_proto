@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/visuals/retro_visuals_runtime.gd" id="1_runtime"]
+
+[node name="VisualEffectsRuntime" type="Node"]
+script = ExtResource("1_runtime")
+tune_world_environment = true
+apply_tv_radio_emission = true
+enable_device_glitch_overlay = true
+enable_outdoor_sandstorm = false
+glitch_distance = 0.5
+tv_light_energy = 0.55
+radio_light_energy = 0.16
+tv_light_range = 3.0
+radio_light_range = 1.4
+sandstorm_position = Vector3(0, 1.65, -14)
+sandstorm_size = Vector3(42, 4.5, 30)

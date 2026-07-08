@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Material" path="res://materials/fog/mat_sandstorm_fog_soft.tres" id="1_mat"]
+
+[node name="OutdoorSandstormFogVolume" type="FogVolume"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, -14)
+size = Vector3(42, 4.5, 30)
+material = ExtResource("1_mat")

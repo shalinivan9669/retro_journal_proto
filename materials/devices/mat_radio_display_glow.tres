@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/devices/device_screen_emission.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/screen_color = Vector3(1.0, 0.32, 0.08)
+shader_parameter/emission_power = 1.35
+shader_parameter/flicker_strength = 0.035
+shader_parameter/scanline_strength = 0.025
+shader_parameter/scanline_density = 360.0
+shader_parameter/roughness_value = 0.58

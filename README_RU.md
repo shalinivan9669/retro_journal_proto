@@ -52,3 +52,28 @@ assets/models/albasty_lowpoly.glb
 ## Ограничение
 
 Это процедурная игровая заготовка, не финальная AAA-модель. Её цель — быстро получить читаемый силуэт в Godot и потом допиливать топологию/анимации.
+
+## Visual Quality Preset / Main.tscn
+
+Forward+ уже включён в `project.godot`: `renderer/rendering_method="forward_plus"`.
+
+Главная сцена использует `res://scripts/visual_quality_preset.gd` на узле `VisualQualityPreset` в `res://scenes/Main.tscn`.
+
+Включены эффекты:
+
+- ACES tonemapping, пониженная экспозиция, умеренный контраст, приглушенная насыщенность.
+- Более плотный пыльный fog. Volumetric fog оставлен в пресете, но выключен по умолчанию, потому что может слишком затемнить сцену на части конфигураций.
+- SSAO для контактных теней у пола, стен, мебели и объектов.
+- Очень мягкий SSIL, если свойство Environment существует в текущей версии Godot.
+- Слабый glow с высоким порогом, чтобы светились emissive-объекты, экран ТВ, радио, огонь и лампы, а не вся сцена.
+- Мягкие тени DirectionalLight3D и сниженный RoomFillLight, чтобы юрта не выглядела плоско пересвеченной.
+- Декоративные визуальные слои без геймплейной логики: пыльные плоскости, мелкий мусор/камни/сухая трава, дальние силуэты, холодно-синяя дымка и тусклые красные акценты.
+
+Если падает FPS, открой узел `VisualQualityPreset` в `Main.tscn` или файл `res://scripts/visual_quality_preset.gd` и отключи тяжелые флаги:
+
+- `low_end = true`;
+- `enable_volumetric_fog = false`;
+- `enable_ssil = false`;
+- `enable_ssao = false`;
+- `enable_glow = false`;
+- `enable_scene_details = false`, если нужны только базовые постэффекты без дополнительных декоративных мешей.

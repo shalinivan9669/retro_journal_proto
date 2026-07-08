@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/fog/industrial_smoke_minimal.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/smoke_color = Vector3(0.12, 0.115, 0.105)
+shader_parameter/density_multiplier = 0.65
+shader_parameter/speed = 0.18
+shader_parameter/scale = 0.16
+shader_parameter/height_fade = 9.0

@@ -1,0 +1,57 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/visuals/blood_spray_toggle.gd" id="1_toggle"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blood_particle"]
+albedo_color = Color(0.58, 0.012, 0.01, 0.96)
+emission_enabled = true
+emission = Color(0.46, 0.008, 0.006, 1)
+emission_energy_multiplier = 0.34
+transparency = 1
+billboard_mode = 1
+
+[sub_resource type="QuadMesh" id="QuadMesh_blood_particle"]
+size = Vector2(0.13, 0.13)
+material = SubResource("StandardMaterial3D_blood_particle")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_blood_spray"]
+emission_shape = 3
+emission_box_extents = Vector3(0.18, 0.24, 0.16)
+direction = Vector3(-0.42, 0.06, -1)
+spread = 13.0
+gravity = Vector3(0, -3.6, 0)
+initial_velocity_min = 3.4
+initial_velocity_max = 7.2
+angular_velocity_min = -90.0
+angular_velocity_max = 90.0
+scale_min = 0.8
+scale_max = 1.9
+color = Color(0.58, 0.012, 0.01, 0.96)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_interaction"]
+radius = 1.35
+
+[node name="BloodSprayPlaceholder" type="Node3D"]
+script = ExtResource("1_toggle")
+particles = NodePath("BloodParticles")
+interaction_area = NodePath("InteractionArea")
+cooldown_seconds = 30.0
+
+[node name="BloodParticles" type="GPUParticles3D" parent="."]
+amount = 132
+lifetime = 1.25
+preprocess = 0.9
+speed_scale = 1.2
+explosiveness = 0.18
+randomness = 0.42
+fixed_fps = 24
+visibility_aabb = AABB(-4, -1.8, -6, 8, 4, 9)
+process_material = SubResource("ParticleProcessMaterial_blood_spray")
+draw_pass_1 = SubResource("QuadMesh_blood_particle")
+
+[node name="InteractionArea" type="Area3D" parent="."]
+monitorable = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionArea"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0)
+shape = SubResource("SphereShape3D_interaction")

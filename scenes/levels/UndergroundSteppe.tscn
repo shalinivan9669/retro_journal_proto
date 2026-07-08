@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/underground_steppe_controller.gd" id="2_controller"]
 [ext_resource type="PackedScene" path="res://scenes/objects/ReturnHatch.tscn" id="3_return_hatch"]
 [ext_resource type="PackedScene" path="res://scenes/ui/DialogueUI.tscn" id="4_dialogue"]
 [ext_resource type="PackedScene" path="res://scenes/ui/CrouchLoreOverlay.tscn" id="5_crouch_lore"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/BasementFlareRing.tscn" id="6_flare_ring"]
 
 [sub_resource type="Environment" id="Environment_underground"]
 background_mode = 1
@@ -47,6 +48,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6.2)
 
 [node name="ReturnHatch" parent="." instance=ExtResource("3_return_hatch")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 7.7)
+
+[node name="BasementFlareRing" parent="." instance=ExtResource("6_flare_ring")]
+transform = Transform3D(0.78, 0, 0, 0, 0.78, 0, 0, 0, 0.78, 1.45, 1.35, 5.2)
 
 [node name="AimDotUI" type="CanvasLayer" parent="."]
 layer = 20

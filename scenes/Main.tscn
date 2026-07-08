@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=3]
+[gd_scene load_steps=50 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/objects/InteractableTV.tscn" id="2_tv"]
@@ -28,16 +28,20 @@
 [ext_resource type="PackedScene" path="res://scenes/props/SignalCenterStand.tscn" id="26_signal_stand"]
 [ext_resource type="PackedScene" path="res://scenes/ui/AlbastyScareWindow.tscn" id="27_albasty_scare_window"]
 [ext_resource type="PackedScene" path="res://scenes/ui/IntroSplash.tscn" id="28_intro_splash"]
+[ext_resource type="Script" path="res://scripts/visual_quality_preset.gd" id="29_visual_preset"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/VisualEffectsRuntime.tscn" id="30_visual_runtime"]
+[ext_resource type="PackedScene" path="res://scenes/ui/PhoneOverlay.tscn" id="31_phone_overlay"]
+[ext_resource type="PackedScene" path="res://scenes/visuals/BloodSprayPlaceholder.tscn" id="32_blood_spray"]
 
 [sub_resource type="Environment" id="Environment_room"]
 background_mode = 1
-background_color = Color(0.055, 0.06, 0.07, 1)
+background_color = Color(0.048, 0.052, 0.052, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.62, 0.59, 0.54, 1)
-ambient_light_energy = 0.78
+ambient_light_color = Color(0.58, 0.55, 0.48, 1)
+ambient_light_energy = 0.68
 fog_enabled = true
-fog_light_color = Color(0.46, 0.44, 0.42, 1)
-fog_density = 0.0025
+fog_light_color = Color(0.43, 0.41, 0.36, 1)
+fog_density = 0.0036
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(10, 0.2, 10)
@@ -101,12 +105,23 @@ environment = SubResource("Environment_room")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.707107, -0.353553, 0.612372, 0, 0.866025, 0.5, -0.707107, -0.353553, 0.612372, 0, 11, 0)
-light_energy = 1.85
+light_color = Color(0.78, 0.74, 0.64, 1)
+light_energy = 1.45
+shadow_enabled = true
 
 [node name="RoomFillLight" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.5, 0)
-light_energy = 2.0
-omni_range = 18.0
+light_color = Color(0.7, 0.64, 0.52, 1)
+light_energy = 1.85
+omni_range = 17.0
+
+[node name="VisualQualityPreset" type="Node" parent="."]
+script = ExtResource("29_visual_preset")
+
+[node name="VisualEffectsRuntime" parent="." instance=ExtResource("30_visual_runtime")]
+enable_outdoor_sandstorm = true
+sandstorm_position = Vector3(0, 1.55, -18)
+sandstorm_size = Vector3(34, 3.4, 24)
 
 [node name="SteppeEnvironment" type="Node3D" parent="."]
 script = ExtResource("12_steppe_builder")
@@ -360,6 +375,9 @@ transform = Transform3D(0.766044, 0, -0.642788, 0, 1, 0, 0.642788, 0, 0.766044, 
 [node name="TemporarySignalDoor" parent="." instance=ExtResource("3_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -9.72)
 
+[node name="BloodSprayPlaceholder" parent="." instance=ExtResource("32_blood_spray")]
+transform = Transform3D(0.866025, 0, -0.5, 0, 1, 0, 0.5, 0, 0.866025, -4.9, 1.0, -12.7)
+
 [node name="DoorMarker" type="StaticBody3D" parent="."]
 visible = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25, -9.5)
@@ -383,6 +401,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3.0)
 
 [node name="AimDotUI" type="CanvasLayer" parent="."]
 layer = 20
+
+[node name="PhoneOverlay" parent="." instance=ExtResource("31_phone_overlay")]
 
 [node name="CenterDot" type="Panel" parent="AimDotUI"]
 anchors_preset = 8

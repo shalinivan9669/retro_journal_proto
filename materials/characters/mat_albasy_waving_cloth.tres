@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/characters/albasy_waving_cloth_safe.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/cloth_color = Vector3(0.075, 0.065, 0.06)
+shader_parameter/cloth_shadow = Vector3(0.015, 0.012, 0.014)
+shader_parameter/amplitude = 0.028
+shader_parameter/frequency = 26.0
+shader_parameter/speed = 1.8
+shader_parameter/normal_push = 0.015

@@ -9,9 +9,10 @@ const MID_CLOUDS := "MID_CLOUDS"
 const ACCENT_CLOUDS := "ACCENT_CLOUDS"
 
 @export_range(0.1, 3.0, 0.1) var speed_multiplier: float = 1.0
-@export_range(0.0, 3.0, 0.1) var chaos_multiplier: float = 1.0
+@export_range(0.0, 3.0, 0.1) var chaos_multiplier: float = 0.35
 @export_range(0.25, 2.0, 0.05) var density_multiplier: float = 1.0
 @export var cloud_height_offset: float = 0.0
+@export_range(-180.0, 180.0, 1.0) var wind_direction_degrees: float = -22.0
 @export var player_path: NodePath = NodePath("../Player")
 
 var _cloud_root: Node3D
@@ -35,23 +36,26 @@ func _process(delta: float) -> void:
 		_cloud_root.global_position.x = _player.global_position.x
 		_cloud_root.global_position.z = _player.global_position.z
 
+	var time := Time.get_ticks_msec() * 0.001
 	for record in _cloud_records:
 		var cloud := record["node"] as Node3D
 		if cloud == null:
 			continue
 
-		var time := Time.get_ticks_msec() * 0.001
 		var velocity: Vector3 = record["velocity"] * speed_multiplier
 		var motion_position: Vector3 = record["motion_position"]
 		motion_position += velocity * delta
 		motion_position = _wrap_position(motion_position)
 		record["motion_position"] = motion_position
 
-		var drift_axis: Vector3 = record["drift_axis"]
-		var drift_wave: float = sin(time * record["drift_speed"] + record["drift_phase"])
-		var drift_offset: Vector3 = drift_axis * drift_wave * record["drift_amount"] * chaos_multiplier
+		var turbulence_axis: Vector3 = record["turbulence_axis"]
+		var wind_axis: Vector3 = record["wind_axis"]
+		var turbulence_wave: float = sin(time * record["turbulence_speed"] + record["turbulence_phase"])
+		var wind_pulse: float = sin(time * record["turbulence_speed"] * 0.43 + record["turbulence_phase"] * 0.37)
+		var drift_offset: Vector3 = turbulence_axis * turbulence_wave * record["turbulence_amount"] * chaos_multiplier
+		drift_offset += wind_axis * wind_pulse * record["wind_pulse_amount"] * chaos_multiplier
 		cloud.position = motion_position + drift_offset
-		cloud.position.y = record["base_y"] + sin(time * record["breath_speed"] + record["breath_phase"]) * record["breath_amount"] * chaos_multiplier
+		cloud.position.y = record["base_y"]
 
 
 func _rebuild_clouds() -> void:
@@ -143,24 +147,19 @@ func _create_cloud(layer: Node3D, texture_path: String, layer_name: String, laye
 	cloud.set_surface_override_material(0, _make_cloud_material(texture, layout["color"]))
 	layer.add_child(cloud)
 
-	var drift_scale := 1.0
-	if layer_name == FAR_CLOUDS:
-		drift_scale = 0.65
-	elif layer_name == ACCENT_CLOUDS:
-		drift_scale = 1.35
+	var turbulence_scale := _layer_turbulence_multiplier(layer_name)
 
 	_cloud_records.append({
 		"node": cloud,
 		"motion_position": cloud.position,
-		"velocity": layout["velocity"],
+		"velocity": _cloud_velocity(layer_name, global_index),
 		"base_y": cloud.position.y,
-		"breath_phase": float(global_index) * 0.71,
-		"breath_speed": layout["breath_speed"],
-		"breath_amount": layout["breath_amount"],
-		"drift_axis": _drift_axis(global_index),
-		"drift_phase": float(global_index) * 1.37 + float(layer_index) * 0.61,
-		"drift_speed": (0.1 + fposmod(float(global_index) * 0.047, 0.13)) * drift_scale,
-		"drift_amount": (10.0 + fposmod(float(global_index * 17), 18.0)) * drift_scale
+		"wind_axis": _shared_wind_direction(),
+		"turbulence_axis": _turbulence_axis(global_index),
+		"turbulence_phase": float(global_index) * 1.37 + float(layer_index) * 0.61,
+		"turbulence_speed": (0.018 + fposmod(float(global_index) * 0.0047, 0.022)) * turbulence_scale,
+		"turbulence_amount": (1.4 + fposmod(float(global_index * 17), 2.3)) * turbulence_scale,
+		"wind_pulse_amount": (0.5 + fposmod(float(global_index * 13), 0.7)) * turbulence_scale
 	})
 
 
@@ -172,10 +171,10 @@ func _make_cloud_mesh(size: Vector2) -> PlaneMesh:
 	return mesh
 
 
-func _make_cloud_material(texture: Texture2D, _color: Color) -> StandardMaterial3D:
+func _make_cloud_material(texture: Texture2D, color: Color) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_texture = texture
-	material.albedo_color = Color.WHITE
+	material.albedo_color = Color(color.r, color.g, color.b, minf(color.a * 1.35, 0.78))
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
@@ -196,31 +195,31 @@ func _layout_for(layer_name: String, layer_index: int) -> Dictionary:
 
 func _far_layout(index: int) -> Dictionary:
 	var layouts := [
-		{"position": Vector3(-365.0, 112.0, -250.0), "size": Vector2(320.0, 178.0), "rotation": Vector3(0.0, -24.0, 0.0), "velocity": Vector3(0.2, 0.0, 0.04), "color": Color(0.45, 0.42, 0.40, 0.38), "breath_speed": 0.22, "breath_amount": 0.32},
-		{"position": Vector3(-105.0, 106.0, -308.0), "size": Vector2(284.0, 156.0), "rotation": Vector3(0.0, 11.0, 0.0), "velocity": Vector3(0.12, 0.0, -0.06), "color": Color(0.39, 0.37, 0.36, 0.34), "breath_speed": 0.18, "breath_amount": 0.26},
-		{"position": Vector3(212.0, 118.0, -224.0), "size": Vector2(340.0, 172.0), "rotation": Vector3(0.0, 32.0, 0.0), "velocity": Vector3(-0.16, 0.0, 0.05), "color": Color(0.48, 0.41, 0.39, 0.4), "breath_speed": 0.27, "breath_amount": 0.28},
-		{"position": Vector3(385.0, 124.0, -72.0), "size": Vector2(268.0, 142.0), "rotation": Vector3(0.0, -37.0, 0.0), "velocity": Vector3(0.22, 0.0, -0.02), "color": Color(0.36, 0.35, 0.35, 0.32), "breath_speed": 0.2, "breath_amount": 0.22}
+		{"position": Vector3(-365.0, 112.0, -250.0), "size": Vector2(320.0, 178.0), "rotation": Vector3(0.0, -24.0, 0.0), "color": Color(0.45, 0.42, 0.40, 0.38)},
+		{"position": Vector3(-105.0, 106.0, -308.0), "size": Vector2(284.0, 156.0), "rotation": Vector3(0.0, 11.0, 0.0), "color": Color(0.39, 0.37, 0.36, 0.34)},
+		{"position": Vector3(212.0, 118.0, -224.0), "size": Vector2(340.0, 172.0), "rotation": Vector3(0.0, 32.0, 0.0), "color": Color(0.48, 0.41, 0.39, 0.4)},
+		{"position": Vector3(385.0, 124.0, -72.0), "size": Vector2(268.0, 142.0), "rotation": Vector3(0.0, -37.0, 0.0), "color": Color(0.36, 0.35, 0.35, 0.32)}
 	]
 	return _layout_from_table(layouts, index, Vector3(-42.0, 5.0, 118.0))
 
 
 func _mid_layout(index: int) -> Dictionary:
 	var layouts := [
-		{"position": Vector3(-315.0, 88.0, -126.0), "size": Vector2(238.0, 128.0), "rotation": Vector3(0.0, -13.0, 0.0), "velocity": Vector3(0.52, 0.0, 0.18), "color": Color(0.58, 0.42, 0.39, 0.52), "breath_speed": 0.33, "breath_amount": 0.42},
-		{"position": Vector3(-68.0, 80.0, -214.0), "size": Vector2(222.0, 120.0), "rotation": Vector3(0.0, 24.0, 0.0), "velocity": Vector3(-0.44, 0.0, 0.11), "color": Color(0.64, 0.42, 0.39, 0.56), "breath_speed": 0.42, "breath_amount": 0.36},
-		{"position": Vector3(232.0, 92.0, -110.0), "size": Vector2(260.0, 134.0), "rotation": Vector3(0.0, 39.0, 0.0), "velocity": Vector3(0.61, 0.0, -0.17), "color": Color(0.5, 0.36, 0.35, 0.5), "breath_speed": 0.3, "breath_amount": 0.34},
-		{"position": Vector3(-398.0, 94.0, 72.0), "size": Vector2(206.0, 112.0), "rotation": Vector3(0.0, -32.0, 0.0), "velocity": Vector3(-0.58, 0.0, -0.09), "color": Color(0.52, 0.39, 0.38, 0.48), "breath_speed": 0.36, "breath_amount": 0.32},
-		{"position": Vector3(92.0, 84.0, 158.0), "size": Vector2(198.0, 106.0), "rotation": Vector3(0.0, -7.0, 0.0), "velocity": Vector3(0.35, 0.0, 0.23), "color": Color(0.7, 0.45, 0.42, 0.5), "breath_speed": 0.39, "breath_amount": 0.38}
+		{"position": Vector3(-315.0, 88.0, -126.0), "size": Vector2(238.0, 128.0), "rotation": Vector3(0.0, -13.0, 0.0), "color": Color(0.58, 0.42, 0.39, 0.52)},
+		{"position": Vector3(-68.0, 80.0, -214.0), "size": Vector2(222.0, 120.0), "rotation": Vector3(0.0, 24.0, 0.0), "color": Color(0.64, 0.42, 0.39, 0.56)},
+		{"position": Vector3(232.0, 92.0, -110.0), "size": Vector2(260.0, 134.0), "rotation": Vector3(0.0, 39.0, 0.0), "color": Color(0.5, 0.36, 0.35, 0.5)},
+		{"position": Vector3(-398.0, 94.0, 72.0), "size": Vector2(206.0, 112.0), "rotation": Vector3(0.0, -32.0, 0.0), "color": Color(0.52, 0.39, 0.38, 0.48)},
+		{"position": Vector3(92.0, 84.0, 158.0), "size": Vector2(198.0, 106.0), "rotation": Vector3(0.0, -7.0, 0.0), "color": Color(0.7, 0.45, 0.42, 0.5)}
 	]
 	return _layout_from_table(layouts, index, Vector3(74.0, 4.0, 96.0))
 
 
 func _accent_layout(index: int) -> Dictionary:
 	var layouts := [
-		{"position": Vector3(-212.0, 74.0, -18.0), "size": Vector2(142.0, 78.0), "rotation": Vector3(0.0, 17.0, 0.0), "velocity": Vector3(0.86, 0.0, -0.28), "color": Color(0.9, 0.5, 0.47, 0.58), "breath_speed": 0.52, "breath_amount": 0.5},
-		{"position": Vector3(24.0, 70.0, -166.0), "size": Vector2(124.0, 74.0), "rotation": Vector3(0.0, -24.0, 0.0), "velocity": Vector3(-0.95, 0.0, 0.24), "color": Color(0.82, 0.44, 0.42, 0.56), "breath_speed": 0.46, "breath_amount": 0.44},
-		{"position": Vector3(304.0, 82.0, 64.0), "size": Vector2(156.0, 84.0), "rotation": Vector3(0.0, 35.0, 0.0), "velocity": Vector3(1.05, 0.0, -0.18), "color": Color(0.78, 0.38, 0.36, 0.5), "breath_speed": 0.58, "breath_amount": 0.42},
-		{"position": Vector3(-362.0, 84.0, 214.0), "size": Vector2(132.0, 76.0), "rotation": Vector3(0.0, -41.0, 0.0), "velocity": Vector3(-0.78, 0.0, 0.31), "color": Color(0.86, 0.48, 0.45, 0.54), "breath_speed": 0.5, "breath_amount": 0.4}
+		{"position": Vector3(-212.0, 74.0, -18.0), "size": Vector2(142.0, 78.0), "rotation": Vector3(0.0, 17.0, 0.0), "color": Color(0.9, 0.5, 0.47, 0.58)},
+		{"position": Vector3(24.0, 70.0, -166.0), "size": Vector2(124.0, 74.0), "rotation": Vector3(0.0, -24.0, 0.0), "color": Color(0.82, 0.44, 0.42, 0.56)},
+		{"position": Vector3(304.0, 82.0, 64.0), "size": Vector2(156.0, 84.0), "rotation": Vector3(0.0, 35.0, 0.0), "color": Color(0.78, 0.38, 0.36, 0.5)},
+		{"position": Vector3(-362.0, 84.0, 214.0), "size": Vector2(132.0, 76.0), "rotation": Vector3(0.0, -41.0, 0.0), "color": Color(0.86, 0.48, 0.45, 0.54)}
 	]
 	return _layout_from_table(layouts, index, Vector3(-86.0, 3.0, 88.0))
 
@@ -231,13 +230,42 @@ func _layout_from_table(layouts: Array, index: int, repeat_offset: Vector3) -> D
 	if repeat > 0:
 		layout["position"] = layout["position"] + repeat_offset * repeat
 		layout["size"] = layout["size"] * maxf(0.72, 1.0 - float(repeat) * 0.08)
-		layout["velocity"] = layout["velocity"] * (1.0 + float(repeat) * 0.05)
 	return layout
 
 
-func _drift_axis(index: int) -> Vector3:
-	var angle := float(index) * 1.93 + 0.47
+func _cloud_velocity(layer_name: String, global_index: int) -> Vector3:
+	var variation := 0.94 + fposmod(float(global_index * 19), 13.0) / 100.0
+	return _shared_wind_direction() * 0.10 * _layer_speed_multiplier(layer_name) * variation
+
+
+func _layer_speed_multiplier(layer_name: String) -> float:
+	if layer_name == FAR_CLOUDS:
+		return 0.46
+	if layer_name == ACCENT_CLOUDS:
+		return 1.18
+	return 0.82
+
+
+func _layer_turbulence_multiplier(layer_name: String) -> float:
+	if layer_name == FAR_CLOUDS:
+		return 0.55
+	if layer_name == ACCENT_CLOUDS:
+		return 1.05
+	return 0.78
+
+
+func _shared_wind_direction() -> Vector3:
+	var angle := deg_to_rad(wind_direction_degrees)
 	return Vector3(cos(angle), 0.0, sin(angle)).normalized()
+
+
+func _turbulence_axis(index: int) -> Vector3:
+	var wind := _shared_wind_direction()
+	var crosswind := Vector3(-wind.z, 0.0, wind.x).normalized()
+	var side := 1.0
+	if index % 2 == 0:
+		side = -1.0
+	return (crosswind * side * 0.82 + wind * 0.18).normalized()
 
 
 func _wrap_position(position: Vector3) -> Vector3:

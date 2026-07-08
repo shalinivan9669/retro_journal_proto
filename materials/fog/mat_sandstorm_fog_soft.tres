@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/fog/sandstorm_fog_soft.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/fog_color = Vector3(0.50, 0.45, 0.36)
+shader_parameter/density_multiplier = 0.18
+shader_parameter/noise_scale = 0.085
+shader_parameter/vertical_fade = 3.5
+shader_parameter/speed = 0.10
+shader_parameter/contrast = 1.45

@@ -2,10 +2,15 @@ extends Node
 
 @export var low_end: bool = false
 @export var enable_ssao: bool = true
-@export var enable_ssil: bool = true
+@export var enable_ssil: bool = false
 @export var enable_glow: bool = true
 @export var enable_volumetric_fog: bool = false
 @export var enable_taa: bool = false
+@export var enable_debanding: bool = true
+@export_range(1.0, 2.0, 0.01) var render_scale: float = 1.0
+@export_range(0, 3, 1) var msaa_3d: int = 0
+@export_range(0, 1, 1) var msaa_2d: int = 0
+@export_range(0, 1, 1) var screen_space_aa: int = 0
 @export var enable_scene_details: bool = true
 
 @export var world_environment_path: NodePath = NodePath("../WorldEnvironment")
@@ -71,12 +76,25 @@ var _soft_haze_shader: Shader
 
 
 func _ready() -> void:
+	_apply_viewport_quality()
 	_apply_environment_preset()
 	_apply_light_preset()
-	if enable_taa:
-		_apply_optional_taa()
 	if enable_scene_details:
 		_build_scene_details.call_deferred()
+
+
+func _apply_viewport_quality() -> void:
+	var viewport := get_viewport()
+	if viewport == null:
+		return
+
+	var heavy_effects_enabled := not low_end
+	_set_if_available(viewport, "msaa_2d", msaa_2d if heavy_effects_enabled else 0)
+	_set_if_available(viewport, "msaa_3d", msaa_3d if heavy_effects_enabled else 0)
+	_set_if_available(viewport, "screen_space_aa", screen_space_aa if heavy_effects_enabled else 0)
+	_set_if_available(viewport, "use_taa", enable_taa and heavy_effects_enabled)
+	_set_if_available(viewport, "use_debanding", enable_debanding)
+	_set_if_available(viewport, "scaling_3d_scale", render_scale if heavy_effects_enabled else 1.0)
 
 
 func _apply_environment_preset() -> void:
@@ -89,12 +107,12 @@ func _apply_environment_preset() -> void:
 	_set_if_available(environment, "tonemap_exposure", 0.98)
 	_set_if_available(environment, "tonemap_white", 1.12)
 
-	_set_if_available(environment, "ambient_light_color", Color(0.58, 0.55, 0.48, 1.0))
-	_set_if_available(environment, "ambient_light_energy", 0.68)
+	_set_if_available(environment, "ambient_light_color", Color(0.72, 0.64, 0.52, 1.0))
+	_set_if_available(environment, "ambient_light_energy", 0.96)
 	_set_if_available(environment, "fog_enabled", true)
-	_set_if_available(environment, "fog_light_color", Color(0.43, 0.41, 0.36, 1.0))
-	_set_if_available(environment, "fog_density", 0.0036)
-	_set_if_available(environment, "fog_sky_affect", 0.42)
+	_set_if_available(environment, "fog_light_color", Color(0.52, 0.47, 0.38, 1.0))
+	_set_if_available(environment, "fog_density", 0.0016)
+	_set_if_available(environment, "fog_sky_affect", 0.28)
 
 	_set_if_available(environment, "adjustment_enabled", true)
 	_set_if_available(environment, "adjustment_contrast", 1.08)
@@ -140,25 +158,20 @@ func _apply_environment_preset() -> void:
 func _apply_light_preset() -> void:
 	var directional_light := get_node_or_null(directional_light_path) as Light3D
 	if directional_light != null:
-		_set_if_available(directional_light, "light_energy", 1.45)
-		_set_if_available(directional_light, "light_color", Color(0.78, 0.74, 0.64, 1.0))
+		_set_if_available(directional_light, "light_energy", 1.85)
+		_set_if_available(directional_light, "light_color", Color(0.95, 0.82, 0.62, 1.0))
 		_set_if_available(directional_light, "shadow_enabled", true)
-		_set_if_available(directional_light, "shadow_blur", 5.0)
-		_set_if_available(directional_light, "shadow_opacity", 0.38)
+		_set_if_available(directional_light, "shadow_blur", 7.0)
+		_set_if_available(directional_light, "shadow_opacity", 0.22)
 		_set_if_available(directional_light, "directional_shadow_blend_splits", true)
 		_set_if_available(directional_light, "directional_shadow_max_distance", 64.0)
 
 	var room_fill_light := get_node_or_null(room_fill_light_path) as OmniLight3D
 	if room_fill_light != null:
-		_set_if_available(room_fill_light, "light_energy", 1.85)
-		_set_if_available(room_fill_light, "omni_range", 17.0)
-		_set_if_available(room_fill_light, "light_color", Color(0.70, 0.64, 0.52, 1.0))
+		_set_if_available(room_fill_light, "light_energy", 4.2)
+		_set_if_available(room_fill_light, "omni_range", 22.0)
+		_set_if_available(room_fill_light, "light_color", Color(1.0, 0.78, 0.52, 1.0))
 		_set_if_available(room_fill_light, "shadow_enabled", false)
-
-
-func _apply_optional_taa() -> void:
-	var viewport := get_viewport()
-	_set_if_available(viewport, "use_taa", true)
 
 
 func _build_scene_details() -> void:

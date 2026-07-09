@@ -39,6 +39,12 @@ func is_cover_removed() -> bool:
 	return _removed
 
 
+func get_interaction_prompt() -> String:
+	if _removed:
+		return ""
+	return "КОВЕР\nE - сдвинуть"
+
+
 func _show_dialogue(dialogue_ui: Node, text: String) -> void:
 	if dialogue_ui != null and dialogue_ui.has_method("show_message"):
 		dialogue_ui.call("show_message", text)

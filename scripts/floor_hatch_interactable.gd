@@ -13,7 +13,10 @@ func interact(dialogue_ui: Node) -> void:
 	if _transition_started:
 		return
 	if _is_locked_by_cover():
-		if dialogue_ui != null and dialogue_ui.has_method("show_message"):
+		var cover := _get_blocking_cover()
+		if cover != null and cover.has_method("interact"):
+			cover.call("interact", dialogue_ui)
+		elif dialogue_ui != null and dialogue_ui.has_method("show_message"):
 			dialogue_ui.call("show_message", locked_by_cover_text)
 		return
 
@@ -26,8 +29,18 @@ func interact(dialogue_ui: Node) -> void:
 	get_tree().change_scene_to_file(target_scene_path)
 
 
+func get_interaction_prompt() -> String:
+	if _is_locked_by_cover():
+		return "ЛЮК ПОД КОВРОМ\nE - сдвинуть ковер"
+	return "ЛЮК ВНИЗ\nE - спуститься"
+
+
 func _is_locked_by_cover() -> bool:
+	return _get_blocking_cover() != null
+
+
+func _get_blocking_cover() -> Node:
 	for cover: Node in get_tree().get_nodes_in_group(cover_group_name):
 		if cover.has_method("is_cover_removed") and not bool(cover.call("is_cover_removed")):
-			return true
-	return false
+			return cover
+	return null

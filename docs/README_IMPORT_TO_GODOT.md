@@ -6,7 +6,10 @@ Copy/import assets into:
 
 ## Sky / Clouds
 
-- `res://assets/textures/sky/sky_mud_road_puresky_1k.exr` is the base sky texture.
+- `res://assets/textures/sky/overcast_soil_puresky_16k.exr` is the base sky texture.
+- Source: Poly Haven `Overcast Soil (Pure Sky)`, CC0.
+- Import settings should keep `process/size_limit=0`, `mipmaps/generate=false`, `process/hdr_as_srgb=false`, and `process/hdr_clamp_exposure=false`.
+- `res://assets/textures/sky/sky_mud_road_puresky_1k.exr` is the old low-resolution fallback/reference sky.
 - `res://assets/textures/sky/sky_mud_road_puresky_1k_tonemap.png` is only a preview/fallback and is not used as a cloud.
 - Cleaned transparent cloud PNGs in `res://assets/textures/sky/clouds_runtime_clean/` are loaded at runtime by `res://scripts/sky_clouds_controller.gd`.
 - Source cloud PNGs in `res://assets/textures/sky/` are kept for reference and should not be rendered directly if they contain baked-in checkerboard backgrounds.

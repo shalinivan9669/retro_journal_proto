@@ -37,6 +37,13 @@ func trigger_signal(dialogue_ui: Node) -> void:
 		])
 
 
+func get_interaction_prompt() -> String:
+	var manager := _get_signal_manager()
+	if manager == null:
+		return "TV\nE - включить"
+	return "TV CH %02d\nE - канал  F - проверить сигнал" % int(manager.call("get_tv_channel"))
+
+
 func _get_signal_manager() -> Node:
 	return get_tree().get_first_node_in_group("signal_state_manager")
 

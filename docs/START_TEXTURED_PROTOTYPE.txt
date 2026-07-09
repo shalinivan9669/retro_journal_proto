@@ -49,7 +49,7 @@ Material map:
   Steppe ground material. Uses res://assets/textures/ground/tex_steppe_dry_ground_1024.png.
 
 - res://materials/mat_sky_dome.tres
-  Sky dome material. Uses res://assets/textures/sky/sky_mud_road_puresky_1k_tonemap.png.
+  Sky dome material. Uses res://assets/textures/sky/overcast_soil_puresky_16k.exr.
 
 - res://materials/mat_cloud_dark_ash_red.tres
   Dark ash-red cloud layer material.

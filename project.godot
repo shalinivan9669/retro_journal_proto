@@ -4,7 +4,7 @@ config_version=5
 
 config/name="Retro Journal Prototype"
 run/main_scene="res://scenes/Main.tscn"
-config/features=PackedStringArray("4.7", "Forward Plus")
+config/features=PackedStringArray("4.7")
 config/icon=""
 
 [display]
@@ -16,4 +16,13 @@ window/size/borderless=true
 
 [rendering]
 
-renderer/rendering_method="forward_plus"
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+renderer/rendering_method.web="gl_compatibility"
+anti_aliasing/quality/msaa_2d=0
+anti_aliasing/quality/msaa_3d=0
+anti_aliasing/quality/screen_space_aa=0
+anti_aliasing/quality/use_taa=false
+anti_aliasing/quality/use_debanding=true
+scaling_3d/scale=1.0
+textures/default_filters/anisotropic_filtering_level=4

@@ -7,6 +7,7 @@ const TERRAIN_HEIGHT_SAMPLER_SCRIPT: Script = preload("res://scripts/environment
 const STEPPE_TERRAIN_BUILDER_SCRIPT: Script = preload("res://scripts/environment/steppe_terrain_builder.gd")
 const POLYHAVEN_SCATTER_SCRIPT: Script = preload("res://scripts/environment/polyhaven_landscape_scatter.gd")
 const AMBIENT_FAUNA_SCRIPT: Script = preload("res://scripts/environment/ambient_fauna_controller.gd")
+const MOUNTAIN_MEGAWALL_SCENE: PackedScene = preload("res://systems/mountain_megawall/MountainMegawallRoot.tscn")
 
 const PYLON_SCENE_PATH := "res://assets/models/props/lowpoly_power_pylon_no_wires.glb"
 const GRASS_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_grass_patch.glb"
@@ -67,6 +68,12 @@ const TEX_LOW_CLOUD_ROSE := "res://assets/textures/sky/cloud_rose_ash_red_alpha.
 @export var vista_horizon_haze_cards_enabled: bool = false
 @export var vista_low_cloud_cards_enabled: bool = false
 
+@export_group("Mountain Megawall")
+@export var mountain_megawall_enabled: bool = true
+@export var mountain_megawall_yaw_degrees: float = 90.0
+@export_range(0.0, 1.0, 0.01) var mountain_megawall_day_night: float = 0.18
+@export_range(0.0, 2.0, 0.01) var mountain_megawall_haze_strength: float = 0.86
+
 @export_group("Landscape Debug")
 @export var debug_show_spawn_zones: bool = false
 @export var debug_disable_flora: bool = false
@@ -90,6 +97,7 @@ func _ready() -> void:
 	if stage1_sky_cards_enabled:
 		_build_stage1_sky_atmosphere()
 	_build_vista_environment()
+	_build_mountain_megawall()
 	_build_yurt_entrance_marker()
 	_build_power_pylon()
 	_build_secondary_powerline()
@@ -339,6 +347,21 @@ func _build_vista_environment() -> void:
 		var low_cloud_dark_mat := _make_unshaded_alpha_material("mat_vista_low_cloud_dark", TEX_LOW_CLOUD_DARK, Color(0.34, 0.29, 0.29, 0.30), true)
 		var low_cloud_rose_mat := _make_unshaded_alpha_material("mat_vista_low_cloud_rose", TEX_LOW_CLOUD_ROSE, Color(0.49, 0.37, 0.36, 0.22), true)
 		_build_low_cloud_mass_cards(root, low_cloud_dark_mat, low_cloud_rose_mat)
+
+
+func _build_mountain_megawall() -> void:
+	if not mountain_megawall_enabled:
+		return
+
+	var megawall := MOUNTAIN_MEGAWALL_SCENE.instantiate()
+	megawall.name = "MountainMegawallRoot"
+	if megawall.has_method("set_mountain_direction_yaw_degrees"):
+		megawall.set_mountain_direction_yaw_degrees(mountain_megawall_yaw_degrees)
+	else:
+		megawall.set("mountain_direction_yaw_degrees", mountain_megawall_yaw_degrees)
+	megawall.set("day_night", mountain_megawall_day_night)
+	megawall.set("haze_strength", mountain_megawall_haze_strength)
+	add_child(megawall)
 
 
 func _build_lake_vista_left(parent: Node3D, salt_mat: Material, mineral_mud_mat: Material, shallow_water_mat: Material) -> void:

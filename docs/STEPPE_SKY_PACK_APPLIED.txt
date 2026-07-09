@@ -22,8 +22,9 @@ Sky:
 - Material:
   res://materials/mat_sky_dome.tres
 - Texture:
-  res://assets/textures/sky/sky_mud_road_puresky_1k_tonemap.png
-- The PNG tonemap fallback is used for reliable display.
+  res://assets/textures/sky/overcast_soil_puresky_16k.exr
+- Source: Poly Haven Overcast Soil (Pure Sky), CC0.
+- The old 1K EXR/tonemap PNG files remain only as fallback/reference assets.
 - SkyDome radius is controlled by sky_radius in steppe_environment_builder.gd.
 
 Clouds:

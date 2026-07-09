@@ -1,6 +1,8 @@
 extends Node3D
 
 const CONCRETE_MATERIAL: Material = preload("res://materials/mat_underground_concrete.tres")
+const BASEMENT_WALL_MATERIAL: Material = preload("res://materials/polyhaven/mat_basement_broken_brick_wall.tres")
+const BASEMENT_FLOOR_MATERIAL: Material = preload("res://materials/polyhaven/mat_basement_floor_gravel_concrete_03.tres")
 const WET_GRASS_MATERIAL: Material = preload("res://materials/mat_underground_wet_grass.tres")
 const WATER_MATERIAL: Material = preload("res://materials/mat_underground_water.tres")
 const FLOWER_WHITE_MATERIAL: Material = preload("res://materials/mat_underground_flower_white.tres")
@@ -32,6 +34,7 @@ const MAZE := [
 
 const TILE_SIZE := 3.0
 const WALL_HEIGHT_BASE := 2.4
+const BASEMENT_WALL_HEIGHT := 4.85
 const WALL_THICKNESS := 0.28
 const LOW_CEILING_HEIGHT := 1.32
 const NORMAL_CEILING_HEIGHT := 2.35
@@ -108,7 +111,7 @@ func _position_player_at_entry() -> void:
 
 
 func _build_entry_stairs() -> void:
-	_add_static_box("EntryConcretePlatform", TOP_PLATFORM_SIZE, TOP_PLATFORM_CENTER + Vector3(0.0, -TOP_PLATFORM_SIZE.y * 0.5, 0.0), CONCRETE_MATERIAL)
+	_add_static_box("EntryConcretePlatform", TOP_PLATFORM_SIZE, TOP_PLATFORM_CENTER + Vector3(0.0, -TOP_PLATFORM_SIZE.y * 0.5, 0.0), BASEMENT_FLOOR_MATERIAL)
 
 	var first_start_z := TOP_PLATFORM_CENTER.z - TOP_PLATFORM_SIZE.z * 0.5
 	var first_end_z := first_start_z - float(STAIR_FIRST_RUN_STEPS) * STAIR_STEP_DEPTH
@@ -122,14 +125,14 @@ func _build_entry_stairs() -> void:
 		Vector3(0.0, 0.0, first_start_z),
 		Vector3(0.0, landing_y, first_end_z),
 		STAIR_WALKABLE_WIDTH,
-		CONCRETE_MATERIAL
+		BASEMENT_FLOOR_MATERIAL
 	)
 	_add_walkable_ramp(
 		"StairSecondRunWalkableRamp",
 		Vector3(second_start_x, landing_y, landing_z),
 		Vector3(second_end_x, MAZE_FLOOR_Y, landing_z),
 		STAIR_WALKABLE_WIDTH,
-		CONCRETE_MATERIAL
+		BASEMENT_FLOOR_MATERIAL
 	)
 
 	for step_index in range(STAIR_FIRST_RUN_STEPS):
@@ -139,13 +142,13 @@ func _build_entry_stairs() -> void:
 			step_top_y - STAIR_SLAB_THICKNESS * 0.5,
 			first_start_z - (float(step_index) + 0.5) * STAIR_STEP_DEPTH
 		)
-		_add_mesh_box("StairFirstRunVisual_%02d" % step_index, Vector3(STAIR_WIDTH, STAIR_SLAB_THICKNESS, STAIR_STEP_DEPTH + 0.02), center, CONCRETE_MATERIAL)
+		_add_mesh_box("StairFirstRunVisual_%02d" % step_index, Vector3(STAIR_WIDTH, STAIR_SLAB_THICKNESS, STAIR_STEP_DEPTH + 0.02), center, BASEMENT_FLOOR_MATERIAL)
 
 	_add_static_box(
 		"StairTurnLanding",
 		Vector3(STAIR_LANDING_SIZE, STAIR_SLAB_THICKNESS, STAIR_LANDING_SIZE),
 		Vector3(0.0, landing_y - STAIR_SLAB_THICKNESS * 0.5, landing_z),
-		CONCRETE_MATERIAL
+		BASEMENT_FLOOR_MATERIAL
 	)
 
 	for step_index in range(STAIR_SECOND_RUN_STEPS):
@@ -156,35 +159,35 @@ func _build_entry_stairs() -> void:
 			step_top_y - STAIR_SLAB_THICKNESS * 0.5,
 			landing_z
 		)
-		_add_mesh_box("StairSecondRunVisual_%02d" % step_index, Vector3(STAIR_STEP_DEPTH + 0.02, STAIR_SLAB_THICKNESS, STAIR_WIDTH), center, CONCRETE_MATERIAL)
+		_add_mesh_box("StairSecondRunVisual_%02d" % step_index, Vector3(STAIR_STEP_DEPTH + 0.02, STAIR_SLAB_THICKNESS, STAIR_WIDTH), center, BASEMENT_FLOOR_MATERIAL)
 
 	var bottom_center := _bottom_landing_center()
 	_add_static_box(
 		"StairBottomLanding",
 		Vector3(STAIR_LANDING_SIZE, STAIR_SLAB_THICKNESS, STAIR_LANDING_SIZE),
 		bottom_center + Vector3(0.0, -STAIR_SLAB_THICKNESS * 0.5, 0.0),
-		CONCRETE_MATERIAL
+		BASEMENT_FLOOR_MATERIAL
 	)
 	_build_stair_guard_walls(first_start_z, landing_z, bottom_center.x)
 
 
 func _build_stair_guard_walls(first_start_z: float, landing_z: float, bottom_x: float) -> void:
-	var guard_height := STAIR_VERTICAL_DROP + 1.35
+	var guard_height := maxf(STAIR_VERTICAL_DROP + 1.35, BASEMENT_WALL_HEIGHT)
 	var guard_center_y := -STAIR_VERTICAL_DROP * 0.5 + 0.65
 	var side_offset := STAIR_WIDTH * 0.5 + WALL_THICKNESS * 0.5
 
 	var first_end_z := first_start_z - float(STAIR_FIRST_RUN_STEPS) * STAIR_STEP_DEPTH
 	var first_length := first_start_z - first_end_z
 	var first_center_z := (first_start_z + first_end_z) * 0.5
-	_add_static_box("StairFirstRunWestWall", Vector3(WALL_THICKNESS, guard_height, first_length), Vector3(-side_offset, guard_center_y, first_center_z), CONCRETE_MATERIAL)
-	_add_static_box("StairFirstRunEastWall", Vector3(WALL_THICKNESS, guard_height, first_length), Vector3(side_offset, guard_center_y, first_center_z), CONCRETE_MATERIAL)
+	_add_static_box("StairFirstRunWestWall", Vector3(WALL_THICKNESS, guard_height, first_length), Vector3(-side_offset, guard_center_y, first_center_z), BASEMENT_WALL_MATERIAL)
+	_add_static_box("StairFirstRunEastWall", Vector3(WALL_THICKNESS, guard_height, first_length), Vector3(side_offset, guard_center_y, first_center_z), BASEMENT_WALL_MATERIAL)
 
 	var second_wall_start_x := STAIR_LANDING_SIZE * 0.5
 	var second_wall_end_x := bottom_x + STAIR_LANDING_SIZE * 0.5
 	var second_length := second_wall_end_x - second_wall_start_x
 	var second_center_x := second_wall_start_x + second_length * 0.5
-	_add_static_box("StairSecondRunNorthWall", Vector3(second_length, guard_height, WALL_THICKNESS), Vector3(second_center_x, guard_center_y, landing_z - side_offset), CONCRETE_MATERIAL)
-	_add_static_box("StairSecondRunSouthWall", Vector3(second_length, guard_height, WALL_THICKNESS), Vector3(second_center_x, guard_center_y, landing_z + side_offset), CONCRETE_MATERIAL)
+	_add_static_box("StairSecondRunNorthWall", Vector3(second_length, guard_height, WALL_THICKNESS), Vector3(second_center_x, guard_center_y, landing_z - side_offset), BASEMENT_WALL_MATERIAL)
+	_add_static_box("StairSecondRunSouthWall", Vector3(second_length, guard_height, WALL_THICKNESS), Vector3(second_center_x, guard_center_y, landing_z + side_offset), BASEMENT_WALL_MATERIAL)
 
 
 func _bottom_landing_center() -> Vector3:
@@ -211,19 +214,19 @@ func _build_stair_to_maze_connector() -> void:
 		"StairMazeConnectorFloor",
 		Vector3(corridor_length + STAIR_LANDING_SIZE, 0.16, STAIR_WIDTH),
 		corridor_center + Vector3(0.0, -0.08, 0.0),
-		WET_GRASS_MATERIAL
+		BASEMENT_FLOOR_MATERIAL
 	)
 	_add_static_box(
 		"StairMazeConnectorNorthWall",
-		Vector3(corridor_length, WALL_HEIGHT_BASE, WALL_THICKNESS),
-		corridor_center + Vector3(0.0, WALL_HEIGHT_BASE * 0.5, -side_offset),
-		CONCRETE_MATERIAL
+		Vector3(corridor_length, BASEMENT_WALL_HEIGHT, WALL_THICKNESS),
+		corridor_center + Vector3(0.0, BASEMENT_WALL_HEIGHT * 0.5, -side_offset),
+		BASEMENT_WALL_MATERIAL
 	)
 	_add_static_box(
 		"StairMazeConnectorSouthWall",
-		Vector3(corridor_length, WALL_HEIGHT_BASE, WALL_THICKNESS),
-		corridor_center + Vector3(0.0, WALL_HEIGHT_BASE * 0.5, side_offset),
-		CONCRETE_MATERIAL
+		Vector3(corridor_length, BASEMENT_WALL_HEIGHT, WALL_THICKNESS),
+		corridor_center + Vector3(0.0, BASEMENT_WALL_HEIGHT * 0.5, side_offset),
+		BASEMENT_WALL_MATERIAL
 	)
 
 
@@ -244,14 +247,14 @@ func _build_maze() -> void:
 						"MazeEntryThresholdFloor",
 						Vector3(TILE_SIZE, 0.16, TILE_SIZE),
 						center + Vector3(0.0, -0.08, 0.0),
-						WET_GRASS_MATERIAL
+						BASEMENT_FLOOR_MATERIAL
 					)
 					continue
 				_add_static_box(
 					"MazeWall_%02d_%02d" % [x, y],
-					Vector3(TILE_SIZE, WALL_HEIGHT_BASE, TILE_SIZE),
-					center + Vector3(0.0, WALL_HEIGHT_BASE * 0.5, 0.0),
-					CONCRETE_MATERIAL
+					Vector3(TILE_SIZE, BASEMENT_WALL_HEIGHT, TILE_SIZE),
+					center + Vector3(0.0, BASEMENT_WALL_HEIGHT * 0.5, 0.0),
+					BASEMENT_WALL_MATERIAL
 				)
 				continue
 
@@ -264,7 +267,7 @@ func _build_maze() -> void:
 				"MazeFloor_%02d_%02d" % [x, y],
 				Vector3(TILE_SIZE, 0.16, TILE_SIZE),
 				center + Vector3(0.0, -0.08, 0.0),
-				WET_GRASS_MATERIAL
+				BASEMENT_FLOOR_MATERIAL
 			)
 
 			if cell == "o":
@@ -297,9 +300,9 @@ func _build_folklore_lady_alcove() -> void:
 	)
 	_add_static_box(
 		"FolkloreAlcoveTurnSideSeal",
-		Vector3(0.18, WALL_HEIGHT_BASE, TILE_SIZE * 0.92),
-		center + Vector3(TILE_SIZE * 0.5, WALL_HEIGHT_BASE * 0.5, 0.0),
-		CONCRETE_MATERIAL
+		Vector3(0.18, BASEMENT_WALL_HEIGHT, TILE_SIZE * 0.92),
+		center + Vector3(TILE_SIZE * 0.5, BASEMENT_WALL_HEIGHT * 0.5, 0.0),
+		BASEMENT_WALL_MATERIAL
 	)
 	_add_mesh_box(
 		"FolkloreAlcoveLeftClayReturn",
@@ -371,6 +374,12 @@ func _spawn_folklore_lady(center: Vector3) -> void:
 
 
 func _add_ceiling_panel(node_name: String, center: Vector3, height: float, is_low: bool) -> void:
+	var split := node_name.split("_")
+	if split.size() >= 3:
+		var x := int(split[1])
+		var y := int(split[2])
+		if int(abs(x * 5 + y * 3)) % 2 == 0:
+			return
 	var size := Vector3(TILE_SIZE + 0.08, CEILING_THICKNESS, TILE_SIZE + 0.08)
 	if is_low:
 		size = Vector3(TILE_SIZE + 0.1, CEILING_THICKNESS * 1.25, TILE_SIZE + 0.1)
@@ -520,10 +529,10 @@ func _build_fake_sky_hole(center: Vector3) -> void:
 	var shaft_center_y := NORMAL_CEILING_HEIGHT + shaft_height * 0.5
 	var shaft_width := TILE_SIZE * 0.86
 	var shaft_wall := 0.18
-	_add_mesh_box("FakeSkyShaftNorthWall", Vector3(shaft_width, shaft_height, shaft_wall), center + Vector3(0.0, shaft_center_y, -shaft_width * 0.5), CONCRETE_MATERIAL)
-	_add_mesh_box("FakeSkyShaftSouthWall", Vector3(shaft_width, shaft_height, shaft_wall), center + Vector3(0.0, shaft_center_y, shaft_width * 0.5), CONCRETE_MATERIAL)
-	_add_mesh_box("FakeSkyShaftWestWall", Vector3(shaft_wall, shaft_height, shaft_width), center + Vector3(-shaft_width * 0.5, shaft_center_y, 0.0), CONCRETE_MATERIAL)
-	_add_mesh_box("FakeSkyShaftEastWall", Vector3(shaft_wall, shaft_height, shaft_width), center + Vector3(shaft_width * 0.5, shaft_center_y, 0.0), CONCRETE_MATERIAL)
+	_add_mesh_box("FakeSkyShaftNorthWall", Vector3(shaft_width, shaft_height, shaft_wall), center + Vector3(0.0, shaft_center_y, -shaft_width * 0.5), BASEMENT_WALL_MATERIAL)
+	_add_mesh_box("FakeSkyShaftSouthWall", Vector3(shaft_width, shaft_height, shaft_wall), center + Vector3(0.0, shaft_center_y, shaft_width * 0.5), BASEMENT_WALL_MATERIAL)
+	_add_mesh_box("FakeSkyShaftWestWall", Vector3(shaft_wall, shaft_height, shaft_width), center + Vector3(-shaft_width * 0.5, shaft_center_y, 0.0), BASEMENT_WALL_MATERIAL)
+	_add_mesh_box("FakeSkyShaftEastWall", Vector3(shaft_wall, shaft_height, shaft_width), center + Vector3(shaft_width * 0.5, shaft_center_y, 0.0), BASEMENT_WALL_MATERIAL)
 
 	var sky_root := Node3D.new()
 	sky_root.name = "FakeSkyHoleClouds"

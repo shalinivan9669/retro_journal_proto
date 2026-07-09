@@ -1,0 +1,26 @@
+[gd_resource type="ShaderMaterial" load_steps=9 format=3]
+
+[ext_resource type="Shader" path="res://systems/mountain_megawall/shaders/mountain_megawall.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/placeholder/snow_peaks_day_4k.png" id="2_day"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/placeholder/snow_peaks_night_4k.png" id="3_night"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/placeholder/snow_peaks_alpha_4k.png" id="4_alpha"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/placeholder/mountain_megawall_depth_4k.png" id="5_depth"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/placeholder/mountain_megawall_snow_mask_4k.png" id="6_snow"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/placeholder/cloud_shadow_noise_2k.png" id="7_shadow"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/placeholder/night_lights_emission_mask_4k.png" id="8_emit"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/day_tex = ExtResource("2_day")
+shader_parameter/night_tex = ExtResource("3_night")
+shader_parameter/alpha_tex = ExtResource("4_alpha")
+shader_parameter/depth_mask = ExtResource("5_depth")
+shader_parameter/snow_mask = ExtResource("6_snow")
+shader_parameter/cloud_shadow_tex = ExtResource("7_shadow")
+shader_parameter/emission_mask = ExtResource("8_emit")
+shader_parameter/day_night = 0.0
+shader_parameter/haze_strength = 0.25
+shader_parameter/layer_opacity = 0.75
+shader_parameter/contrast = 0.90
+shader_parameter/snow_day_strength = 0.15
+shader_parameter/snow_night_strength = 0.55

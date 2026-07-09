@@ -1,0 +1,95 @@
+{
+  "purpose": "Maximum visual quality mountain megawall source list. Use manual downloads for final commercial production; the included procedural textures are placeholders.",
+  "license_note": "Poly Haven and ambientCG downloadable assets are CC0. Check each non-CC0 reference manually. Do not rip Google/Yandex/Bing map tiles.",
+  "hdri_lighting": [
+    {
+      "source": "Poly Haven",
+      "asset": "fouriesburg_mountain_cloudy",
+      "page": "https://polyhaven.com/a/fouriesburg_mountain_cloudy",
+      "why": "24K overcast mountain/hill HDRI, good cold low-contrast light for bleak atmosphere.",
+      "recommended_download": "EXR 16K or 24K for Blender lighting, not for runtime Godot sky unless optimized."
+    },
+    {
+      "source": "Poly Haven",
+      "asset": "kloofendal_misty_morning",
+      "page": "https://polyhaven.com/a/kloofendal_misty_morning",
+      "why": "24K mist/fog HDRI, useful for mountain haze lighting reference.",
+      "recommended_download": "EXR 16K/24K for Blender render, 2K/4K tonemapped for Godot sky preview."
+    },
+    {
+      "source": "OpenHDRI",
+      "asset": "nature/outdoor 29K CC0 HDRIs",
+      "page": "https://openhdri.org/",
+      "why": "CC0 29K EXR HDRIs for extra lighting options.",
+      "recommended_download": "Use for Blender lighting; downsample for runtime."
+    }
+  ],
+  "polyhaven_pbr": [
+    {
+      "asset": "cliff_side",
+      "page": "https://polyhaven.com/a/cliff_side",
+      "why": "16K cliff material; strong for eroded mountain wall render.",
+      "recommended_download": "8K/16K JPG/PNG maps for Blender; export baked mountain cards to Godot."
+    },
+    {
+      "asset": "tiger_rock",
+      "page": "https://polyhaven.com/a/tiger_rock",
+      "why": "16K weathered rock; good for high-frequency mountain face details.",
+      "recommended_download": "8K/16K texture set."
+    },
+    {
+      "asset": "seaside_rock",
+      "page": "https://polyhaven.com/a/seaside_rock",
+      "why": "8K dark grey-brown rock; good for cold night silhouettes.",
+      "recommended_download": "8K texture set."
+    },
+    {
+      "asset": "coast_land_rocks_01",
+      "page": "https://polyhaven.com/a/coast_land_rocks_01",
+      "why": "8K rough stones/gravel/dirt, useful for foreground ridge and foothills.",
+      "recommended_download": "8K texture set."
+    },
+    {
+      "asset": "snow_02",
+      "page": "https://polyhaven.com/a/snow_02",
+      "why": "8K soft powdery snow, cleaner for high peaks.",
+      "recommended_download": "8K texture set."
+    },
+    {
+      "asset": "snow_01",
+      "page": "https://polyhaven.com/a/snow_01",
+      "why": "8K rough snow, useful as secondary snow detail/noise.",
+      "recommended_download": "8K texture set."
+    }
+  ],
+  "dem_sources": [
+    {
+      "source": "OpenTopography / Copernicus DEM GLO-30",
+      "page": "https://portal.opentopography.org/raster?opentopoID=OTSDEM.032021.4326.3",
+      "why": "Real mountain shape. Use Khan Tengri / Jengish Chokusu / Inylchek Glacier bbox.",
+      "note": "May require free OpenTopography API key for automated API export. Manual website export is easiest."
+    },
+    {
+      "source": "AWS Open Data Copernicus DEM",
+      "page": "https://registry.opendata.aws/copernicus-dem/",
+      "why": "Cloud Optimized GeoTIFF DEM tiles. Better for technical/GIS pipeline."
+    },
+    {
+      "source": "NASA SRTM / NASADEM",
+      "page": "https://www.earthdata.nasa.gov/",
+      "why": "Fallback global DEM source if Copernicus is inconvenient."
+    }
+  ],
+  "reference_search_terms": [
+    "Khan Tengri panorama",
+    "Jengish Chokusu Pik Pobeda Inylchek Glacier",
+    "Central Tian Shan mountains",
+    "Tien Shan glacier valley",
+    "Kyrgyzstan Tian Shan mountain wall"
+  ],
+  "final_output_targets": {
+    "prototype": "4096x1024 cards included here",
+    "production_good": "8192x2048 or 12288x3072 layered cards",
+    "production_max": "16384x4096 or 32768x8192 offline render split into 4096 tiles"
+  }
+}

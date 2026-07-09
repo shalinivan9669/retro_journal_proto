@@ -74,6 +74,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_tv_screen")
 surface_material_override/0 = SubResource("StandardMaterial3D_tv_top")
 
 [node name="VisibleTVModel" type="Node3D" parent="."]
+visible = false
 
 [node name="Body" type="MeshInstance3D" parent="VisibleTVModel"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.43, -0.23)

@@ -277,14 +277,47 @@ func _find_steppe_environment() -> Node:
 
 
 func _get_ray_target_with_method(method_name: String) -> Node:
-	interaction_ray.force_raycast_update()
-	if not interaction_ray.is_colliding():
+	if interaction_ray == null:
 		return null
 
-	var target := interaction_ray.get_collider() as Node
+	var world := get_world_3d()
+	if world == null:
+		return null
+
+	var from := interaction_ray.global_position
+	var to := interaction_ray.to_global(interaction_ray.target_position)
+	var excluded: Array[RID] = []
+	excluded.append(get_rid())
+
+	for _i in range(10):
+		var query := PhysicsRayQueryParameters3D.create(from, to, interaction_ray.collision_mask, excluded)
+		query.collide_with_areas = interaction_ray.collide_with_areas
+		query.collide_with_bodies = interaction_ray.collide_with_bodies
+		query.hit_from_inside = true
+
+		var hit := world.direct_space_state.intersect_ray(query)
+		if hit.is_empty():
+			return null
+
+		var collider := hit.get("collider") as Node
+		var target := _find_parent_with_method(collider, method_name)
+		if target != null:
+			return target
+
+		if hit.has("rid"):
+			excluded.append(hit["rid"])
+		elif collider is CollisionObject3D:
+			excluded.append((collider as CollisionObject3D).get_rid())
+		else:
+			return null
+
+	return null
+
+
+func _find_parent_with_method(node: Node, method_name: String) -> Node:
+	var target := node
 	while target != null and not target.has_method(method_name):
 		target = target.get_parent()
-
 	return target
 
 

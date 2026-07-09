@@ -1,0 +1,33 @@
+[gd_resource type="ShaderMaterial" load_steps=9 format=3]
+
+[ext_resource type="Shader" path="res://systems/mountain_megawall/shaders/mountain_megawall.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/production/mountain_wall_day_8k.png" id="2_day"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/production/mountain_wall_night_8k.png" id="3_night"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/production/mountain_wall_alpha_8k.png" id="4_alpha"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/production/mountain_wall_depth_8k.png" id="5_depth"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/production/mountain_wall_snow_mask_8k.png" id="6_snow"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/production/cloud_shadow_noise_2k.png" id="7_shadow"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/production/night_lights_emission_mask_2k.png" id="8_emit"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/day_tex = ExtResource("2_day")
+shader_parameter/night_tex = ExtResource("3_night")
+shader_parameter/alpha_tex = ExtResource("4_alpha")
+shader_parameter/depth_mask = ExtResource("5_depth")
+shader_parameter/snow_mask = ExtResource("6_snow")
+shader_parameter/cloud_shadow_tex = ExtResource("7_shadow")
+shader_parameter/emission_mask = ExtResource("8_emit")
+shader_parameter/day_night = 0.18
+shader_parameter/haze_strength = 0.86
+shader_parameter/layer_opacity = 1.0
+shader_parameter/night_only_alpha = 0.0
+shader_parameter/contrast = 0.78
+shader_parameter/cloud_shadow_strength = 0.18
+shader_parameter/snow_day_strength = 0.10
+shader_parameter/snow_night_strength = 0.30
+shader_parameter/emission_strength = 0.12
+shader_parameter/cloud_shadow_speed = Vector2(0.002, 0.0)
+shader_parameter/haze_day = Color(0.48, 0.50, 0.47, 1)
+shader_parameter/haze_night = Color(0.07, 0.10, 0.15, 1)
+shader_parameter/moon_light = Color(0.26, 0.37, 0.58, 1)

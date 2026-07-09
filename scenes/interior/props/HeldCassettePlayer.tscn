@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.055, 0.052, 0.048, 1)
+roughness = 0.74
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_label"]
+albedo_color = Color(0.78, 0.68, 0.45, 1)
+roughness = 0.88
+
+[sub_resource type="BoxMesh" id="BoxMesh_body"]
+size = Vector3(1.35, 0.78, 0.18)
+
+[sub_resource type="BoxMesh" id="BoxMesh_label"]
+size = Vector3(0.68, 0.32, 0.025)
+
+[node name="HeldCassettePlayer" type="Node3D"]
+
+[node name="CassetteBody" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="CassetteLabel" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, -0.105)
+mesh = SubResource("BoxMesh_label")
+surface_material_override/0 = SubResource("StandardMaterial3D_label")

@@ -1,0 +1,158 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://systems/mountain_megawall/MountainMegawallRoot.gd" id="1_root"]
+[ext_resource type="Script" path="res://systems/mountain_megawall/MountainArcLayer.gd" id="2_layer"]
+[ext_resource type="Script" path="res://systems/mountain_megawall/MountainMicroEventController.gd" id="3_events"]
+[ext_resource type="Script" path="res://systems/mountain_megawall/MountainForegroundRidge.gd" id="4_ridge_script"]
+[ext_resource type="Material" path="res://art/backdrops/mountains/megawall/materials/mat_mountain_main_production.tres" id="5_main_mat"]
+[ext_resource type="Material" path="res://art/backdrops/mountains/megawall/materials/mat_foothills_production.tres" id="6_foot_mat"]
+[ext_resource type="Material" path="res://art/backdrops/mountains/megawall/materials/mat_snow_peaks_production.tres" id="7_snow_mat"]
+[ext_resource type="Material" path="res://art/backdrops/mountains/megawall/materials/mat_rear_peaks_production.tres" id="8_rear_mat"]
+[ext_resource type="Material" path="res://art/backdrops/mountains/megawall/materials/mat_low_haze_production.tres" id="9_low_haze_mat"]
+[ext_resource type="Material" path="res://art/backdrops/mountains/megawall/materials/mat_mid_haze_production.tres" id="10_mid_haze_mat"]
+[ext_resource type="Material" path="res://art/backdrops/mountains/megawall/materials/mat_low_clouds_production.tres" id="11_cloud_mat"]
+[ext_resource type="Material" path="res://art/backdrops/mountains/megawall/materials/mat_cloud_shadow_production.tres" id="12_cloud_shadow_mat"]
+[ext_resource type="Material" path="res://art/backdrops/mountains/megawall/materials/mat_night_lights_production.tres" id="13_lights_mat"]
+[ext_resource type="Material" path="res://art/backdrops/mountains/megawall/materials/mat_foreground_ridge_production.tres" id="14_ridge_mat"]
+
+[node name="MountainMegawallRoot" type="Node3D"]
+script = ExtResource("1_root")
+fixed_y = 0.0
+day_night = 0.18
+haze_strength = 0.86
+mountain_direction_yaw_degrees = 90.0
+performance_preset = 2
+
+[node name="RealForegroundRidge" type="MeshInstance3D" parent="."]
+script = ExtResource("4_ridge_script")
+material_override = ExtResource("14_ridge_mat")
+center_yaw_degrees = 90.0
+radius = 112.0
+arc_degrees = 108.0
+thickness = 28.0
+bottom_y = -5.0
+min_height = 8.0
+max_height = 31.0
+segments = 26
+
+[node name="FoothillsLayer" type="MeshInstance3D" parent="."]
+script = ExtResource("2_layer")
+material_override = ExtResource("6_foot_mat")
+radius = 220.0
+arc_degrees = 105.0
+height = 95.0
+bottom_y = -18.0
+center_yaw_degrees = 90.0
+segments = 64
+parallax_strength = 0.006
+layer_opacity = 1.0
+
+[node name="MainWallLayer" type="MeshInstance3D" parent="."]
+script = ExtResource("2_layer")
+material_override = ExtResource("5_main_mat")
+radius = 360.0
+arc_degrees = 95.0
+height = 420.0
+bottom_y = -35.0
+center_yaw_degrees = 90.0
+segments = 96
+parallax_strength = 0.002
+layer_opacity = 1.0
+
+[node name="SnowPeakOverlayLayer" type="MeshInstance3D" parent="."]
+script = ExtResource("2_layer")
+material_override = ExtResource("7_snow_mat")
+radius = 355.0
+arc_degrees = 80.0
+height = 420.0
+bottom_y = 130.0
+center_yaw_degrees = 92.0
+segments = 96
+parallax_strength = 0.0022
+layer_opacity = 0.78
+
+[node name="RearPeakLayer" type="MeshInstance3D" parent="."]
+script = ExtResource("2_layer")
+material_override = ExtResource("8_rear_mat")
+radius = 620.0
+arc_degrees = 115.0
+height = 560.0
+bottom_y = 40.0
+center_yaw_degrees = 88.0
+segments = 96
+parallax_strength = 0.0008
+layer_opacity = 0.52
+
+[node name="LowHazeLayer" type="MeshInstance3D" parent="."]
+script = ExtResource("2_layer")
+material_override = ExtResource("9_low_haze_mat")
+radius = 240.0
+arc_degrees = 115.0
+height = 90.0
+bottom_y = 10.0
+center_yaw_degrees = 90.0
+segments = 64
+parallax_strength = 0.003
+uv_scroll_speed = Vector2(0.002, 0)
+layer_opacity = 0.78
+
+[node name="MidHazeLayer" type="MeshInstance3D" parent="."]
+script = ExtResource("2_layer")
+material_override = ExtResource("10_mid_haze_mat")
+radius = 380.0
+arc_degrees = 110.0
+height = 180.0
+bottom_y = 120.0
+center_yaw_degrees = 90.0
+segments = 64
+parallax_strength = 0.0015
+uv_scroll_speed = Vector2(0.001, 0)
+layer_opacity = 0.58
+
+[node name="LowCloudLayer" type="MeshInstance3D" parent="."]
+script = ExtResource("2_layer")
+material_override = ExtResource("11_cloud_mat")
+radius = 340.0
+arc_degrees = 100.0
+height = 160.0
+bottom_y = 220.0
+center_yaw_degrees = 90.0
+segments = 64
+parallax_strength = 0.004
+uv_scroll_speed = Vector2(0.006, 0)
+layer_opacity = 0.34
+
+[node name="CloudShadowLayer" type="MeshInstance3D" parent="."]
+script = ExtResource("2_layer")
+material_override = ExtResource("12_cloud_shadow_mat")
+radius = 330.0
+arc_degrees = 98.0
+height = 260.0
+bottom_y = 80.0
+center_yaw_degrees = 91.5
+segments = 64
+parallax_strength = 0.002
+uv_scroll_speed = Vector2(0.0014, 0)
+layer_opacity = 0.10
+
+[node name="NightLightsLayer" type="MeshInstance3D" parent="."]
+script = ExtResource("2_layer")
+material_override = ExtResource("13_lights_mat")
+radius = 225.0
+arc_degrees = 96.0
+height = 92.0
+bottom_y = 0.0
+center_yaw_degrees = 89.0
+segments = 48
+parallax_strength = 0.004
+layer_opacity = 0.80
+
+[node name="MicroEventController" type="Node3D" parent="."]
+script = ExtResource("3_events")
+enable_events = true
+min_interval_sec = 45.0
+max_interval_sec = 180.0
+max_simultaneous_events = 1
+day_night_threshold = 0.45
+event_radius = 342.0
+center_yaw_degrees = 90.0

@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://systems/mountain_megawall/shaders/mountain_clouds.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://art/backdrops/mountains/megawall/textures/production/low_clouds_4k.png" id="2_clouds"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/cloud_tex = ExtResource("2_clouds")
+shader_parameter/day_night = 0.18
+shader_parameter/layer_opacity = 0.10
+shader_parameter/scroll_speed = Vector2(0.0014, 0.0)
+shader_parameter/day_tint = Color(0.08, 0.09, 0.09, 1)
+shader_parameter/night_tint = Color(0.03, 0.04, 0.06, 1)

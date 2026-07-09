@@ -1,15 +1,19 @@
 extends CanvasLayer
 
+const HELD_DEVICE_MANAGER_SCRIPT: Script = preload("res://scripts/interior/yurt_held_device_manager.gd")
+
 @export var toggle_key := KEY_1
 @export_range(0.12, 0.35, 0.01) var screen_width_ratio: float = 0.24
 @export_range(0.45, 0.9, 0.01) var screen_height_ratio: float = 0.72
 @export var animation_time: float = 0.22
+@export var use_3d_cassette_viewmodel: bool = true
 
 var _phone_root: Control
 var _screen: ColorRect
 var _tween: Tween
 var _is_open := false
 var _animating := false
+var _held_device_manager: Node
 
 
 func _ready() -> void:
@@ -18,6 +22,7 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_layout_phone)
 	_build_phone_ui()
 	_apply_screen_shader()
+	_create_held_device_manager()
 	_set_phone_open(false, true)
 
 
@@ -142,6 +147,15 @@ func _set_phone_open(open: bool, immediate: bool = false) -> void:
 	if _tween != null:
 		_tween.kill()
 
+	if use_3d_cassette_viewmodel:
+		if _phone_root != null:
+			_phone_root.visible = false
+			_phone_root.modulate.a = 0.0
+		if _held_device_manager != null and _held_device_manager.has_method("set_held_open"):
+			_held_device_manager.call("set_held_open", open)
+		_animating = false
+		return
+
 	_phone_root.visible = true
 	_layout_phone()
 
@@ -179,3 +193,12 @@ func _is_other_keyboard_action(event: InputEventKey) -> bool:
 	if event.keycode == KEY_SHIFT or event.keycode == KEY_CTRL or event.keycode == KEY_ALT:
 		return false
 	return true
+
+
+func _create_held_device_manager() -> void:
+	if _held_device_manager != null:
+		return
+	_held_device_manager = Node.new()
+	_held_device_manager.name = "YurtHeldDeviceManager"
+	_held_device_manager.set_script(HELD_DEVICE_MANAGER_SCRIPT)
+	add_child(_held_device_manager)

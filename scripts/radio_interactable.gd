@@ -72,6 +72,15 @@ func trigger_signal(dialogue_ui: Node) -> void:
 	_show_dialogue(dialogue_ui, "RADIO OFF")
 
 
+func get_interaction_prompt() -> String:
+	var manager := _get_signal_manager()
+	if manager == null:
+		return "RADIO\nE - включить"
+	if is_powered_on:
+		return "RADIO FR %02d\nE - частота  F - выключить" % int(manager.call("get_radio_frequency"))
+	return "RADIO OFF\nE - включить"
+
+
 func _get_signal_manager() -> Node:
 	return get_tree().get_first_node_in_group("signal_state_manager")
 

@@ -1,9 +1,10 @@
 # Suggested Godot Material Settings
 
 ## mat_sky_dome.tres
-- Type: StandardMaterial3D
+- Type: ShaderMaterial
 - Shading Mode: Unshaded
-- Albedo Texture: res://assets/textures/sky/sky_mud_road_puresky_1k.exr
+- Source Panorama: res://assets/textures/sky/overcast_soil_puresky_16k.exr
+- Source: Poly Haven Overcast Soil (Pure Sky), CC0
 - Cull Mode: Disabled or Front
 - Transparency: Disabled
 - Collision: no collision on SkyDome

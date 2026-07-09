@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/floor_hatch_interactable.gd" id="1_hatch"]
 [ext_resource type="Material" path="res://materials/mat_radio_box.tres" id="2_hatch_mat"]
@@ -8,6 +8,9 @@ size = Vector3(1.8, 0.08, 1.2)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_hatch"]
 size = Vector3(1.8, 0.14, 1.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_easy_interaction"]
+size = Vector3(3.1, 1.05, 2.35)
 
 [node name="FloorHatch" type="StaticBody3D"]
 script = ExtResource("1_hatch")
@@ -23,3 +26,12 @@ surface_material_override/0 = ExtResource("2_hatch_mat")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.07, 0)
 shape = SubResource("BoxShape3D_hatch")
+
+[node name="EasyInteractionArea" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.52, 0)
+collision_layer = 1
+collision_mask = 0
+monitoring = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="EasyInteractionArea"]
+shape = SubResource("BoxShape3D_easy_interaction")

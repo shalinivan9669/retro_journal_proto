@@ -119,7 +119,7 @@ omni_range = 17.0
 script = ExtResource("29_visual_preset")
 
 [node name="VisualEffectsRuntime" parent="." instance=ExtResource("30_visual_runtime")]
-enable_outdoor_sandstorm = true
+enable_outdoor_sandstorm = false
 sandstorm_position = Vector3(56, 3.0, -158)
 sandstorm_size = Vector3(92, 8, 54)
 sandstorm_intensity = 0.85

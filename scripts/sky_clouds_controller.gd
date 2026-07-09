@@ -13,7 +13,7 @@ shader_type spatial;
 render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabled;
 
 uniform sampler2D cloud_texture : source_color, filter_linear_mipmap, repeat_disable;
-uniform vec4 tint_color : source_color = vec4(0.82, 0.34, 0.28, 0.82);
+uniform vec4 tint_color : source_color = vec4(0.46, 0.42, 0.39, 0.82);
 uniform vec2 uv_flow_direction = vec2(1.0, -0.25);
 uniform float uv_flow_speed : hint_range(0.0, 0.12) = 0.026;
 uniform float distortion_strength : hint_range(0.0, 0.06) = 0.012;
@@ -72,12 +72,12 @@ void fragment() {
 	}
 
 	float luma = dot(cloud.rgb, vec3(0.31, 0.34, 0.35));
-	vec3 detail = mix(vec3(luma), cloud.rgb, 0.42);
-	vec3 tinted = mix(detail, tint_color.rgb, 0.68);
-	tinted = (tinted - vec3(0.5)) * contrast_boost + vec3(0.5);
-	tinted *= color_boost;
+	vec3 desaturated = mix(vec3(luma), cloud.rgb, 0.55);
+	vec3 subtle_tint = mix(desaturated, tint_color.rgb, 0.18);
+	subtle_tint = (subtle_tint - vec3(0.5)) * contrast_boost + vec3(0.5);
+	subtle_tint *= color_boost;
 
-	ALBEDO = clamp(tinted, vec3(0.0), vec3(1.25));
+	ALBEDO = clamp(subtle_tint, vec3(0.0), vec3(1.0));
 	ALPHA = final_alpha;
 }
 """
@@ -101,8 +101,8 @@ void fragment() {
 
 @export_group("Cloud Visibility")
 @export_range(0.25, 2.5, 0.05) var cloud_opacity_multiplier: float = 1.45
-@export_range(0.25, 2.5, 0.05) var cloud_color_multiplier: float = 1.22
-@export_range(0.25, 2.5, 0.05) var cloud_contrast_multiplier: float = 1.28
+@export_range(0.25, 2.5, 0.05) var cloud_color_multiplier: float = 1.0
+@export_range(0.25, 2.5, 0.05) var cloud_contrast_multiplier: float = 1.08
 @export_range(0.25, 1.4, 0.01) var cloud_alpha_power: float = 0.66
 @export_range(0.0, 0.08, 0.001) var cloud_alpha_cutoff: float = 0.012
 
@@ -381,10 +381,10 @@ func _get_cloud_shader() -> Shader:
 
 func _cloud_tint(color: Color) -> Color:
 	return Color(
-		minf(color.r * 1.28 + 0.10, 1.0),
-		minf(color.g * 0.92 + 0.06, 0.72),
-		minf(color.b * 0.86 + 0.05, 0.64),
-		minf(color.a * 1.72 + 0.12, 0.94)
+		clampf(color.r * 0.82 + 0.08, 0.20, 0.62),
+		clampf(color.g * 0.84 + 0.08, 0.20, 0.58),
+		clampf(color.b * 0.86 + 0.08, 0.20, 0.56),
+		minf(color.a * 1.42 + 0.08, 0.90)
 	)
 
 
@@ -398,31 +398,31 @@ func _layout_for(layer_name: String, layer_index: int) -> Dictionary:
 
 func _far_layout(index: int) -> Dictionary:
 	var layouts := [
-		{"position": Vector3(-365.0, 112.0, -250.0), "size": Vector2(320.0, 178.0), "rotation": Vector3(0.0, -24.0, 0.0), "color": Color(0.64, 0.34, 0.30, 0.50)},
-		{"position": Vector3(-105.0, 106.0, -308.0), "size": Vector2(284.0, 156.0), "rotation": Vector3(0.0, 11.0, 0.0), "color": Color(0.58, 0.31, 0.28, 0.46)},
-		{"position": Vector3(212.0, 118.0, -224.0), "size": Vector2(340.0, 172.0), "rotation": Vector3(0.0, 32.0, 0.0), "color": Color(0.68, 0.33, 0.30, 0.52)},
-		{"position": Vector3(385.0, 124.0, -72.0), "size": Vector2(268.0, 142.0), "rotation": Vector3(0.0, -37.0, 0.0), "color": Color(0.56, 0.30, 0.27, 0.44)}
+		{"position": Vector3(-365.0, 112.0, -250.0), "size": Vector2(320.0, 178.0), "rotation": Vector3(0.0, -24.0, 0.0), "color": Color(0.44, 0.41, 0.39, 0.48)},
+		{"position": Vector3(-105.0, 106.0, -308.0), "size": Vector2(284.0, 156.0), "rotation": Vector3(0.0, 11.0, 0.0), "color": Color(0.40, 0.38, 0.36, 0.44)},
+		{"position": Vector3(212.0, 118.0, -224.0), "size": Vector2(340.0, 172.0), "rotation": Vector3(0.0, 32.0, 0.0), "color": Color(0.46, 0.41, 0.39, 0.50)},
+		{"position": Vector3(385.0, 124.0, -72.0), "size": Vector2(268.0, 142.0), "rotation": Vector3(0.0, -37.0, 0.0), "color": Color(0.38, 0.37, 0.36, 0.42)}
 	]
 	return _layout_from_table(layouts, index, Vector3(-42.0, 5.0, 118.0))
 
 
 func _mid_layout(index: int) -> Dictionary:
 	var layouts := [
-		{"position": Vector3(-315.0, 88.0, -126.0), "size": Vector2(238.0, 128.0), "rotation": Vector3(0.0, -13.0, 0.0), "color": Color(0.86, 0.38, 0.32, 0.68)},
-		{"position": Vector3(-68.0, 80.0, -214.0), "size": Vector2(222.0, 120.0), "rotation": Vector3(0.0, 24.0, 0.0), "color": Color(0.92, 0.38, 0.32, 0.70)},
-		{"position": Vector3(232.0, 92.0, -110.0), "size": Vector2(260.0, 134.0), "rotation": Vector3(0.0, 39.0, 0.0), "color": Color(0.78, 0.34, 0.30, 0.66)},
-		{"position": Vector3(-398.0, 94.0, 72.0), "size": Vector2(206.0, 112.0), "rotation": Vector3(0.0, -32.0, 0.0), "color": Color(0.80, 0.36, 0.31, 0.64)},
-		{"position": Vector3(92.0, 84.0, 158.0), "size": Vector2(198.0, 106.0), "rotation": Vector3(0.0, -7.0, 0.0), "color": Color(0.98, 0.40, 0.34, 0.66)}
+		{"position": Vector3(-315.0, 88.0, -126.0), "size": Vector2(238.0, 128.0), "rotation": Vector3(0.0, -13.0, 0.0), "color": Color(0.50, 0.43, 0.40, 0.62)},
+		{"position": Vector3(-68.0, 80.0, -214.0), "size": Vector2(222.0, 120.0), "rotation": Vector3(0.0, 24.0, 0.0), "color": Color(0.52, 0.43, 0.40, 0.64)},
+		{"position": Vector3(232.0, 92.0, -110.0), "size": Vector2(260.0, 134.0), "rotation": Vector3(0.0, 39.0, 0.0), "color": Color(0.46, 0.40, 0.38, 0.60)},
+		{"position": Vector3(-398.0, 94.0, 72.0), "size": Vector2(206.0, 112.0), "rotation": Vector3(0.0, -32.0, 0.0), "color": Color(0.48, 0.42, 0.39, 0.58)},
+		{"position": Vector3(92.0, 84.0, 158.0), "size": Vector2(198.0, 106.0), "rotation": Vector3(0.0, -7.0, 0.0), "color": Color(0.54, 0.44, 0.40, 0.60)}
 	]
 	return _layout_from_table(layouts, index, Vector3(74.0, 4.0, 96.0))
 
 
 func _accent_layout(index: int) -> Dictionary:
 	var layouts := [
-		{"position": Vector3(-212.0, 74.0, -18.0), "size": Vector2(142.0, 78.0), "rotation": Vector3(0.0, 17.0, 0.0), "color": Color(1.00, 0.38, 0.32, 0.76)},
-		{"position": Vector3(24.0, 70.0, -166.0), "size": Vector2(124.0, 74.0), "rotation": Vector3(0.0, -24.0, 0.0), "color": Color(0.98, 0.35, 0.31, 0.74)},
-		{"position": Vector3(304.0, 82.0, 64.0), "size": Vector2(156.0, 84.0), "rotation": Vector3(0.0, 35.0, 0.0), "color": Color(0.94, 0.32, 0.29, 0.70)},
-		{"position": Vector3(-362.0, 84.0, 214.0), "size": Vector2(132.0, 76.0), "rotation": Vector3(0.0, -41.0, 0.0), "color": Color(1.00, 0.37, 0.32, 0.72)}
+		{"position": Vector3(-212.0, 74.0, -18.0), "size": Vector2(142.0, 78.0), "rotation": Vector3(0.0, 17.0, 0.0), "color": Color(0.58, 0.45, 0.40, 0.68)},
+		{"position": Vector3(24.0, 70.0, -166.0), "size": Vector2(124.0, 74.0), "rotation": Vector3(0.0, -24.0, 0.0), "color": Color(0.54, 0.42, 0.39, 0.66)},
+		{"position": Vector3(304.0, 82.0, 64.0), "size": Vector2(156.0, 84.0), "rotation": Vector3(0.0, 35.0, 0.0), "color": Color(0.50, 0.39, 0.37, 0.62)},
+		{"position": Vector3(-362.0, 84.0, 214.0), "size": Vector2(132.0, 76.0), "rotation": Vector3(0.0, -41.0, 0.0), "color": Color(0.56, 0.44, 0.40, 0.64)}
 	]
 	return _layout_from_table(layouts, index, Vector3(-86.0, 3.0, 88.0))
 

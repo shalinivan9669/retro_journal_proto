@@ -21,6 +21,54 @@ const PALETTE_COLD_BLUE := Color(0.30, 0.38, 0.44, 1.0)
 const PALETTE_DIM_YELLOW := Color(0.75, 0.62, 0.36, 1.0)
 const PALETTE_WARNING_RED := Color(0.54, 0.12, 0.10, 1.0)
 
+const SOFT_INTERIOR_HAZE_SHADER_CODE := """
+shader_type spatial;
+render_mode unshaded, blend_mix, cull_disabled, depth_draw_never, shadows_disabled;
+
+uniform vec4 haze_color : source_color = vec4(0.48, 0.44, 0.36, 0.08);
+uniform float alpha_strength : hint_range(0.0, 2.0) = 1.0;
+uniform float edge_softness : hint_range(0.02, 0.45) = 0.24;
+uniform float streak_density : hint_range(1.0, 18.0) = 7.0;
+uniform float drift_speed : hint_range(0.0, 0.35) = 0.035;
+uniform float phase = 0.0;
+
+float hash(vec2 p) {
+	return fract(sin(dot(p, vec2(41.23, 289.17))) * 23143.753);
+}
+
+float noise2(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	vec2 u = f * f * (3.0 - 2.0 * f);
+	float a = hash(i);
+	float b = hash(i + vec2(1.0, 0.0));
+	float c = hash(i + vec2(0.0, 1.0));
+	float d = hash(i + vec2(1.0, 1.0));
+	return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+void fragment() {
+	float t = TIME * drift_speed + phase;
+	vec2 centered = UV - vec2(0.5);
+
+	float edge_x = smoothstep(0.0, edge_softness, UV.x) * (1.0 - smoothstep(1.0 - edge_softness, 1.0, UV.x));
+	float edge_y = smoothstep(0.0, edge_softness, UV.y) * (1.0 - smoothstep(1.0 - edge_softness, 1.0, UV.y));
+	float edge = edge_x * edge_y;
+	float oval = 1.0 - smoothstep(0.34, 0.78, length(centered * vec2(1.0, 1.75)));
+
+	float n = noise2(UV * vec2(3.4, 8.5) + vec2(t * 0.45, -t * 0.18));
+	float long_band = sin((UV.x * 0.55 + UV.y * 1.65) * streak_density + t * 3.0 + n * 1.7) * 0.5 + 0.5;
+	float fine_band = noise2(UV * vec2(11.0, 2.2) + vec2(-t, t * 0.35));
+	float dust = smoothstep(0.18, 0.82, long_band) * mix(0.45, 1.0, fine_band);
+	float mask = max(edge * dust * 0.72, oval * 0.38) * edge;
+
+	ALBEDO = haze_color.rgb;
+	ALPHA = clamp(haze_color.a * alpha_strength * mask, 0.0, 0.42);
+}
+"""
+
+var _soft_haze_shader: Shader
+
 
 func _ready() -> void:
 	_apply_environment_preset()
@@ -137,12 +185,11 @@ func _build_yurt_dust(parent: Node3D) -> void:
 	dust_root.name = "InteriorDustSheets"
 	parent.add_child(dust_root)
 
-	var material := _make_unshaded_alpha_material("mat_interior_dust_sheets", Color(0.48, 0.44, 0.36, 0.095))
 	var specs := [
-		{"pos": Vector3(-4.8, 1.65, -3.2), "size": Vector2(3.6, 1.2), "rot": Vector3(0.0, 24.0, 0.0)},
-		{"pos": Vector3(3.9, 1.95, -2.1), "size": Vector2(4.4, 1.35), "rot": Vector3(0.0, -31.0, 0.0)},
-		{"pos": Vector3(-1.0, 2.28, 1.7), "size": Vector2(5.2, 1.1), "rot": Vector3(0.0, 8.0, 0.0)},
-		{"pos": Vector3(5.8, 1.45, 2.2), "size": Vector2(2.8, 0.95), "rot": Vector3(0.0, 66.0, 0.0)}
+		{"pos": Vector3(-4.8, 1.65, -3.2), "size": Vector2(3.2, 0.95), "rot": Vector3(0.0, 24.0, -4.0), "alpha": 0.62},
+		{"pos": Vector3(3.9, 1.95, -2.1), "size": Vector2(3.8, 1.05), "rot": Vector3(0.0, -31.0, 3.0), "alpha": 0.56},
+		{"pos": Vector3(-1.0, 2.28, 1.7), "size": Vector2(4.6, 0.9), "rot": Vector3(0.0, 8.0, -2.0), "alpha": 0.50},
+		{"pos": Vector3(5.8, 1.45, 2.2), "size": Vector2(2.5, 0.78), "rot": Vector3(0.0, 66.0, 5.0), "alpha": 0.48}
 	]
 
 	for index in range(specs.size()):
@@ -155,6 +202,12 @@ func _build_yurt_dust(parent: Node3D) -> void:
 		sheet.position = spec["pos"]
 		sheet.rotation_degrees = spec["rot"]
 		sheet.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var material := _make_soft_haze_material(
+			"mat_interior_dust_sheet_%02d" % index,
+			Color(0.50, 0.46, 0.38, 0.09),
+			float(index) * 1.73,
+			spec["alpha"]
+		)
 		sheet.set_surface_override_material(0, material)
 		dust_root.add_child(sheet)
 
@@ -221,15 +274,15 @@ func _build_warning_color_accents(parent: Node3D) -> void:
 	accent_root.name = "MutedPaletteAccents"
 	parent.add_child(accent_root)
 
-	var cold_mat := _make_unshaded_alpha_material("mat_cold_blue_fog_accent", Color(PALETTE_COLD_BLUE.r, PALETTE_COLD_BLUE.g, PALETTE_COLD_BLUE.b, 0.10))
+	var cold_mat := _make_soft_haze_material("mat_cold_blue_fog_accent", Color(PALETTE_COLD_BLUE.r, PALETTE_COLD_BLUE.g, PALETTE_COLD_BLUE.b, 0.075), 9.4, 0.58)
 	var red_mat := _make_unshaded_alpha_material("mat_warning_red_thread_accent", Color(PALETTE_WARNING_RED.r, PALETTE_WARNING_RED.g, PALETTE_WARNING_RED.b, 0.38))
 
 	var cold_card := MeshInstance3D.new()
 	cold_card.name = "ColdBlueEntranceHaze"
 	var cold_mesh := QuadMesh.new()
-	cold_mesh.size = Vector2(4.2, 2.2)
+	cold_mesh.size = Vector2(3.8, 1.75)
 	cold_card.mesh = cold_mesh
-	cold_card.position = Vector3(0.0, 1.65, -8.35)
+	cold_card.position = Vector3(0.0, 1.78, -8.45)
 	cold_card.rotation_degrees.y = 180.0
 	cold_card.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	cold_card.set_surface_override_material(0, cold_mat)
@@ -265,6 +318,27 @@ func _make_unshaded_alpha_material(resource_name: String, color: Color) -> Stand
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	return material
+
+
+func _make_soft_haze_material(resource_name: String, color: Color, phase: float, alpha_strength: float) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.resource_name = resource_name
+	material.shader = _get_soft_haze_shader()
+	material.render_priority = -3
+	material.set_shader_parameter("haze_color", color)
+	material.set_shader_parameter("alpha_strength", alpha_strength)
+	material.set_shader_parameter("edge_softness", 0.28)
+	material.set_shader_parameter("streak_density", 7.0)
+	material.set_shader_parameter("drift_speed", 0.028)
+	material.set_shader_parameter("phase", phase)
+	return material
+
+
+func _get_soft_haze_shader() -> Shader:
+	if _soft_haze_shader == null:
+		_soft_haze_shader = Shader.new()
+		_soft_haze_shader.code = SOFT_INTERIOR_HAZE_SHADER_CODE
+	return _soft_haze_shader
 
 
 func _set_if_available(target: Object, property_name: String, value: Variant) -> void:

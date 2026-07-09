@@ -4,6 +4,7 @@ extends Node3D
 @export var interaction_area: Area3D
 @export var cooldown_seconds := 30.0
 @export var interact_action := "interact"
+@export var start_active := false
 
 var player_inside := false
 var disabled := false
@@ -13,8 +14,8 @@ func _ready() -> void:
 		interaction_area.body_entered.connect(_on_body_entered)
 		interaction_area.body_exited.connect(_on_body_exited)
 	if particles:
-		particles.visible = true
-		particles.emitting = true
+		particles.visible = start_active
+		particles.emitting = start_active
 
 func _process(_delta: float) -> void:
 	if player_inside and not disabled and Input.is_action_just_pressed(interact_action):
@@ -35,7 +36,8 @@ func _stop_temporarily() -> void:
 		particles.visible = false
 	await get_tree().create_timer(cooldown_seconds).timeout
 	if particles:
-		particles.visible = true
-		particles.emitting = true
-		particles.restart()
+		particles.visible = start_active
+		particles.emitting = start_active
+		if start_active:
+			particles.restart()
 	disabled = false

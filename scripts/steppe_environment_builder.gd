@@ -2,6 +2,11 @@ extends Node3D
 
 const STEPPE_GROUND_MATERIAL: Material = preload("res://materials/mat_steppe_ground.tres")
 const SKY_DOME_MATERIAL: Material = preload("res://materials/mat_sky_dome.tres")
+const ENHANCED_TERRAIN_MATERIAL: Material = preload("res://materials/polyhaven/mat_steppe_terrain_blend.tres")
+const TERRAIN_HEIGHT_SAMPLER_SCRIPT: Script = preload("res://scripts/environment/terrain_height_sampler.gd")
+const STEPPE_TERRAIN_BUILDER_SCRIPT: Script = preload("res://scripts/environment/steppe_terrain_builder.gd")
+const POLYHAVEN_SCATTER_SCRIPT: Script = preload("res://scripts/environment/polyhaven_landscape_scatter.gd")
+const AMBIENT_FAUNA_SCRIPT: Script = preload("res://scripts/environment/ambient_fauna_controller.gd")
 
 const PYLON_SCENE_PATH := "res://assets/models/props/lowpoly_power_pylon_no_wires.glb"
 const GRASS_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_grass_patch.glb"
@@ -33,18 +38,69 @@ const TEX_LOW_CLOUD_ROSE := "res://assets/textures/sky/cloud_rose_ash_red_alpha.
 @export var albasty_spawn_delay: float = 5.0
 @export var albasty_respawn_delay: float = 35.0
 
+@export_group("Terrain")
+@export var terrain_enabled: bool = true
+@export var terrain_size: float = 620.0
+@export var terrain_resolution: int = 257
+@export var terrain_height_scale: float = 1.45
+@export var terrain_seed: int = 9669
+@export var yurt_flat_radius: float = 14.0
+@export var yurt_blend_radius: float = 26.0
+@export var full_map_base_enabled: bool = true
+@export var full_map_base_size: float = 620.0
+@export var full_map_base_top_y: float = -4.0
+@export var terrain_mesh_collision_enabled: bool = false
+
+@export_group("Poly Haven Landscape")
+@export var polyhaven_scatter_enabled: bool = true
+@export_range(0.0, 3.0, 0.1) var vegetation_density_multiplier: float = 1.0
+@export_range(0.0, 3.0, 0.1) var hero_asset_density_multiplier: float = 1.0
+@export var allow_heavy_hero_assets: bool = true
+@export var use_lod_assets: bool = true
+@export var use_multimesh_flora: bool = true
+@export var enable_far_impostors: bool = true
+@export var ambient_fauna_enabled: bool = true
+
+@export_group("Vista Visual Overlays")
+@export var stage1_sky_cards_enabled: bool = false
+@export var vista_ground_cards_enabled: bool = false
+@export var vista_horizon_haze_cards_enabled: bool = false
+@export var vista_low_cloud_cards_enabled: bool = false
+
+@export_group("Landscape Debug")
+@export var debug_show_spawn_zones: bool = false
+@export var debug_disable_flora: bool = false
+@export var debug_disable_hero_rocks: bool = false
+@export var debug_disable_hero_trees: bool = false
+
+var _terrain_sampler
+var _terrain_root: Node3D
+
 
 func _ready() -> void:
 	_clear_existing_geometry()
-	_build_ground()
+	if terrain_enabled:
+		_build_enhanced_terrain()
+	else:
+		_build_ground()
+	if full_map_base_enabled:
+		_build_full_map_safety_base()
+
 	_build_sky_dome()
-	_build_stage1_sky_atmosphere()
+	if stage1_sky_cards_enabled:
+		_build_stage1_sky_atmosphere()
 	_build_vista_environment()
 	_build_yurt_entrance_marker()
 	_build_power_pylon()
 	_build_secondary_powerline()
 	_build_rear_powerline()
-	_build_steppe_vegetation()
+
+	if polyhaven_scatter_enabled:
+		_build_polyhaven_landscape()
+	else:
+		_build_steppe_vegetation()
+
+	_build_ambient_fauna()
 	_build_albasty_prototype()
 	_extend_player_interaction_ray()
 
@@ -53,6 +109,28 @@ func _clear_existing_geometry() -> void:
 	for child: Node in get_children():
 		remove_child(child)
 		child.free()
+
+
+func _build_enhanced_terrain() -> void:
+	_terrain_sampler = TERRAIN_HEIGHT_SAMPLER_SCRIPT.new()
+	_terrain_sampler.seed_value = terrain_seed
+	_terrain_sampler.base_height_scale = terrain_height_scale
+	_terrain_sampler.yurt_flat_radius = yurt_flat_radius
+	_terrain_sampler.yurt_blend_radius = yurt_blend_radius
+	_terrain_sampler.setup()
+
+	var terrain_builder = STEPPE_TERRAIN_BUILDER_SCRIPT.new()
+	terrain_builder.sampler = _terrain_sampler
+	terrain_builder.terrain_size = terrain_size
+	terrain_builder.terrain_resolution = terrain_resolution
+	terrain_builder.material = ENHANCED_TERRAIN_MATERIAL
+	terrain_builder.collision_enabled = terrain_mesh_collision_enabled
+	terrain_builder.debug_show_spawn_zones = debug_show_spawn_zones
+
+	_terrain_root = terrain_builder.build(self)
+	if _terrain_root == null:
+		push_warning("Enhanced terrain failed; using flat ground fallback.")
+		_build_ground()
 
 
 func _build_ground() -> void:
@@ -78,6 +156,52 @@ func _build_ground() -> void:
 	body.add_child(collision)
 
 
+func _build_full_map_safety_base() -> void:
+	var thickness := 0.16
+	var body := StaticBody3D.new()
+	body.name = "FullMapSafetyBase"
+	add_child(body)
+
+	var center_y := full_map_base_top_y - thickness * 0.5
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = "FullMapSafetyBaseMesh"
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(full_map_base_size, thickness, full_map_base_size)
+	mesh_instance.mesh = mesh
+	mesh_instance.position = Vector3(0.0, center_y, 0.0)
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mesh_instance.set_surface_override_material(0, STEPPE_GROUND_MATERIAL)
+	body.add_child(mesh_instance)
+
+	var collision := CollisionShape3D.new()
+	collision.name = "FullMapSafetyBaseCollision"
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(full_map_base_size, thickness, full_map_base_size)
+	collision.shape = shape
+	collision.position = Vector3(0.0, center_y, 0.0)
+	body.add_child(collision)
+
+
+func has_walkable_ground_at(x: float, z: float) -> bool:
+	if _terrain_sampler != null and absf(x) <= terrain_size * 0.5 and absf(z) <= terrain_size * 0.5:
+		return true
+	if absf(x) <= ground_size * 0.5 and absf(z) <= ground_size * 0.5:
+		return true
+	if full_map_base_enabled and absf(x) <= full_map_base_size * 0.5 and absf(z) <= full_map_base_size * 0.5:
+		return true
+	return false
+
+
+func get_walkable_ground_y(x: float, z: float) -> float:
+	if _terrain_sampler != null and absf(x) <= terrain_size * 0.5 and absf(z) <= terrain_size * 0.5:
+		return float(_terrain_sampler.height_at(x, z))
+	if absf(x) <= ground_size * 0.5 and absf(z) <= ground_size * 0.5:
+		return 0.0
+	if full_map_base_enabled and absf(x) <= full_map_base_size * 0.5 and absf(z) <= full_map_base_size * 0.5:
+		return full_map_base_top_y
+	return -INF
+
+
 func _build_sky_dome() -> void:
 	var sky := MeshInstance3D.new()
 	sky.name = "SkyDome"
@@ -98,8 +222,6 @@ func _build_stage1_sky_atmosphere() -> void:
 
 	var front_cloud_mat := _make_unshaded_alpha_material("mat_stage1_front_ash_cloud_mass", TEX_LOW_CLOUD_DARK, Color(0.42, 0.34, 0.34, 0.46), true)
 	var rose_cloud_mat := _make_unshaded_alpha_material("mat_stage1_rose_cloud_mass", TEX_LOW_CLOUD_ROSE, Color(0.58, 0.36, 0.34, 0.36), true)
-	var upper_haze_mat := _make_unshaded_alpha_material("mat_stage1_upper_blood_dust_haze", "", Color(0.36, 0.25, 0.24, 0.18), true)
-	var ash_haze_mat := _make_unshaded_alpha_material("mat_stage1_ash_gray_sky_haze", "", Color(0.23, 0.24, 0.23, 0.22), true)
 
 	var front_bank := _add_backdrop_card(root, "FrontAshRedSkyBank", Vector3(0.0, 128.0, -330.0), Vector2(560.0, 170.0), front_cloud_mat, 0.0)
 	front_bank.rotation_degrees.z = -1.2
@@ -109,11 +231,6 @@ func _build_stage1_sky_atmosphere() -> void:
 	rear_bank.rotation_degrees.z = 0.8
 	var left_bank := _add_backdrop_card(root, "LeftBalkhashSkyShelf", Vector3(-310.0, 106.0, -24.0), Vector2(420.0, 130.0), rose_cloud_mat, deg_to_rad(90.0))
 	left_bank.rotation_degrees.z = -1.0
-
-	var upper_haze := _add_horizontal_plane(root, "UpperBloodDustSkyWash", Vector3(0.0, 155.0, -42.0), Vector2(520.0, 430.0), upper_haze_mat)
-	upper_haze.rotation_degrees.x = 8.0
-	var ash_haze := _add_horizontal_plane(root, "UpperAshGraySkyWash", Vector3(0.0, 124.0, 34.0), Vector2(560.0, 460.0), ash_haze_mat)
-	ash_haze.rotation_degrees.x = -5.0
 
 
 func _build_yurt_entrance_marker() -> void:
@@ -199,25 +316,29 @@ func _build_vista_environment() -> void:
 	root.name = "VistaEnvironmentRoot"
 	add_child(root)
 
-	var salt_mat := _make_unshaded_alpha_material("mat_vista_left_salt_flat_blend", TEX_SALT_FLAT, Color(0.58, 0.54, 0.43, 0.58), true)
-	var mineral_mud_mat := _make_unshaded_alpha_material("mat_vista_mineral_mud_edge", TEX_SHORE_STRIP, Color(0.47, 0.43, 0.34, 0.72), true)
-	var shallow_water_mat := _make_unshaded_alpha_material("mat_vista_brackish_shallow_water", "", Color(0.30, 0.43, 0.42, 0.42), true)
-	var lake_water_mat := _make_lake_water_material()
 	var shore_mat := _make_unshaded_alpha_material("mat_vista_dusty_far_shore", TEX_SHORE_STRIP, Color(0.56, 0.48, 0.37, 0.72), true)
 	var rear_shore_mat := _make_unshaded_alpha_material("mat_vista_pale_rear_shore", TEX_BACKDROP_ALT, Color(0.61, 0.56, 0.49, 0.46), true)
 	var industrial_mat := _make_unshaded_alpha_material("mat_vista_industrial_silhouette", "", Color(0.07, 0.073, 0.068, 0.45), true)
 	var industrial_smudge_mat := _make_unshaded_alpha_material("mat_vista_industrial_smudge", TEX_INDUSTRIAL, Color(0.18, 0.17, 0.16, 0.22), true)
-	var haze_mat := _make_unshaded_alpha_material("mat_vista_low_horizon_haze", TEX_HORIZON_FOG, Color(0.55, 0.53, 0.49, 0.48), true)
-	var upper_haze_mat := _make_unshaded_alpha_material("mat_vista_upper_dirty_rose_haze", TEX_HORIZON_FOG, Color(0.52, 0.46, 0.44, 0.23), true)
-	var low_cloud_dark_mat := _make_unshaded_alpha_material("mat_vista_low_cloud_dark", TEX_LOW_CLOUD_DARK, Color(0.34, 0.29, 0.29, 0.30), true)
-	var low_cloud_rose_mat := _make_unshaded_alpha_material("mat_vista_low_cloud_rose", TEX_LOW_CLOUD_ROSE, Color(0.49, 0.37, 0.36, 0.22), true)
 
-	_build_lake_vista_left(root, salt_mat, mineral_mud_mat, shallow_water_mat)
-	_add_horizontal_plane(root, "LakeWaterFar", Vector3(-154.0, 0.018, -20.0), Vector2(92.0, 212.0), lake_water_mat)
-	_build_distant_shore_backdrop(root, shore_mat, rear_shore_mat)
+	if vista_ground_cards_enabled:
+		var salt_mat := _make_unshaded_alpha_material("mat_vista_left_salt_flat_blend", TEX_SALT_FLAT, Color(0.58, 0.54, 0.43, 0.58), true)
+		var mineral_mud_mat := _make_unshaded_alpha_material("mat_vista_mineral_mud_edge", TEX_SHORE_STRIP, Color(0.47, 0.43, 0.34, 0.72), true)
+		var shallow_water_mat := _make_unshaded_alpha_material("mat_vista_brackish_shallow_water", "", Color(0.30, 0.43, 0.42, 0.42), true)
+		var lake_water_mat := _make_lake_water_material()
+		_build_lake_vista_left(root, salt_mat, mineral_mud_mat, shallow_water_mat)
+		_add_horizontal_plane(root, "LakeWaterFar", Vector3(-154.0, 0.018, -20.0), Vector2(92.0, 212.0), lake_water_mat)
+
+	_build_distant_shore_backdrop(root, shore_mat, rear_shore_mat, vista_ground_cards_enabled)
 	_build_industrial_horizon_silhouettes(root, industrial_mat, industrial_smudge_mat)
-	_build_horizon_haze_band(root, haze_mat, upper_haze_mat)
-	_build_low_cloud_mass_cards(root, low_cloud_dark_mat, low_cloud_rose_mat)
+	if vista_horizon_haze_cards_enabled:
+		var haze_mat := _make_unshaded_alpha_material("mat_vista_low_horizon_haze", TEX_HORIZON_FOG, Color(0.55, 0.53, 0.49, 0.48), true)
+		var upper_haze_mat := _make_unshaded_alpha_material("mat_vista_upper_dirty_rose_haze", TEX_HORIZON_FOG, Color(0.52, 0.46, 0.44, 0.23), true)
+		_build_horizon_haze_band(root, haze_mat, upper_haze_mat)
+	if vista_low_cloud_cards_enabled:
+		var low_cloud_dark_mat := _make_unshaded_alpha_material("mat_vista_low_cloud_dark", TEX_LOW_CLOUD_DARK, Color(0.34, 0.29, 0.29, 0.30), true)
+		var low_cloud_rose_mat := _make_unshaded_alpha_material("mat_vista_low_cloud_rose", TEX_LOW_CLOUD_ROSE, Color(0.49, 0.37, 0.36, 0.22), true)
+		_build_low_cloud_mass_cards(root, low_cloud_dark_mat, low_cloud_rose_mat)
 
 
 func _build_lake_vista_left(parent: Node3D, salt_mat: Material, mineral_mud_mat: Material, shallow_water_mat: Material) -> void:
@@ -230,12 +351,13 @@ func _build_lake_vista_left(parent: Node3D, salt_mat: Material, mineral_mud_mat:
 	_add_horizontal_plane(root, "BrackishShallowWater", Vector3(-118.0, 0.021, -22.0), Vector2(28.0, 204.0), shallow_water_mat)
 
 
-func _build_distant_shore_backdrop(parent: Node3D, shore_mat: Material, rear_shore_mat: Material) -> void:
+func _build_distant_shore_backdrop(parent: Node3D, shore_mat: Material, rear_shore_mat: Material, include_ground_card: bool) -> void:
 	var root := Node3D.new()
 	root.name = "DistantShoreBackdrop"
 	parent.add_child(root)
 
-	_add_horizontal_plane(root, "FarExposedShoreFlat", Vector3(-204.0, 0.026, -18.0), Vector2(31.0, 216.0), shore_mat)
+	if include_ground_card:
+		_add_horizontal_plane(root, "FarExposedShoreFlat", Vector3(-204.0, 0.026, -18.0), Vector2(31.0, 216.0), shore_mat)
 	_add_backdrop_card(root, "LongLowDustyShoreStrip", Vector3(-214.0, 4.3, -18.0), Vector2(250.0, 8.5), shore_mat, deg_to_rad(90.0))
 	_add_backdrop_card(root, "PaleRearShoreWash", Vector3(-220.0, 6.2, 58.0), Vector2(170.0, 11.0), rear_shore_mat, deg_to_rad(90.0))
 
@@ -308,6 +430,38 @@ func _build_steppe_vegetation() -> void:
 	_scatter_patch(vegetation, grass_scene, white_scene, red_scene, yellow_scene, near_exit_positions, 0.95, 1.35, 0.0)
 	_scatter_patch(vegetation, grass_scene, white_scene, red_scene, null, path_positions, 0.75, 1.1, 100.0)
 	_scatter_patch(vegetation, grass_scene, white_scene, null, null, sparse_far_positions, 0.55, 0.85, 200.0)
+
+
+func _build_polyhaven_landscape() -> void:
+	if _terrain_sampler == null:
+		push_warning("Poly Haven scatter skipped: terrain sampler missing.")
+		_build_steppe_vegetation()
+		return
+
+	var scatter = POLYHAVEN_SCATTER_SCRIPT.new()
+	scatter.name = "PolyHavenLandscapeScatter"
+	scatter.terrain_sampler = _terrain_sampler
+	scatter.density_multiplier = vegetation_density_multiplier
+	scatter.hero_density_multiplier = hero_asset_density_multiplier
+	scatter.allow_heavy_hero_assets = allow_heavy_hero_assets
+	scatter.use_lod_assets = use_lod_assets
+	scatter.use_multimesh_flora = use_multimesh_flora
+	scatter.seed_value = terrain_seed + 101
+	scatter.debug_disable_flora = debug_disable_flora
+	scatter.debug_disable_hero_rocks = debug_disable_hero_rocks
+	scatter.debug_disable_hero_trees = debug_disable_hero_trees
+	add_child(scatter)
+	scatter.build()
+
+
+func _build_ambient_fauna() -> void:
+	if not ambient_fauna_enabled:
+		return
+	var fauna = AMBIENT_FAUNA_SCRIPT.new()
+	fauna.name = "AmbientFaunaRoot"
+	fauna.seed_value = terrain_seed + 303
+	fauna.enabled = true
+	add_child(fauna)
 
 
 func _build_albasty_prototype() -> void:

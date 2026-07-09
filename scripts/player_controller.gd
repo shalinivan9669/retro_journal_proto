@@ -12,6 +12,11 @@ extends CharacterBody3D
 @export var crouch_speed_multiplier: float = 0.45
 @export var albasty_easy_interact_distance: float = 58.0
 @export var albasty_easy_interact_min_dot: float = -0.05
+@export var landscape_ground_assist_enabled: bool = true
+@export var landscape_ground_surface_offset: float = 0.025
+@export var landscape_ground_snap_down: float = 1.35
+@export var landscape_ground_step_up: float = 0.9
+@export var landscape_ground_rescue_margin: float = 0.14
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -22,13 +27,16 @@ var pitch := 0.0
 var _capsule_shape: CapsuleShape3D
 var _is_crouching := false
 var _has_triggered_crouch_lore := false
+var _steppe_environment: Node
 
 
 func _ready() -> void:
 	add_to_group("player")
+	_ensure_input_actions()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	_capsule_shape = collision_shape.shape as CapsuleShape3D
-	floor_snap_length = 0.6
+	floor_snap_length = maxf(0.6, landscape_ground_snap_down)
+	_steppe_environment = _find_steppe_environment()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -47,6 +55,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventMouseButton and event.pressed and Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		return
+
+	if event is InputEventMouseButton and event.pressed and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+		if _is_interact_event(event):
+			_handle_interact_action()
+			return
 
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE:
@@ -63,19 +77,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			else:
 				Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
-		if event.keycode == KEY_E:
-			var signal_dialogue := _get_signal_dialogue_window()
-			if _is_signal_dialogue_open(signal_dialogue):
-				signal_dialogue.call("hide_signal_message")
-				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-				return
-
-			var dialogue_ui := _get_dialogue_ui()
-			if _is_dialogue_open(dialogue_ui):
-				dialogue_ui.call("hide_message")
-				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-			else:
-				_try_interact()
+		if _is_interact_event(event):
+			_handle_interact_action()
+			return
 
 		if event.keycode == KEY_F:
 			var signal_dialogue := _get_signal_dialogue_window()
@@ -87,13 +91,15 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	if controls_locked:
+		_hide_interaction_prompt()
 		velocity = Vector3.ZERO
 		move_and_slide()
 		return
 
 	_update_crouch(delta)
+	var assisted_floor := _apply_landscape_ground_assist(true)
 
-	if not is_on_floor():
+	if not assisted_floor and not is_on_floor():
 		velocity.y -= gravity * delta
 	else:
 		velocity.y = -0.1
@@ -119,6 +125,48 @@ func _physics_process(delta: float) -> void:
 	velocity.x = direction.x * speed
 	velocity.z = direction.z * speed
 	move_and_slide()
+	_apply_landscape_ground_assist(false)
+	_update_interaction_prompt()
+
+
+func _ensure_input_actions() -> void:
+	if InputMap.has_action("interact"):
+		return
+
+	InputMap.add_action("interact")
+
+	var key_event := InputEventKey.new()
+	key_event.keycode = KEY_E
+	InputMap.action_add_event("interact", key_event)
+
+	var mouse_event := InputEventMouseButton.new()
+	mouse_event.button_index = MOUSE_BUTTON_LEFT
+	InputMap.action_add_event("interact", mouse_event)
+
+
+func _is_interact_event(event: InputEvent) -> bool:
+	if InputMap.has_action("interact") and event.is_action_pressed("interact"):
+		return true
+	if event is InputEventKey:
+		return event.keycode == KEY_E
+	if event is InputEventMouseButton:
+		return event.button_index == MOUSE_BUTTON_LEFT
+	return false
+
+
+func _handle_interact_action() -> void:
+	var signal_dialogue := _get_signal_dialogue_window()
+	if _is_signal_dialogue_open(signal_dialogue):
+		signal_dialogue.call("hide_signal_message")
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		return
+
+	var dialogue_ui := _get_dialogue_ui()
+	if _is_dialogue_open(dialogue_ui):
+		dialogue_ui.call("hide_message")
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	else:
+		_try_interact()
 
 
 func _try_interact() -> void:
@@ -139,6 +187,93 @@ func _try_signal_trigger() -> void:
 
 	if target != null:
 		target.call("trigger_signal", _get_dialogue_ui())
+
+
+func _update_interaction_prompt() -> void:
+	var dialogue_ui := _get_dialogue_ui()
+	if dialogue_ui == null or not dialogue_ui.has_method("show_prompt"):
+		return
+
+	if _is_dialogue_open(dialogue_ui):
+		dialogue_ui.call("hide_prompt")
+		return
+
+	var target := _get_ray_target_with_method("get_interaction_prompt")
+	if target == null:
+		dialogue_ui.call("hide_prompt")
+		return
+
+	var prompt := String(target.call("get_interaction_prompt"))
+	if prompt.is_empty():
+		dialogue_ui.call("hide_prompt")
+	else:
+		dialogue_ui.call("show_prompt", prompt)
+
+
+func _hide_interaction_prompt() -> void:
+	var dialogue_ui := _get_dialogue_ui()
+	if dialogue_ui != null and dialogue_ui.has_method("hide_prompt"):
+		dialogue_ui.call("hide_prompt")
+
+
+func _apply_landscape_ground_assist(before_move: bool) -> bool:
+	if not landscape_ground_assist_enabled:
+		return false
+
+	var ground_y := _get_landscape_ground_y()
+	if ground_y <= -INF * 0.5:
+		return false
+
+	var target_y := ground_y + landscape_ground_surface_offset
+	var delta_y := global_position.y - target_y
+	var should_snap := false
+
+	if delta_y < -landscape_ground_rescue_margin:
+		should_snap = true
+	elif before_move:
+		should_snap = absf(delta_y) <= 0.08
+	else:
+		if delta_y >= 0.0 and delta_y <= landscape_ground_snap_down and velocity.y <= 0.05:
+			should_snap = true
+		elif delta_y < 0.0 and absf(delta_y) <= landscape_ground_step_up:
+			should_snap = true
+
+	if not should_snap:
+		return false
+
+	var fixed_position := global_position
+	fixed_position.y = target_y
+	global_position = fixed_position
+	if velocity.y < 0.0:
+		velocity.y = 0.0
+	return true
+
+
+func _get_landscape_ground_y() -> float:
+	var steppe_environment := _get_steppe_environment()
+	if steppe_environment == null:
+		return -INF
+	if not steppe_environment.has_method("has_walkable_ground_at"):
+		return -INF
+	if not steppe_environment.has_method("get_walkable_ground_y"):
+		return -INF
+	if not bool(steppe_environment.call("has_walkable_ground_at", global_position.x, global_position.z)):
+		return -INF
+	return float(steppe_environment.call("get_walkable_ground_y", global_position.x, global_position.z))
+
+
+func _get_steppe_environment() -> Node:
+	if _steppe_environment != null and is_instance_valid(_steppe_environment):
+		return _steppe_environment
+	_steppe_environment = _find_steppe_environment()
+	return _steppe_environment
+
+
+func _find_steppe_environment() -> Node:
+	var scene := get_tree().current_scene
+	if scene == null:
+		return null
+	return scene.get_node_or_null("SteppeEnvironment")
 
 
 func _get_ray_target_with_method(method_name: String) -> Node:

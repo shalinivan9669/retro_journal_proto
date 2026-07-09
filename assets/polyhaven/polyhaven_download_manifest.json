@@ -1,0 +1,74 @@
+{
+  "downloaded_at": "2026-07-09 21:26:07",
+  "quality": "hero",
+  "resolution": "1k",
+  "downloaded": [
+    {
+      "asset": "grass_medium_02",
+      "resolution": "1k",
+      "target": "assets/polyhaven/processed/grass_medium_02_lod1.gltf",
+      "size_mb": 0.76
+    },
+    {
+      "asset": "flower_empodium",
+      "resolution": "1k",
+      "target": "assets/polyhaven/processed/flower_empodium_lod0.gltf",
+      "size_mb": 0.86
+    },
+    {
+      "asset": "flower_heliophila",
+      "resolution": "1k",
+      "target": "assets/polyhaven/processed/flower_heliophila_lod0.gltf",
+      "size_mb": 3.67
+    },
+    {
+      "asset": "periwinkle_plant",
+      "resolution": "1k",
+      "target": "assets/polyhaven/processed/periwinkle_plant_lod0.gltf",
+      "size_mb": 2.79
+    },
+    {
+      "asset": "wild_rooibos_bush",
+      "resolution": "1k",
+      "target": "assets/polyhaven/processed/wild_rooibos_bush_lod1.gltf",
+      "size_mb": 2.35
+    },
+    {
+      "asset": "searsia_lucida",
+      "resolution": "1k",
+      "target": "assets/polyhaven/processed/searsia_lucida_lod1.gltf",
+      "size_mb": 18.9
+    },
+    {
+      "asset": "coast_rocks_03",
+      "resolution": "1k",
+      "target": "assets/polyhaven/processed/coast_rocks_03_lod1.gltf",
+      "size_mb": 24.46
+    },
+    {
+      "asset": "coast_land_rocks_03",
+      "resolution": "1k",
+      "target": "assets/polyhaven/processed/coast_land_rocks_03_lod1.gltf",
+      "size_mb": 32.42
+    },
+    {
+      "asset": "island_tree_02",
+      "resolution": "1k",
+      "target": "assets/polyhaven/processed/island_tree_02_lod1.gltf",
+      "size_mb": 44.03
+    },
+    {
+      "asset": "searsia_burchellii",
+      "resolution": "1k",
+      "target": "assets/polyhaven/processed/searsia_burchellii_lod1.gltf",
+      "size_mb": 33.01
+    },
+    {
+      "asset": "island_tree_03",
+      "resolution": "1k",
+      "target": "assets/polyhaven/processed/island_tree_03_lod1.gltf",
+      "size_mb": 80.95
+    }
+  ],
+  "skipped": []
+}

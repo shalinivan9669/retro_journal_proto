@@ -38,6 +38,7 @@ interaction_area = NodePath("InteractionArea")
 cooldown_seconds = 30.0
 
 [node name="BloodParticles" type="GPUParticles3D" parent="."]
+emitting = false
 amount = 132
 lifetime = 1.25
 preprocess = 0.9

@@ -7,6 +7,7 @@ const FLOWER_WHITE_MATERIAL: Material = preload("res://materials/mat_underground
 const FAKE_SKY_SCRIPT: Script = preload("res://scripts/fake_sky_hole_clouds.gd")
 const SMALL_FIRE_SCENE: PackedScene = preload("res://scenes/effects/SmallFire.tscn")
 const SOLDIER_SCENE: PackedScene = preload("res://scenes/actors/SovietSoldierEnemy.tscn")
+const FOLKLORE_LADY_SCENE: PackedScene = preload("res://scenes/npcs/FolkloreLady.tscn")
 const FINAL_SOLDIER_ROOM_EVENT_SCRIPT: Script = preload("res://scripts/final_soldier_room_event.gd")
 
 const GRASS_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_grass_patch.glb"
@@ -24,7 +25,7 @@ const MAZE := [
 	"#.#.....#.#.f.#########",
 	"#.#.#####.#.###RRRRRR##",
 	"#l#.#..h#.#...#RPRPRR##",
-	"#.###.#.#.###.#RPRRRR##",
+	"#.n##.#.#.###.#RPRRRR##",
 	"#.....#...#.F.RRPRPRE##",
 	"#######################"
 ]
@@ -51,6 +52,7 @@ const STAIR_LANDING_SIZE := 2.2
 const STAIR_SLAB_THICKNESS := 0.16
 const MAZE_FLOOR_Y := -STAIR_VERTICAL_DROP
 const MAZE_ENTRY_OFFSET := Vector3(6.0, 0.0, 0.0)
+const FOLKLORE_ALCOVE_CELL := Vector2i(2, 10)
 
 @export_range(0.0, 3.0, 0.1) var flower_density_multiplier: float = 1.0
 @export_file("*.tscn") var return_scene_path: String = "res://scenes/Main.tscn"
@@ -89,6 +91,7 @@ func _build_level() -> void:
 	_configure_maze_origin()
 	_build_stair_to_maze_connector()
 	_build_maze()
+	_build_folklore_lady_alcove()
 	_build_water()
 	_build_vegetation()
 	_build_exit_marker()
@@ -273,6 +276,100 @@ func _build_maze() -> void:
 				_build_fire_marker(center, cell == "F")
 
 
+func _build_folklore_lady_alcove() -> void:
+	var center := _maze_cell_to_world(FOLKLORE_ALCOVE_CELL)
+	var clay_material := _make_alcove_material("mat_folklore_alcove_old_clay", Color(0.24, 0.16, 0.12, 1.0), 0.0)
+	var dark_clay_material := _make_alcove_material("mat_folklore_alcove_dark_crack", Color(0.055, 0.042, 0.036, 1.0), 0.0)
+	var rug_shadow_material := _make_alcove_material("mat_folklore_alcove_rug_shadow", Color(0.17, 0.025, 0.027, 1.0), 0.0)
+	var warm_embedded_material := _make_alcove_material("mat_folklore_alcove_lamp_warmth", Color(0.52, 0.22, 0.08, 1.0), 0.18)
+
+	_add_static_box(
+		"FolkloreAlcoveCarpetWalkableLayer",
+		Vector3(TILE_SIZE * 0.84, 0.035, TILE_SIZE * 0.72),
+		center + Vector3(0.0, 0.017, 0.18),
+		rug_shadow_material
+	)
+	_add_mesh_box(
+		"FolkloreAlcoveBackClayBlend",
+		Vector3(TILE_SIZE * 0.92, WALL_HEIGHT_BASE * 0.92, 0.08),
+		center + Vector3(0.0, WALL_HEIGHT_BASE * 0.46, -TILE_SIZE * 0.48),
+		clay_material
+	)
+	_add_static_box(
+		"FolkloreAlcoveTurnSideSeal",
+		Vector3(0.18, WALL_HEIGHT_BASE, TILE_SIZE * 0.92),
+		center + Vector3(TILE_SIZE * 0.5, WALL_HEIGHT_BASE * 0.5, 0.0),
+		CONCRETE_MATERIAL
+	)
+	_add_mesh_box(
+		"FolkloreAlcoveLeftClayReturn",
+		Vector3(0.08, WALL_HEIGHT_BASE * 0.75, TILE_SIZE * 0.78),
+		center + Vector3(-TILE_SIZE * 0.5 + 0.04, WALL_HEIGHT_BASE * 0.38, -0.18),
+		dark_clay_material
+	)
+	_add_mesh_box(
+		"FolkloreAlcoveWarmLampStain",
+		Vector3(1.4, 1.05, 0.035),
+		center + Vector3(-0.68, 1.02, -TILE_SIZE * 0.455),
+		warm_embedded_material
+	)
+	_add_alcove_entry_frame(center, clay_material, dark_clay_material)
+	_add_alcove_cracks(center, dark_clay_material)
+	_spawn_folklore_lady(center)
+
+
+func _add_alcove_entry_frame(center: Vector3, clay_material: Material, dark_clay_material: Material) -> void:
+	_add_mesh_box(
+		"FolkloreAlcoveEntryLeftPost",
+		Vector3(0.16, WALL_HEIGHT_BASE * 0.84, 0.16),
+		center + Vector3(-TILE_SIZE * 0.42, WALL_HEIGHT_BASE * 0.42, TILE_SIZE * 0.5),
+		dark_clay_material
+	)
+	_add_mesh_box(
+		"FolkloreAlcoveEntryRightPost",
+		Vector3(0.16, WALL_HEIGHT_BASE * 0.84, 0.16),
+		center + Vector3(TILE_SIZE * 0.42, WALL_HEIGHT_BASE * 0.42, TILE_SIZE * 0.5),
+		dark_clay_material
+	)
+	_add_mesh_box(
+		"FolkloreAlcoveEntryLowLintel",
+		Vector3(TILE_SIZE * 0.86, 0.18, 0.18),
+		center + Vector3(0.0, LOW_CEILING_HEIGHT + 0.04, TILE_SIZE * 0.5),
+		clay_material
+	)
+
+
+func _add_alcove_cracks(center: Vector3, crack_material: Material) -> void:
+	for index in range(7):
+		var x_offset := -1.06 + float(index % 4) * 0.68
+		var y_offset := 0.72 + float(index / 4) * 0.42
+		var crack := _add_mesh_box(
+			"FolkloreAlcoveIrregularCrack_%02d" % index,
+			Vector3(0.035, 0.34 + float(index % 3) * 0.08, 0.03),
+			center + Vector3(x_offset, y_offset, -TILE_SIZE * 0.505),
+			crack_material
+		)
+		crack.rotation_degrees.z = -18.0 + float(index * 13)
+
+
+func _spawn_folklore_lady(center: Vector3) -> void:
+	var lady := FOLKLORE_LADY_SCENE.instantiate() as Node3D
+	if lady == null:
+		return
+
+	lady.name = "FolkloreLady"
+	lady.position = center + Vector3(-0.18, 0.04, -0.08)
+	_generated_root.add_child(lady)
+
+	var lamp_shadow := OmniLight3D.new()
+	lamp_shadow.name = "FolkloreAlcoveAmberSpill"
+	lamp_shadow.position = center + Vector3(-0.9, 0.78, 0.02)
+	lamp_shadow.light_color = Color(1.0, 0.52, 0.22, 1.0)
+	lamp_shadow.light_energy = 0.34
+	lamp_shadow.omni_range = 3.2
+	_generated_root.add_child(lamp_shadow)
+
+
 func _add_ceiling_panel(node_name: String, center: Vector3, height: float, is_low: bool) -> void:
 	var size := Vector3(TILE_SIZE + 0.08, CEILING_THICKNESS, TILE_SIZE + 0.08)
 	if is_low:
@@ -293,7 +390,7 @@ func _ceiling_height_for_cell(cell: String) -> float:
 func _build_water() -> void:
 	for cell in _passable_cells:
 		var marker := _maze_cell(cell.x, cell.y)
-		if marker == "S" or marker == "E" or marker == "R" or marker == "P" or marker == "l" or marker == "o" or marker == "f" or marker == "F":
+		if marker == "S" or marker == "E" or marker == "R" or marker == "P" or marker == "l" or marker == "n" or marker == "o" or marker == "f" or marker == "F":
 			continue
 		if int(cell.x * 17 + cell.y * 11) % 10 != 0:
 			continue
@@ -311,7 +408,7 @@ func _build_vegetation() -> void:
 
 	for cell in _passable_cells:
 		var marker := _maze_cell(cell.x, cell.y)
-		if marker == "S" or marker == "E" or marker == "R" or marker == "P" or marker == "l" or marker == "o" or marker == "f" or marker == "F":
+		if marker == "S" or marker == "E" or marker == "R" or marker == "P" or marker == "l" or marker == "n" or marker == "o" or marker == "f" or marker == "F":
 			continue
 		if int(cell.x * 23 + cell.y * 19) % 7 != 0:
 			continue
@@ -572,6 +669,19 @@ func _make_unshaded_material(color: Color, texture: Texture2D) -> StandardMateri
 		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	return material
+
+
+func _make_alcove_material(name: String, color: Color, emission_energy: float) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.resource_name = name
+	material.albedo_color = color
+	material.roughness = 0.94
+	material.metallic = 0.0
+	if emission_energy > 0.0:
+		material.emission_enabled = true
+		material.emission = color
+		material.emission_energy_multiplier = emission_energy
 	return material
 
 

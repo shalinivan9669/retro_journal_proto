@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+albedo_color = Color(0.30, 0.34, 0.22, 1)
+shading_mode = 0
+roughness = 0.96
+metallic = 0.0
+cull_mode = 2
+transparency = 0
+vertex_color_use_as_albedo = true
+texture_filter = 4

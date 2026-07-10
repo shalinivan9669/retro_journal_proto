@@ -17,6 +17,10 @@ static func prepare_imported_asset_materials(root: Node, role: String) -> void:
 	_prepare_imported_materials_recursive(root, role)
 
 
+static func prepared_material_copy(material: Material, role: String) -> Material:
+	return _prepared_imported_material(material, role)
+
+
 static func material_for_role(role: String) -> Material:
 	if role in ["hero_rocks", "distant_rocks", "small_rock"]:
 		return ROCK_MATERIAL
@@ -72,10 +76,9 @@ static func _prepared_imported_material(material: Material, role: String) -> Mat
 		var base := duplicate as BaseMaterial3D
 		base.cull_mode = BaseMaterial3D.CULL_DISABLED
 		base.roughness = 0.96
-		if role in ["dry_shrub", "hero_tree", "distant_tree"]:
+		if role in ["dry_shrub", "hero_tree", "distant_tree", "grass_multimesh", "flower"]:
 			base.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
-			base.alpha_scissor_threshold = 0.24
-			base.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			base.alpha_scissor_threshold = 0.30 if role != "grass_multimesh" else 0.36
 		elif role in ["hero_rocks", "distant_rocks", "small_rock"]:
 			base.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
 	return duplicate

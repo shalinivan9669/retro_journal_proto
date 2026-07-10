@@ -106,7 +106,10 @@ func _build_hero_trees() -> void:
 
 func _build_dry_shrubs() -> void:
 	var centers := [
-		Vector2(28.0, -38.0),
+		Vector2(24.0, -24.0),
+		Vector2(-24.0, -22.0),
+		Vector2(27.0, 8.0),
+		Vector2(-25.0, 12.0),
 		Vector2(-76.0, -18.0),
 		Vector2(-54.0, -42.0),
 		Vector2(20.0, -68.0),
@@ -115,7 +118,7 @@ func _build_dry_shrubs() -> void:
 		Vector2(-46.0, 28.0)
 	]
 	var shrub_assets := ["searsia_lucida", "searsia_burchellii", "wild_rooibos_bush"]
-	var target_count := clampi(int(round(42.0 * density_multiplier)), 0, 70)
+	var target_count := clampi(int(round(38.0 * density_multiplier)), 0, 70)
 	var attempts := target_count * 5
 
 	for i in range(attempts):
@@ -138,54 +141,125 @@ func _build_dry_shrubs() -> void:
 
 
 func _build_flower_patches() -> void:
-	var target_count := clampi(int(round(130.0 * density_multiplier)), 0, 250)
+	var target_count := clampi(int(round(1100.0 * density_multiplier)), 0, 2200)
 	var specs := [
-		{"asset": "flower_empodium", "name": "FlowersYurtEdgeAccent", "weight": 0.42, "centers": [Vector2(-11.0, -18.0), Vector2(12.0, -24.0)]},
-		{"asset": "flower_heliophila", "name": "FlowersLowlandPaleAccent", "weight": 0.34, "centers": [Vector2(-56.0, -26.0), Vector2(-72.0, -8.0)]},
-		{"asset": "periwinkle_plant", "name": "FlowersRockEdgeMutedAccent", "weight": 0.24, "centers": [Vector2(32.0, -42.0), Vector2(20.0, -62.0)]}
+		{
+			"asset": "flower_heliophila",
+			"name": "HeliophilaWhiteSteppeCarpet",
+			"weight": 0.55,
+			"centers": [
+				Vector2(-18.0, -15.0), Vector2(17.0, -17.0), Vector2(22.0, 8.0), Vector2(-21.0, 12.0),
+				Vector2(-42.0, -34.0), Vector2(38.0, -42.0), Vector2(-62.0, -8.0), Vector2(58.0, 18.0),
+				Vector2(-34.0, 42.0), Vector2(24.0, 54.0), Vector2(-78.0, 32.0), Vector2(76.0, -20.0)
+			]
+		},
+		{
+			"asset": "dandelion_01",
+			"name": "DandelionLivingMeadow",
+			"weight": 0.30,
+			"centers": [
+				Vector2(-15.0, -19.0), Vector2(15.0, -22.0), Vector2(22.0, 4.0), Vector2(-23.0, 6.0),
+				Vector2(-36.0, -46.0), Vector2(34.0, -54.0), Vector2(-52.0, 26.0), Vector2(48.0, 34.0)
+			]
+		},
+		{"asset": "flower_empodium", "name": "EmpodiumSmallAccents", "weight": 0.10, "centers": [Vector2(-28.0, -32.0), Vector2(30.0, -36.0), Vector2(-44.0, 24.0)]},
+		{"asset": "periwinkle_plant", "name": "PeriwinkleRareAccents", "weight": 0.05, "centers": [Vector2(32.0, -42.0), Vector2(20.0, -62.0), Vector2(-46.0, 36.0)]}
 	]
 
 	for spec in specs:
 		var centers: Array = spec["centers"]
 		var count: int = int(round(float(target_count) * float(spec["weight"])))
-		var transforms := _make_patch_transforms(centers, count, 2.2, 8.0, 0.34, 0.84, 0.012, true)
-		# Imported flower cards need alpha-aware materials; procedural triangles avoid visible square billboards.
-		var mesh := _make_flower_mesh()
-		var helper = MULTIMESH_SCRIPT.new()
-		helper.build_multimesh_from_mesh(self, mesh, FLOWER_MATERIAL, transforms, spec["name"])
-		flower_count += transforms.size()
+		var transforms := _make_patch_transforms(centers, count, 0.7, 12.5, 0.62, 1.24, 0.012, true)
+		flower_count += _build_asset_variant_multimeshes(
+			spec["asset"],
+			transforms,
+			spec["name"],
+			"flower",
+			_make_flower_mesh(),
+			FLOWER_MATERIAL
+		)
 
 
 func _build_grass_patches() -> void:
-	var centers := [
-		Vector2(-58.0, -28.0),
-		Vector2(-78.0, -4.0),
-		Vector2(26.0, -38.0),
-		Vector2(5.0, -48.0),
-		Vector2(-18.0, -64.0),
-		Vector2(42.0, 22.0),
-		Vector2(18.0, -18.0),
-		Vector2(-18.0, -20.0)
+	var near_yurt_centers := [
+		Vector2(-15.0, -13.0),
+		Vector2(0.0, -18.0),
+		Vector2(15.0, -13.0),
+		Vector2(19.0, 2.0),
+		Vector2(14.0, 16.0),
+		Vector2(0.0, 19.0),
+		Vector2(-15.0, 15.0),
+		Vector2(-19.0, 1.0),
+		Vector2(-27.0, -20.0),
+		Vector2(28.0, -22.0),
+		Vector2(26.0, 25.0),
+		Vector2(-28.0, 24.0)
 	]
-	var target_count := clampi(int(round(520.0 * density_multiplier)), 0, 900)
-	var transforms := _make_patch_transforms(centers, target_count, 4.0, 16.0, 0.48, 1.24, 0.01, false)
-	var mesh := _make_grass_clump_mesh()
-	var helper = MULTIMESH_SCRIPT.new()
-	helper.build_multimesh_from_mesh(self, mesh, LEAF_MATERIAL, transforms, "GrassNaturalPockets")
-	grass_count += transforms.size()
+	var steppe_centers := [
+		Vector2(-58.0, -28.0), Vector2(-82.0, -4.0), Vector2(54.0, -34.0), Vector2(14.0, -58.0),
+		Vector2(-24.0, -72.0), Vector2(48.0, 28.0), Vector2(-46.0, 42.0), Vector2(18.0, 68.0),
+		Vector2(-76.0, 58.0), Vector2(82.0, 54.0), Vector2(-94.0, -52.0), Vector2(92.0, -70.0),
+		Vector2(-8.0, 92.0), Vector2(68.0, 4.0), Vector2(-64.0, 8.0), Vector2(6.0, -96.0)
+	]
+	var far_steppe_centers := [
+		Vector2(-138.0, -76.0), Vector2(-154.0, 18.0), Vector2(-126.0, 104.0),
+		Vector2(-54.0, 142.0), Vector2(38.0, 148.0), Vector2(126.0, 96.0),
+		Vector2(148.0, 8.0), Vector2(134.0, -96.0), Vector2(62.0, -144.0),
+		Vector2(-52.0, -152.0), Vector2(-112.0, -128.0), Vector2(106.0, -134.0)
+	]
+	var near_count := clampi(int(round(4800.0 * density_multiplier)), 0, 8200)
+	var near_transforms := _make_patch_transforms(near_yurt_centers, near_count, 0.35, 12.0, 1.0, 2.15, 0.008, false)
+	grass_count += _build_asset_variant_multimeshes(
+		"grass_medium_02",
+		near_transforms,
+		"GrassMedium02YurtMeadowRing",
+		"grass_multimesh",
+		_make_grass_clump_mesh(),
+		LEAF_MATERIAL
+	)
+
+	var steppe_count := clampi(int(round(3600.0 * density_multiplier)), 0, 6400)
+	var steppe_transforms := _make_patch_transforms(steppe_centers, steppe_count, 2.0, 24.0, 0.88, 1.95, 0.008, false)
+	grass_count += _build_asset_variant_multimeshes(
+		"grass_medium_02",
+		steppe_transforms,
+		"GrassMedium02OuterSteppePatches",
+		"grass_multimesh",
+		_make_grass_clump_mesh(),
+		LEAF_MATERIAL
+	)
+
+	var far_count := clampi(int(round(1700.0 * density_multiplier)), 0, 3400)
+	var far_transforms := _make_patch_transforms(far_steppe_centers, far_count, 8.0, 38.0, 0.72, 1.55, 0.008, false)
+	grass_count += _build_asset_variant_multimeshes(
+		"grass_medium_02",
+		far_transforms,
+		"GrassMedium02FarSteppePatches",
+		"grass_multimesh",
+		_make_grass_clump_mesh(),
+		LEAF_MATERIAL
+	)
 
 
 func _build_lowland_reeds_like_patches() -> void:
 	var centers := [
 		Vector2(-88.0, -42.0),
 		Vector2(-96.0, 24.0),
-		Vector2(-70.0, 38.0)
+		Vector2(-70.0, 38.0),
+		Vector2(84.0, -34.0),
+		Vector2(102.0, 28.0),
+		Vector2(74.0, 62.0)
 	]
-	var target_count := clampi(int(round(120.0 * density_multiplier)), 0, 220)
-	var transforms := _make_patch_transforms(centers, target_count, 5.0, 19.0, 0.72, 1.55, 0.015, false)
-	var helper = MULTIMESH_SCRIPT.new()
-	helper.build_multimesh_from_mesh(self, _make_grass_clump_mesh(true), LEAF_MATERIAL, transforms, "LowlandTallDryGrassPockets")
-	grass_count += transforms.size()
+	var target_count := clampi(int(round(700.0 * density_multiplier)), 0, 1400)
+	var transforms := _make_patch_transforms(centers, target_count, 4.0, 24.0, 0.82, 1.75, 0.015, false)
+	grass_count += _build_asset_variant_multimeshes(
+		"grass_medium_02",
+		transforms,
+		"LowlandTallGrassMedium02",
+		"grass_multimesh",
+		_make_grass_clump_mesh(true),
+		LEAF_MATERIAL
+	)
 
 
 func _make_patch_transforms(
@@ -223,6 +297,10 @@ func _make_patch_transforms(
 
 		var scale_value := rng.randf_range(min_scale, max_scale)
 		var scale := Vector3(scale_value, scale_value * rng.randf_range(0.86, 1.18), scale_value)
+		if not flowers_only:
+			var horizontal_scale := scale_value * rng.randf_range(1.35, 1.72)
+			var vertical_scale := scale_value * rng.randf_range(1.50, 2.05)
+			scale = Vector3(horizontal_scale, vertical_scale, horizontal_scale)
 		transforms.append(helper.make_transform(pos, rng.randf_range(0.0, TAU), scale))
 	return transforms
 
@@ -272,18 +350,11 @@ func _place_asset_or_fallback(asset_id: String, node_name: String, p: Vector2, s
 
 	var node: Node3D = null
 	if scene != null:
-		var instance := scene.instantiate()
-		node = instance as Node3D
-		if node == null:
-			node = Node3D.new()
-			node.add_child(instance)
-		node.name = node_name
-		add_child(node)
-		MATERIAL_CONTROLLER_SCRIPT.prepare_imported_asset_materials(node, role)
-	else:
+		node = _instantiate_single_asset_variant(scene, node_name, node_name.hash(), role)
+	if node == null:
 		_register_skipped(asset_id)
 		node = _make_procedural_for_role(node_name, role)
-		add_child(node)
+	add_child(node)
 
 	node.position = pos
 	node.rotation.y = rotation_y
@@ -303,6 +374,105 @@ func _place_asset_or_fallback(asset_id: String, node_name: String, p: Vector2, s
 	elif role == "dry_shrub":
 		shrub_count += 1
 	return node
+
+
+func _instantiate_single_asset_variant(scene: PackedScene, node_name: String, variant_key: int, role: String) -> Node3D:
+	var source_root := scene.instantiate()
+	var variants: Array[MeshInstance3D] = []
+	_collect_mesh_instances(source_root, variants)
+	if variants.is_empty():
+		source_root.free()
+		return null
+
+	var source: MeshInstance3D = variants[posmod(variant_key, variants.size())]
+	var root := Node3D.new()
+	root.name = node_name
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.name = source.name
+	mesh_instance.mesh = source.mesh
+	mesh_instance.transform.basis = source.transform.basis
+	root.add_child(mesh_instance)
+	MATERIAL_CONTROLLER_SCRIPT.prepare_imported_asset_materials(root, role)
+	source_root.free()
+	return root
+
+
+func _build_asset_variant_multimeshes(
+	asset_id: String,
+	transforms: Array[Transform3D],
+	node_name: String,
+	role: String,
+	fallback_mesh: Mesh,
+	fallback_material: Material
+) -> int:
+	if transforms.is_empty():
+		return 0
+	if not use_multimesh_flora or skipped_assets.has(asset_id):
+		var fallback_helper = MULTIMESH_SCRIPT.new()
+		fallback_helper.build_multimesh_from_mesh(self, fallback_mesh, fallback_material, transforms, node_name + "Fallback")
+		return transforms.size()
+
+	var scene: PackedScene = registry.get_scene_for_asset(asset_id, true)
+	if scene == null:
+		_register_skipped(asset_id)
+		var missing_helper = MULTIMESH_SCRIPT.new()
+		missing_helper.build_multimesh_from_mesh(self, fallback_mesh, fallback_material, transforms, node_name + "Fallback")
+		return transforms.size()
+
+	var source_root := scene.instantiate()
+	var variants: Array[MeshInstance3D] = []
+	_collect_mesh_instances(source_root, variants)
+	if variants.is_empty():
+		source_root.free()
+		_register_skipped(asset_id)
+		var empty_helper = MULTIMESH_SCRIPT.new()
+		empty_helper.build_multimesh_from_mesh(self, fallback_mesh, fallback_material, transforms, node_name + "Fallback")
+		return transforms.size()
+
+	var transform_sets: Array[Array] = []
+	transform_sets.resize(variants.size())
+	for variant_index in range(variants.size()):
+		transform_sets[variant_index] = []
+	for transform_index in range(transforms.size()):
+		var variant_index := transform_index % variants.size()
+		var variant_transform: Transform3D = transforms[transform_index]
+		variant_transform.basis = variant_transform.basis * variants[variant_index].transform.basis
+		transform_sets[variant_index].append(variant_transform)
+
+	var helper = MULTIMESH_SCRIPT.new()
+	for variant_index in range(variants.size()):
+		var prepared_mesh := _prepared_mesh_copy(variants[variant_index].mesh, role)
+		if prepared_mesh == null:
+			continue
+		var variant_transforms: Array[Transform3D] = []
+		variant_transforms.assign(transform_sets[variant_index])
+		helper.build_multimesh_from_mesh(
+			self,
+			prepared_mesh,
+			null,
+			variant_transforms,
+			"%s_Variant%02d" % [node_name, variant_index + 1]
+		)
+	source_root.free()
+	return transforms.size()
+
+
+func _prepared_mesh_copy(source: Mesh, role: String) -> Mesh:
+	if source == null:
+		return null
+	var mesh := source.duplicate() as Mesh
+	for surface in range(mesh.get_surface_count()):
+		var prepared: Material = MATERIAL_CONTROLLER_SCRIPT.prepared_material_copy(mesh.surface_get_material(surface), role)
+		if prepared != null:
+			mesh.surface_set_material(surface, prepared)
+	return mesh
+
+
+func _collect_mesh_instances(node: Node, output: Array[MeshInstance3D]) -> void:
+	if node is MeshInstance3D and (node as MeshInstance3D).mesh != null:
+		output.append(node as MeshInstance3D)
+	for child in node.get_children():
+		_collect_mesh_instances(child, output)
 
 
 func _make_procedural_for_role(node_name: String, role: String) -> Node3D:

@@ -108,6 +108,15 @@ const ASSETS := {
 		"scale_max": 1.15,
 		"casts_shadow": false
 	},
+	"dandelion_01": {
+		"path_lod0": "res://assets/polyhaven/processed/dandelion_01_lod0.glb",
+		"fallback_lod0": "res://assets/polyhaven/processed/dandelion_01_lod0.gltf",
+		"role": "flower",
+		"max_count": 120,
+		"scale_min": 0.55,
+		"scale_max": 1.15,
+		"casts_shadow": false
+	},
 	"periwinkle_plant": {
 		"path_lod0": "res://assets/polyhaven/processed/periwinkle_plant_lod0.glb",
 		"fallback_lod0": "res://assets/polyhaven/processed/periwinkle_plant_lod0.gltf",

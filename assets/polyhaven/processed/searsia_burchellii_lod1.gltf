@@ -240,7 +240,7 @@
     {
       "mimeType": "image/jpeg",
       "name": "searsia_burchellii_diff-searsia_burchellii_alpha",
-      "uri": "textures/searsia_burchellii_diff_1k.jpg"
+      "uri": "textures/searsia_burchellii_diff_alpha_1k.png"
     },
     {
       "mimeType": "image/jpeg",
@@ -250,12 +250,12 @@
     {
       "mimeType": "image/jpeg",
       "name": "searsia_burchellii_diff",
-      "uri": "textures/searsia_burchellii_diff_1k.jpg"
+      "uri": "textures/searsia_burchellii_diff_alpha_1k.png"
     },
     {
       "mimeType": "image/jpeg",
       "name": "searsia_burchellii_diff-searsia_burchellii_alpha",
-      "uri": "textures/searsia_burchellii_diff_1k.jpg"
+      "uri": "textures/searsia_burchellii_diff_alpha_1k.png"
     }
   ],
   "accessors": [

@@ -6,15 +6,16 @@ const PROP_MANAGER_SCRIPT: Script = preload("res://scripts/interior/yurt_prop_re
 const BED_VOID_INTERACTABLE_SCRIPT: Script = preload("res://scripts/bed_void_interactable.gd")
 const YURT_WALL_MATERIAL: Material = preload("res://materials/yurt/mat_yurt_wall_weathered_felt.tres")
 const YURT_CEILING_MATERIAL: Material = preload("res://materials/yurt/mat_yurt_roof_smoked_felt.tres")
-const MAT_VELVET: Material = preload("res://materials/polyhaven/textiles/mat_velour_velvet_hero.tres")
 const MAT_TEDDY: Material = preload("res://materials/polyhaven/textiles/mat_curly_teddy_checkered_thick.tres")
-const MAT_JACQUARD: Material = preload("res://materials/polyhaven/textiles/mat_quatrefoil_jacquard_tablecloth.tres")
-const MAT_WOOL: Material = preload("res://materials/polyhaven/textiles/mat_wool_boucle_heavy.tres")
 const MAT_WAFFLE: Material = preload("res://materials/polyhaven/textiles/mat_waffle_pique_cotton_flags.tres")
 
+# Local-space placements on the imported gallinera table. Its tabletop is at
+# y = 0.487786 before the non-uniform display scale is applied.
+const MEDIA_TABLE_TOP_Y := 0.487786
+const MEDIA_TABLE_TV_POSITION := Vector3(-0.13, MEDIA_TABLE_TOP_Y, 0.02)
+const MEDIA_TABLE_RADIO_POSITION := Vector3(0.27, MEDIA_TABLE_TOP_Y, 0.20)
+
 @export var interior_upgrade_enabled: bool = true
-@export_range(1, 3, 1) var textile_density_level: int = 1
-@export var use_ultra_textile_quality: bool = false
 @export var enlarge_yurt_enabled: bool = true
 @export var add_low_table_enabled: bool = true
 @export var add_screen_enabled: bool = true
@@ -58,7 +59,7 @@ func _apply_upgrade() -> void:
 
 	_textiles = TEXTILE_LIBRARY_SCRIPT.new()
 	_props = PROP_MANAGER_SCRIPT.new()
-	_wood_material = _make_material("mat_phase2_deep_worn_wood", Color(0.34, 0.22, 0.13, 1.0), 0.82)
+	_wood_material = _make_material("mat_phase2_deep_worn_wood", Color(0.18, 0.105, 0.055, 1.0), 0.9)
 	_dark_material = _make_material("mat_phase2_dark_metal_aged", Color(0.07, 0.068, 0.062, 1.0), 0.74)
 
 	if enlarge_yurt_enabled:
@@ -71,7 +72,6 @@ func _apply_upgrade() -> void:
 	_build_yurt_interior_lights(scene)
 
 	if not debug_hide_textiles:
-		_build_floor_textile_composition()
 		_build_wall_flags()
 
 	if not debug_hide_new_props:
@@ -340,22 +340,10 @@ func _add_omni_light(node_name: String, position: Vector3, color: Color, energy:
 	_root.add_child(light)
 
 
-func _build_floor_textile_composition() -> void:
-	# YurtFloorRich already owns the large carpet composition. Keep only a few
-	# lived-in accents here instead of rendering another stack of overlapping rugs.
-	_textiles.add_irregular_hide(_root, "RoughWoolHideNearBed", Vector3(4.65, 0.105, 1.3), Vector2(1.85, 1.12), MAT_WOOL, deg_to_rad(-28.0), 55)
-	_textiles.add_folded_stack(_root, "FoldedWoolBoucleBundleA", Vector3(2.1, 0.16, 2.9), MAT_WOOL, deg_to_rad(-18.0), 3)
-
-	if textile_density_level >= 2:
-		_textiles.add_draped_rect(_root, "SmallVelourThresholdLayer", Vector3(0.1, 0.1, -5.85), Vector2(2.35, 1.05), MAT_VELVET, deg_to_rad(-4.0), 0.045, 0.06, 0.025, 71)
-	if textile_density_level >= 3 and use_ultra_textile_quality:
-		_textiles.add_folded_stack(_root, "FoldedVelvetBundleB", Vector3(-4.35, 0.14, 3.0), MAT_VELVET, deg_to_rad(18.0), 2)
-
-
 func _build_low_table() -> void:
 	if not add_low_table_enabled:
 		return
-	_textiles.add_low_table(_root, "Phase2LowSeatedTableForThree", Vector3(-1.25, 0.05, -2.55), deg_to_rad(5.0), _wood_material, MAT_JACQUARD)
+	_textiles.add_low_table(_root, "Phase2LowSeatedTableForThree", Vector3(-1.25, 0.05, -2.55), deg_to_rad(5.0), _wood_material)
 
 
 func _build_wall_flags() -> void:
@@ -381,14 +369,14 @@ func _build_interior_props(scene: Node) -> void:
 		var tv := scene.get_node_or_null("InteractableTV") as Node3D
 		if tv != null:
 			if media_table != null:
-				tv.global_position = media_table.to_global(Vector3(-0.34, 0.31, 0.18))
+				tv.global_position = media_table.to_global(MEDIA_TABLE_TV_POSITION)
 				tv.rotation.y = tv_yaw
 				tv.scale = Vector3.ONE * 3.52
 			_props.replace_tv_visual(tv)
 		var radio := scene.get_node_or_null("RadioOnBox") as Node3D
 		if radio != null:
 			if media_table != null:
-				radio.global_position = media_table.to_global(Vector3(0.48, 0.33, 0.04))
+				radio.global_position = media_table.to_global(MEDIA_TABLE_RADIO_POSITION)
 				radio.rotation.y = media_table.rotation.y
 				radio.scale = Vector3.ONE * 1.22
 			_props.replace_radio_visual(radio)

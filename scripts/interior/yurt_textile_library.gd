@@ -1,13 +1,6 @@
 extends RefCounted
 class_name YurtTextileLibrary
 
-const MAT_VELVET: Material = preload("res://materials/polyhaven/textiles/mat_velour_velvet_hero.tres")
-const MAT_TEDDY: Material = preload("res://materials/polyhaven/textiles/mat_curly_teddy_checkered_thick.tres")
-const MAT_JACQUARD: Material = preload("res://materials/polyhaven/textiles/mat_quatrefoil_jacquard_tablecloth.tres")
-const MAT_WOOL: Material = preload("res://materials/polyhaven/textiles/mat_wool_boucle_heavy.tres")
-const MAT_WAFFLE: Material = preload("res://materials/polyhaven/textiles/mat_waffle_pique_cotton_flags.tres")
-
-
 func add_draped_rect(
 	parent: Node3D,
 	node_name: String,
@@ -85,7 +78,7 @@ func add_folded_stack(parent: Node3D, node_name: String, position: Vector3, mate
 	return root
 
 
-func add_low_table(parent: Node3D, node_name: String, position: Vector3, rotation_y: float, table_material: Material, cloth_material: Material) -> Node3D:
+func add_low_table(parent: Node3D, node_name: String, position: Vector3, rotation_y: float, table_material: Material) -> Node3D:
 	var root := Node3D.new()
 	root.name = node_name
 	root.position = position
@@ -112,7 +105,6 @@ func add_low_table(parent: Node3D, node_name: String, position: Vector3, rotatio
 			leg.set_surface_override_material(0, table_material)
 			root.add_child(leg)
 
-	add_draped_rect(root, "JacquardTablecloth", Vector3(0.0, 0.535, 0.0), Vector2(2.62, 1.36), cloth_material, 0.0, 0.045, 0.08, 0.026, 44)
 	return root
 
 

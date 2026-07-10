@@ -1,6 +1,6 @@
 extends Node
 
-const ALBASTY_RITUAL_HIDE_SECONDS := 480.0
+const ALBASTY_RITUAL_HIDE_SECONDS := 600.0
 
 var albasty_ritual_completed := false
 var albasty_hidden_until_msec := 0
@@ -15,8 +15,14 @@ func pacify_albasty_from_blood_ritual() -> void:
 
 
 func is_albasty_hidden_by_ritual() -> bool:
-	return albasty_ritual_completed and Time.get_ticks_msec() < albasty_hidden_until_msec
+	if not albasty_ritual_completed:
+		return false
+	if Time.get_ticks_msec() < albasty_hidden_until_msec:
+		return true
+	albasty_ritual_completed = false
+	albasty_hidden_until_msec = 0
+	return false
 
 
 func is_albasty_peaceful_after_ritual() -> bool:
-	return albasty_ritual_completed and not is_albasty_hidden_by_ritual()
+	return false

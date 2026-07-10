@@ -6,10 +6,12 @@ uniform vec4 path_color : source_color = vec4(0.34, 0.30, 0.23, 1.0);
 uniform vec4 wet_lowland_color : source_color = vec4(0.27, 0.31, 0.25, 1.0);
 uniform vec4 salt_dust_color : source_color = vec4(0.60, 0.57, 0.45, 1.0);
 uniform vec4 rock_color : source_color = vec4(0.30, 0.30, 0.27, 1.0);
+uniform vec4 grass_ground_color : source_color = vec4(0.27, 0.31, 0.19, 1.0);
 uniform float world_uv_scale = 0.075;
 uniform float texture_uv_scale = 0.085;
 uniform float texture_strength = 0.78;
 uniform float mottle_strength = 0.105;
+uniform float grass_ground_strength = 0.48;
 uniform sampler2D dry_ground_texture : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D rock_ground_texture : source_color, filter_linear_mipmap, repeat_enable;
 uniform sampler2D wet_ground_texture : source_color, filter_linear_mipmap, repeat_enable;
@@ -32,6 +34,12 @@ void fragment() {
 	float broad = sin(uvw.x * 1.7 + uvw.y * 0.9) * 0.5 + 0.5;
 	float fine = hash21(floor(uvw * 18.0));
 	float mottle = (broad * 0.58 + fine * 0.42 - 0.5) * mottle_strength;
+	float meadow_waves = sin(world_pos.x * 0.041 + sin(world_pos.y * 0.5 + world_pos.z * 0.019) * 1.7);
+	meadow_waves += sin(world_pos.z * 0.037 - world_pos.x * 0.014) * 0.72;
+	float meadow_noise = meadow_waves * 0.25 + hash21(floor(world_pos.xz * 0.055)) * 0.38 + 0.48;
+	float playable_steppe = 1.0 - smoothstep(118.0, 245.0, length(world_pos.xz));
+	float meadow_exclusion = 1.0 - clamp(max(COLOR.a * 0.94, max(COLOR.r * 0.74, COLOR.b * 0.48)), 0.0, 1.0);
+	float meadow_mask = smoothstep(0.34, 0.72, meadow_noise) * playable_steppe * meadow_exclusion;
 
 	vec3 base = dry_color.rgb;
 	base = mix(base, salt_dust_color.rgb, clamp(COLOR.r * 0.78, 0.0, 1.0));
@@ -50,7 +58,10 @@ void fragment() {
 	texture_base = mix(texture_base, rock_tex, clamp(max(COLOR.b, COLOR.a * 0.42), 0.0, 1.0));
 	texture_base = mix(texture_base, texture_base * path_color.rgb * 1.45, clamp(COLOR.a * 0.5, 0.0, 1.0));
 
-	ALBEDO = clamp(mix(base, texture_base, texture_strength) + vec3(mottle), vec3(0.02), vec3(0.88));
+	vec3 surface_color = mix(base, texture_base, texture_strength) + vec3(mottle);
+	vec3 grassy_surface = mix(grass_ground_color.rgb, dry_tex * vec3(0.66, 0.78, 0.48), 0.42);
+	surface_color = mix(surface_color, grassy_surface, meadow_mask * grass_ground_strength);
+	ALBEDO = clamp(surface_color, vec3(0.02), vec3(0.88));
 	ROUGHNESS = 0.96;
 	METALLIC = 0.0;
 }

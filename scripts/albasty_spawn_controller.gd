@@ -26,6 +26,8 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if albasty_scene == null:
 		return
+	if _is_albasty_suppressed():
+		return
 	_timer -= delta
 	if _timer > 0.0:
 		return
@@ -42,12 +44,16 @@ func _process(delta: float) -> void:
 	_spawn_at(point.global_position, point.global_rotation)
 
 func force_spawn() -> Node3D:
+	if _is_albasty_suppressed():
+		return null
 	var point := _pick_spawn_point()
 	if point == null:
 		return null
 	return _spawn_at(point.global_position, point.global_rotation)
 
 func _spawn_at(pos: Vector3, rot: Vector3) -> Node3D:
+	if _is_albasty_suppressed():
+		return null
 	var inst := albasty_scene.instantiate()
 	if inst is Node3D:
 		add_child(inst)
@@ -81,6 +87,11 @@ func _count_alive_albasty() -> int:
 
 func _next_interval() -> float:
 	return _rng.randf_range(spawn_interval_min, spawn_interval_max)
+
+
+func _is_albasty_suppressed() -> bool:
+	var game_state := get_node_or_null("/root/GameState")
+	return game_state != null and game_state.has_method("is_albasty_hidden_by_ritual") and bool(game_state.call("is_albasty_hidden_by_ritual"))
 
 func _get_first_in_group(group_name: StringName) -> Node3D:
 	for node in get_tree().get_nodes_in_group(group_name):

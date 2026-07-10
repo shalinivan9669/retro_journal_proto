@@ -5,7 +5,6 @@
 [node name="YurtFloorRoot" type="Node3D"]
 script = ExtResource("1_generator")
 floor_radius = 9.35
-mat_count = 6
 random_seed = 1947
 edge_irregularity = 0.025
 wave_strength = 0.008

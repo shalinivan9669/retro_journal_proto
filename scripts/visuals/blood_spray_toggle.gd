@@ -3,8 +3,10 @@ extends Node3D
 @export var particles: GPUParticles3D
 @export var interaction_area: Area3D
 @export var cooldown_seconds := 30.0
+@export var shovel_ritual_duration_seconds := 600.0
 @export var interact_action := "interact"
 @export var start_active := false
+@export var blood_visual_nodes: Array[NodePath] = []
 
 var player_inside := false
 var disabled := false
@@ -32,15 +34,9 @@ func _on_body_exited(body: Node) -> void:
 
 func _stop_temporarily() -> void:
 	disabled = true
-	if particles:
-		particles.emitting = false
-		particles.visible = false
+	_set_blood_active(false)
 	await get_tree().create_timer(cooldown_seconds).timeout
-	if particles:
-		particles.visible = start_active
-		particles.emitting = start_active
-		if start_active:
-			particles.restart()
+	_set_blood_active(start_active)
 	disabled = false
 
 
@@ -49,13 +45,27 @@ func shovel_dig(_player: Node = null) -> void:
 		return
 	ritual_completed = true
 	disabled = true
-	start_active = false
-	if particles:
-		particles.emitting = false
-		particles.visible = false
+	_set_blood_active(false)
 	var game_state := get_node_or_null("/root/GameState")
 	if game_state != null and game_state.has_method("pacify_albasty_from_blood_ritual"):
 		game_state.call("pacify_albasty_from_blood_ritual")
+	await get_tree().create_timer(shovel_ritual_duration_seconds).timeout
+	_set_blood_active(start_active)
+	ritual_completed = false
+	disabled = false
+
+
+func _set_blood_active(active: bool) -> void:
+	if particles:
+		particles.emitting = active
+		particles.visible = active
+		particles.process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
+		if active:
+			particles.restart()
+	for path in blood_visual_nodes:
+		var visual := get_node_or_null(path)
+		if visual is VisualInstance3D:
+			(visual as VisualInstance3D).visible = active
 
 
 func get_interaction_prompt() -> String:

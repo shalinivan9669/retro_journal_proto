@@ -2,9 +2,8 @@
 extends Node3D
 
 const MAT_BASE_FELT: StandardMaterial3D = preload("res://materials/yurt_floor/mat_yurt_base_felt.tres")
-const MAT_MAIN_ORNAMENT: StandardMaterial3D = preload("res://materials/yurt_floor/mat_yurt_main_ornamental_red_cream.tres")
+const MAT_MAIN_ORNAMENT: StandardMaterial3D = preload("res://materials/yurt_floor/mat_yurt_main_worn_kazakh_rug.tres")
 const MAT_BORDER_DARK: StandardMaterial3D = preload("res://materials/yurt_floor/mat_yurt_ornamental_border_dark.tres")
-const MAT_CENTER_RED: StandardMaterial3D = preload("res://materials/yurt_floor/mat_yurt_center_red_felt.tres")
 const MAT_CHECKERED: StandardMaterial3D = preload("res://materials/yurt_floor/mat_yurt_checkered_muted.tres")
 const MAT_FABRIC_BURGUNDY: StandardMaterial3D = preload("res://materials/yurt_floor/mat_yurt_fabric_burgundy.tres")
 const MAT_FABRIC_WARM_BEIGE: StandardMaterial3D = preload("res://materials/yurt_floor/mat_yurt_fabric_warm_beige.tres")
@@ -24,7 +23,7 @@ const GENERATED_NAMES := [
 		floor_radius = value
 		_queue_rebuild()
 
-@export_range(6, 14, 1) var mat_count: int = 11:
+@export_range(4, 10, 1) var mat_count: int = 6:
 	set(value):
 		mat_count = value
 		_queue_rebuild()
@@ -34,12 +33,12 @@ const GENERATED_NAMES := [
 		random_seed = value
 		_queue_rebuild()
 
-@export_range(0.0, 0.18, 0.005) var edge_irregularity: float = 0.055:
+@export_range(0.0, 0.18, 0.005) var edge_irregularity: float = 0.025:
 	set(value):
 		edge_irregularity = value
 		_queue_rebuild()
 
-@export_range(0.0, 0.08, 0.002) var wave_strength: float = 0.018:
+@export_range(0.0, 0.08, 0.002) var wave_strength: float = 0.008:
 	set(value):
 		wave_strength = value
 		_queue_rebuild()
@@ -84,7 +83,7 @@ func rebuild() -> void:
 	_add_mesh_node(
 		"Floor_Base_Felt",
 		self,
-		_make_disk_mesh(floor_radius, floor_radius * 0.985, 72, 8, edge_irregularity * 1.15, wave_strength, 0.38, 0.07, 10),
+		_make_disk_mesh(floor_radius, floor_radius * 0.985, 48, 4, edge_irregularity * 1.15, wave_strength, 0.38, 0.07, 10),
 		_variant_material(MAT_BASE_FELT, Color(0.95, 0.9, 0.82, 1), 0.0),
 		Vector3.ZERO,
 		deg_to_rad(1.5)
@@ -93,7 +92,7 @@ func rebuild() -> void:
 	_add_mesh_node(
 		"Main_Rug_Ornamental",
 		self,
-		_make_disk_mesh(main_radius_x, main_radius_z, 56, 5, edge_irregularity * 0.65, wave_strength * 0.75, 0.46, -0.18, 20),
+		_make_disk_mesh(main_radius_x, main_radius_z, 48, 4, edge_irregularity * 0.65, wave_strength * 0.75, 0.46, -0.18, 20),
 		MAT_MAIN_ORNAMENT,
 		Vector3(0.16, 0.004, -0.1),
 		rug_rotation
@@ -102,28 +101,10 @@ func rebuild() -> void:
 	_add_mesh_node(
 		"Main_Rug_Border_Outer",
 		self,
-		_make_ring_mesh(main_radius_x * 0.88, main_radius_z * 0.88, main_radius_x * 1.03, main_radius_z * 1.03, 64, 2, edge_irregularity * 0.5, wave_strength * 0.45, 0.74, 0.11, 30),
+		_make_ring_mesh(main_radius_x * 0.88, main_radius_z * 0.88, main_radius_x * 1.03, main_radius_z * 1.03, 48, 2, edge_irregularity * 0.5, wave_strength * 0.45, 0.74, 0.11, 30),
 		_variant_material(MAT_BORDER_DARK, Color(0.82, 0.74, 0.66, 1), 0.0),
 		Vector3(0.16, 0.006, -0.1),
 		rug_rotation
-	)
-
-	_add_mesh_node(
-		"Main_Rug_Border_Inner",
-		self,
-		_make_ring_mesh(main_radius_x * 0.57, main_radius_z * 0.57, main_radius_x * 0.68, main_radius_z * 0.68, 64, 2, edge_irregularity * 0.4, wave_strength * 0.4, 0.68, -0.05, 40),
-		_variant_material(MAT_MAIN_ORNAMENT, Color(1.05, 0.96, 0.84, 1), 0.03),
-		Vector3(0.16, 0.007, -0.1),
-		rug_rotation
-	)
-
-	_add_mesh_node(
-		"Center_Medallion_RedFelt",
-		self,
-		_make_disk_mesh(main_radius_x * 0.36, main_radius_z * 0.36, 32, 4, edge_irregularity * 0.8, wave_strength * 0.7, 0.82, 0.22, 50),
-		_variant_material(MAT_CENTER_RED, Color(0.95, 0.63, 0.58, 1), 0.02),
-		Vector3(0.04, 0.009, -0.03),
-		rug_rotation + deg_to_rad(7.0)
 	)
 
 	var perimeter := Node3D.new()

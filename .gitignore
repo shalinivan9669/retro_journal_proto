@@ -26,3 +26,45 @@ build/
 builds/
 exports/
 dist/
+
+# Large art source and runtime assets are kept locally / distributed separately.
+# Do not add textures, baked image formats, or their Godot import sidecars.
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.tga
+*.bmp
+*.dds
+*.exr
+*.hdr
+*.ktx
+*.ktx2
+*.psd
+*.xcf
+*.png.import
+*.jpg.import
+*.jpeg.import
+*.webp.import
+*.tga.import
+*.bmp.import
+*.dds.import
+*.exr.import
+*.hdr.import
+*.ktx.import
+*.ktx2.import
+
+# 3D models and editable DCC source files are also local / external assets.
+*.glb
+*.gltf
+*.fbx
+*.obj
+*.dae
+*.3ds
+*.blend
+*.blend1
+*.glb.import
+*.gltf.import
+*.fbx.import
+*.obj.import
+*.dae.import

@@ -8,6 +8,7 @@ albedo_color = Color(1.0, 0.92, 0.84, 1)
 metallic = 0.0
 metallic_specular = 0.2
 roughness = 0.86
+texture_filter = 3
 texture_repeat = 1
 cull_mode = 2
 uv1_scale = Vector3(1.55, 1.55, 1)

@@ -17,6 +17,9 @@ extends CharacterBody3D
 @export var landscape_ground_snap_down: float = 1.35
 @export var landscape_ground_step_up: float = 0.9
 @export var landscape_ground_rescue_margin: float = 0.14
+@export var shovel_scene_path: String = "res://assets/polyhaven/props/rusted_spade_01/rusted_spade_01_2k.gltf"
+@export var aim_zoom_multiplier: float = 1.5
+@export var aim_zoom_speed: float = 12.0
 
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
@@ -28,6 +31,14 @@ var _capsule_shape: CapsuleShape3D
 var _is_crouching := false
 var _has_triggered_crouch_lore := false
 var _steppe_environment: Node
+var _shovel_equipped := false
+var _held_shovel: Node3D
+var _shovel_rest_position := Vector3(-0.72, -0.42, -0.92)
+var _shovel_rest_rotation := Vector3(deg_to_rad(-54.0), deg_to_rad(-18.0), deg_to_rad(12.0))
+var _dig_phase := 0.0
+var _dig_call_cooldown := 0.0
+var _default_camera_fov := 75.0
+var _aim_zoom_held := false
 
 
 func _ready() -> void:
@@ -35,6 +46,8 @@ func _ready() -> void:
 	_ensure_input_actions()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	_capsule_shape = collision_shape.shape as CapsuleShape3D
+	if camera != null:
+		_default_camera_fov = camera.fov
 	floor_snap_length = maxf(0.6, landscape_ground_snap_down)
 	_steppe_environment = _find_steppe_environment()
 
@@ -46,6 +59,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if controls_locked:
+		_aim_zoom_held = false
+		return
+
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		_aim_zoom_held = event.pressed
+		if event.pressed and Input.get_mouse_mode() != Input.MOUSE_MODE_CAPTURED:
+			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		get_viewport().set_input_as_handled()
 		return
 
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
@@ -58,6 +79,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventMouseButton and event.pressed and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+		if _shovel_equipped and event.button_index == MOUSE_BUTTON_LEFT:
+			get_viewport().set_input_as_handled()
+			return
 		if _is_interact_event(event):
 			_handle_interact_action()
 			return
@@ -87,6 +111,31 @@ func _unhandled_input(event: InputEvent) -> void:
 				return
 
 			_try_signal_trigger()
+
+		if event.keycode == KEY_2:
+			_toggle_shovel()
+			get_viewport().set_input_as_handled()
+			return
+
+
+func _process(delta: float) -> void:
+	_update_aim_zoom(delta)
+	_update_shovel(delta)
+
+
+func _update_aim_zoom(delta: float) -> void:
+	if camera == null:
+		return
+	var zooming := not controls_locked and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED and _aim_zoom_held
+	var target_fov := _get_zoom_fov(_default_camera_fov) if zooming else _default_camera_fov
+	var blend := clampf(delta * aim_zoom_speed, 0.0, 1.0)
+	camera.fov = lerpf(camera.fov, target_fov, blend)
+
+
+func _get_zoom_fov(base_fov: float) -> float:
+	var multiplier := maxf(aim_zoom_multiplier, 1.0)
+	var half_angle := deg_to_rad(base_fov) * 0.5
+	return rad_to_deg(atan(tan(half_angle) / multiplier) * 2.0)
 
 
 func _physics_process(delta: float) -> void:
@@ -187,6 +236,100 @@ func _try_signal_trigger() -> void:
 
 	if target != null:
 		target.call("trigger_signal", _get_dialogue_ui())
+
+
+func _toggle_shovel() -> void:
+	_shovel_equipped = not _shovel_equipped
+	_ensure_held_shovel()
+	if _held_shovel != null:
+		_held_shovel.visible = _shovel_equipped
+
+
+func _ensure_held_shovel() -> void:
+	if _held_shovel != null or camera == null:
+		return
+
+	var root := Node3D.new()
+	root.name = "HeldRustedSpade"
+	root.position = _shovel_rest_position
+	root.rotation = _shovel_rest_rotation
+	root.visible = false
+	camera.add_child(root)
+	_held_shovel = root
+
+	var scene := load(shovel_scene_path) as PackedScene
+	if scene != null:
+		var model := scene.instantiate()
+		model.name = "RustedSpade01Model"
+		if model is Node3D:
+			var model_3d := model as Node3D
+			model_3d.scale = Vector3.ONE * 1.14
+			model_3d.rotation_degrees = Vector3(-96.0, 0.0, 184.0)
+			model_3d.position = Vector3(0.0, -0.18, 0.0)
+		root.add_child(model)
+	else:
+		_build_fallback_shovel(root)
+
+
+func _build_fallback_shovel(parent: Node3D) -> void:
+	var handle_mat := StandardMaterial3D.new()
+	handle_mat.albedo_color = Color(0.28, 0.17, 0.09, 1.0)
+	handle_mat.roughness = 0.9
+	var metal_mat := StandardMaterial3D.new()
+	metal_mat.albedo_color = Color(0.22, 0.16, 0.12, 1.0)
+	metal_mat.roughness = 0.94
+	metal_mat.metallic = 0.2
+
+	var handle := MeshInstance3D.new()
+	handle.name = "FallbackHandle"
+	var handle_mesh := CylinderMesh.new()
+	handle_mesh.top_radius = 0.025
+	handle_mesh.bottom_radius = 0.025
+	handle_mesh.height = 1.15
+	handle_mesh.radial_segments = 10
+	handle.mesh = handle_mesh
+	handle.rotation_degrees.x = 90.0
+	handle.position = Vector3(0.0, 0.0, -0.22)
+	handle.set_surface_override_material(0, handle_mat)
+	parent.add_child(handle)
+
+	var blade := MeshInstance3D.new()
+	blade.name = "FallbackBlade"
+	var blade_mesh := BoxMesh.new()
+	blade_mesh.size = Vector3(0.32, 0.04, 0.42)
+	blade.mesh = blade_mesh
+	blade.position = Vector3(0.0, -0.02, -0.86)
+	blade.set_surface_override_material(0, metal_mat)
+	parent.add_child(blade)
+
+
+func _update_shovel(delta: float) -> void:
+	if _held_shovel == null:
+		if _shovel_equipped:
+			_ensure_held_shovel()
+		return
+
+	_dig_call_cooldown = maxf(0.0, _dig_call_cooldown - delta)
+	var digging := _shovel_equipped and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	if digging:
+		_dig_phase += delta * 9.0
+		var swing := sin(_dig_phase)
+		var thrust := maxf(0.0, swing)
+		_held_shovel.position = _shovel_rest_position + Vector3(0.0, -0.18 * thrust, -0.34 * thrust)
+		_held_shovel.rotation = _shovel_rest_rotation + Vector3(deg_to_rad(34.0 * thrust), deg_to_rad(-5.0 * swing), deg_to_rad(5.0 * swing))
+		if _dig_call_cooldown <= 0.0 and thrust > 0.72:
+			_try_shovel_dig()
+			_dig_call_cooldown = 0.24
+	else:
+		_dig_phase = 0.0
+		_held_shovel.position = _held_shovel.position.lerp(_shovel_rest_position, clampf(delta * 14.0, 0.0, 1.0))
+		_held_shovel.rotation = _held_shovel.rotation.lerp(_shovel_rest_rotation, clampf(delta * 14.0, 0.0, 1.0))
+
+
+func _try_shovel_dig() -> void:
+	var target := _get_ray_target_with_method("shovel_dig")
+	if target != null:
+		target.call("shovel_dig", self)
 
 
 func _update_interaction_prompt() -> void:

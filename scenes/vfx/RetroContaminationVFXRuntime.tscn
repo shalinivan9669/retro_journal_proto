@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/vfx/rcv_scene_auto_installer.gd" id="1_auto"]
+
+[node name="RetroContaminationVFXRuntime" type="Node"]
+script = ExtResource("1_auto")
+auto_install_on_ready = true
+install_bed_dream = true
+install_tv_glitch = true
+install_lep_effects = true
+max_beds = 4
+max_tvs = 3
+max_leps = 12
+bed_distance = 3.4
+tv_distance = 3.0
+lep_distance = 7.5

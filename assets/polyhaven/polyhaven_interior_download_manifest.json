@@ -1,88 +1,60 @@
 {
-  "downloaded_at": "2026-07-09 23:51:00",
+  "downloaded_at": "2026-07-10 02:45:25",
   "model_resolution": "2k",
   "texture_resolution": "2k",
-  "models": [
-    {
-      "asset": "Television_01",
-      "resolution": "2k",
-      "target": "assets/polyhaven/props/Television_01_2k.gltf",
-      "raw": "assets/polyhaven/raw/Television_01/Television_01_2k.gltf",
-      "processed": "assets/polyhaven/processed/Television_01_hero.gltf",
-      "size_mb": 1.48
-    },
-    {
-      "asset": "gallinera_table",
-      "resolution": "2k",
-      "target": "assets/polyhaven/props/gallinera_table_2k.gltf",
-      "raw": "assets/polyhaven/raw/gallinera_table/gallinera_table_2k.gltf",
-      "processed": "assets/polyhaven/processed/gallinera_table_hero.gltf",
-      "size_mb": 5.64
-    },
-    {
-      "asset": "boombox",
-      "resolution": "2k",
-      "target": "assets/polyhaven/props/boombox_2k.gltf",
-      "raw": "assets/polyhaven/raw/boombox/boombox_2k.gltf",
-      "processed": "assets/polyhaven/processed/boombox_hero.gltf",
-      "size_mb": 8.66
-    },
-    {
-      "asset": "namaqualand_boulder_02",
-      "resolution": "2k",
-      "target": "assets/polyhaven/props/namaqualand_boulder_02_2k.gltf",
-      "raw": "assets/polyhaven/raw/namaqualand_boulder_02/namaqualand_boulder_02_2k.gltf",
-      "processed": "assets/polyhaven/processed/namaqualand_boulder_02_hero.gltf",
-      "size_mb": 12.4
-    },
-    {
-      "asset": "namaqualand_boulder_04",
-      "resolution": "2k",
-      "target": "assets/polyhaven/props/namaqualand_boulder_04_2k.gltf",
-      "raw": "assets/polyhaven/raw/namaqualand_boulder_04/namaqualand_boulder_04_2k.gltf",
-      "processed": "assets/polyhaven/processed/namaqualand_boulder_04_hero.gltf",
-      "size_mb": 9.66
-    }
-  ],
+  "models": [],
   "textures": [
     {
-      "asset": "gravel_concrete_03",
+      "asset": "painted_plaster_wall",
       "resolution": "2k",
       "maps": [
-        "assets/polyhaven/textures/gravel_concrete_03_diff_2k.jpg",
-        "assets/polyhaven/textures/gravel_concrete_03_rough_2k.jpg",
-        "assets/polyhaven/textures/gravel_concrete_03_ao_2k.jpg",
-        "assets/polyhaven/textures/gravel_concrete_03_nor_gl_2k.jpg",
-        "assets/polyhaven/textures/gravel_concrete_03_arm_2k.jpg",
-        "assets/polyhaven/textures/gravel_concrete_03_disp_2k.jpg"
+        "assets/polyhaven/textures/painted_plaster_wall_diff_2k.jpg",
+        "assets/polyhaven/textures/painted_plaster_wall_rough_2k.jpg",
+        "assets/polyhaven/textures/painted_plaster_wall_ao_2k.jpg",
+        "assets/polyhaven/textures/painted_plaster_wall_nor_gl_2k.jpg",
+        "assets/polyhaven/textures/painted_plaster_wall_arm_2k.jpg",
+        "assets/polyhaven/textures/painted_plaster_wall_disp_2k.jpg"
       ],
-      "size_mb": 12.73
+      "size_mb": 14.0
     },
     {
-      "asset": "broken_brick_wall",
+      "asset": "cracked_concrete_wall",
       "resolution": "2k",
       "maps": [
-        "assets/polyhaven/textures/broken_brick_wall_diff_2k.jpg",
-        "assets/polyhaven/textures/broken_brick_wall_rough_2k.jpg",
-        "assets/polyhaven/textures/broken_brick_wall_ao_2k.jpg",
-        "assets/polyhaven/textures/broken_brick_wall_nor_gl_2k.jpg",
-        "assets/polyhaven/textures/broken_brick_wall_arm_2k.jpg",
-        "assets/polyhaven/textures/broken_brick_wall_disp_2k.jpg"
+        "assets/polyhaven/textures/cracked_concrete_wall_diff_2k.jpg",
+        "assets/polyhaven/textures/cracked_concrete_wall_rough_2k.jpg",
+        "assets/polyhaven/textures/cracked_concrete_wall_ao_2k.jpg",
+        "assets/polyhaven/textures/cracked_concrete_wall_nor_gl_2k.jpg",
+        "assets/polyhaven/textures/cracked_concrete_wall_arm_2k.jpg",
+        "assets/polyhaven/textures/cracked_concrete_wall_disp_2k.jpg"
       ],
-      "size_mb": 13.74
+      "size_mb": 16.14
     },
     {
-      "asset": "old_linoleum_flooring_01",
+      "asset": "coast_sand_rocks_02",
       "resolution": "2k",
       "maps": [
-        "assets/polyhaven/textures/old_linoleum_flooring_01_diff_2k.jpg",
-        "assets/polyhaven/textures/old_linoleum_flooring_01_rough_2k.jpg",
-        "assets/polyhaven/textures/old_linoleum_flooring_01_ao_2k.jpg",
-        "assets/polyhaven/textures/old_linoleum_flooring_01_nor_gl_2k.jpg",
-        "assets/polyhaven/textures/old_linoleum_flooring_01_arm_2k.jpg",
-        "assets/polyhaven/textures/old_linoleum_flooring_01_disp_2k.jpg"
+        "assets/polyhaven/textures/coast_sand_rocks_02_diff_2k.jpg",
+        "assets/polyhaven/textures/coast_sand_rocks_02_rough_2k.jpg",
+        "assets/polyhaven/textures/coast_sand_rocks_02_ao_2k.jpg",
+        "assets/polyhaven/textures/coast_sand_rocks_02_nor_gl_2k.jpg",
+        "assets/polyhaven/textures/coast_sand_rocks_02_arm_2k.jpg",
+        "assets/polyhaven/textures/coast_sand_rocks_02_disp_2k.jpg"
       ],
-      "size_mb": 10.74
+      "size_mb": 16.62
+    },
+    {
+      "asset": "marble_cliff_04",
+      "resolution": "2k",
+      "maps": [
+        "assets/polyhaven/textures/marble_cliff_04_diff_2k.jpg",
+        "assets/polyhaven/textures/marble_cliff_04_rough_2k.jpg",
+        "assets/polyhaven/textures/marble_cliff_04_ao_2k.jpg",
+        "assets/polyhaven/textures/marble_cliff_04_nor_gl_2k.jpg",
+        "assets/polyhaven/textures/marble_cliff_04_arm_2k.jpg",
+        "assets/polyhaven/textures/marble_cliff_04_disp_2k.jpg"
+      ],
+      "size_mb": 14.69
     }
   ],
   "skipped": []

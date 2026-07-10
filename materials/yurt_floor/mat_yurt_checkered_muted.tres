@@ -10,6 +10,7 @@ metallic = 0.0
 metallic_specular = 0.18
 roughness = 0.9
 roughness_texture = ExtResource("2_roughness")
+texture_filter = 3
 texture_repeat = 1
 cull_mode = 2
 uv1_scale = Vector3(1.8, 1.8, 1)

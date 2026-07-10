@@ -11,9 +11,7 @@ extends Node3D
 @export var trigger_position: Vector3 = Vector3(6.9, 1.1, 0.8)
 @export var trigger_size: Vector3 = Vector3(3.2, 2.4, 3.2)
 
-const WALL_ALBEDO_TEXTURE: Texture2D = preload("res://assets/polyhaven/interior_textiles/fabric_leather_02_diff_2k.jpg")
-const WALL_ROUGHNESS_TEXTURE: Texture2D = preload("res://assets/polyhaven/interior_textiles/fabric_leather_02_rough_2k.jpg")
-const WALL_NORMAL_TEXTURE: Texture2D = preload("res://assets/polyhaven/interior_textiles/fabric_leather_02_nor_gl_2k.jpg")
+const WALL_ALBEDO_TEXTURE: Texture2D = preload("res://assets/textures/yurt/yurt_interior_weathered_felt_v2.png")
 const FLOWER_COUNT := 180
 const WINDOW_RADIUS := 1.32
 const SAMPLE_RATE := 22050
@@ -22,10 +20,8 @@ const WALL_CUTOUT_SHADER := """
 shader_type spatial;
 render_mode cull_disabled, shadows_disabled;
 
-uniform vec4 wall_color : source_color = vec4(0.45, 0.38, 0.31, 1.0);
+uniform vec4 wall_color : source_color = vec4(0.68, 0.64, 0.56, 1.0);
 uniform sampler2D albedo_texture : source_color, filter_linear_mipmap, repeat_enable;
-uniform sampler2D roughness_texture : filter_linear_mipmap, repeat_enable;
-uniform sampler2D normal_texture : hint_normal, filter_linear_mipmap, repeat_enable;
 uniform vec3 hole_center = vec3(8.9, 2.65, 0.8);
 uniform float hole_radius = 1.32;
 uniform float hole_x_half_width = 0.9;
@@ -46,12 +42,8 @@ void fragment() {
 	}
 	vec2 tiled_uv = UV * uv_scale;
 	vec3 fabric = texture(albedo_texture, tiled_uv).rgb;
-	vec3 normal_sample = texture(normal_texture, tiled_uv).rgb;
-	float roughness_sample = texture(roughness_texture, tiled_uv).r;
-	ALBEDO = mix(wall_color.rgb, fabric * wall_color.rgb * 1.42, texture_strength);
-	EMISSION = ALBEDO * 0.035;
-	ROUGHNESS = clamp(max(roughness_sample, 0.78), 0.0, 1.0);
-	NORMAL_MAP = normal_sample;
+	ALBEDO = mix(wall_color.rgb, fabric * wall_color.rgb * 1.05, texture_strength);
+	ROUGHNESS = 0.96;
 }
 """
 
@@ -124,11 +116,9 @@ func _apply_round_window_cutout() -> void:
 		material.set_shader_parameter("hole_center", window_position)
 		material.set_shader_parameter("hole_radius", WINDOW_RADIUS)
 		material.set_shader_parameter("hole_x_half_width", 0.9)
-		material.set_shader_parameter("wall_color", Color(1.05, 0.92, 0.76, 1.0))
+		material.set_shader_parameter("wall_color", Color(0.78, 0.74, 0.66, 1.0))
 		material.set_shader_parameter("albedo_texture", WALL_ALBEDO_TEXTURE)
-		material.set_shader_parameter("roughness_texture", WALL_ROUGHNESS_TEXTURE)
-		material.set_shader_parameter("normal_texture", WALL_NORMAL_TEXTURE)
-		material.set_shader_parameter("uv_scale", Vector2(3.1, 1.65))
+		material.set_shader_parameter("uv_scale", Vector2(1.6, 1.45))
 		material.set_shader_parameter("texture_strength", 1.0)
 		mesh_instance.visible = true
 		mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -176,8 +166,8 @@ func _build_window_light() -> void:
 	add_child(_window_light)
 	_window_light.global_position = window_position + Vector3(-0.65, -0.2, 0.0)
 	_window_light.light_color = Color(1.0, 0.86, 0.56)
-	_window_light.light_energy = 4.4
-	_window_light.omni_range = 8.5
+	_window_light.light_energy = 0.45
+	_window_light.omni_range = 4.5
 	_window_light.shadow_enabled = false
 
 

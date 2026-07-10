@@ -151,6 +151,13 @@ func _build_pylon(parent: Node3D, node_name: String, pos: Vector3, material: Mat
 	pylon.name = node_name
 	pylon.position = pos
 	pylon.scale = Vector3.ONE * scale_value
+	match node_name:
+		"Powerline_01":
+			pylon.add_to_group("vfx_lep_radiation")
+		"Powerline_02":
+			pylon.add_to_group("vfx_lep_rust")
+		"Powerline_03":
+			pylon.add_to_group("vfx_lep_ion")
 	parent.add_child(pylon)
 
 	_box(pylon, "LeftLeg", Vector3(-0.85, 3.3, 0.0), Vector3(0.18, 6.6, 0.18), material, Vector3(0.0, 0.0, deg_to_rad(-6.0)))

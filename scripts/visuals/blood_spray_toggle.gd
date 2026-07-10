@@ -8,6 +8,7 @@ extends Node3D
 
 var player_inside := false
 var disabled := false
+var ritual_completed := false
 
 func _ready() -> void:
 	if interaction_area:
@@ -41,3 +42,23 @@ func _stop_temporarily() -> void:
 		if start_active:
 			particles.restart()
 	disabled = false
+
+
+func shovel_dig(_player: Node = null) -> void:
+	if ritual_completed:
+		return
+	ritual_completed = true
+	disabled = true
+	start_active = false
+	if particles:
+		particles.emitting = false
+		particles.visible = false
+	var game_state := get_node_or_null("/root/GameState")
+	if game_state != null and game_state.has_method("pacify_albasty_from_blood_ritual"):
+		game_state.call("pacify_albasty_from_blood_ritual")
+
+
+func get_interaction_prompt() -> String:
+	if ritual_completed:
+		return ""
+	return "2: лопата, ЛКМ: копать"

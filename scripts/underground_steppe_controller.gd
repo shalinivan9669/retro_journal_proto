@@ -3,6 +3,10 @@ extends Node3D
 const CONCRETE_MATERIAL: Material = preload("res://materials/mat_underground_concrete.tres")
 const BASEMENT_WALL_MATERIAL: Material = preload("res://materials/polyhaven/mat_basement_broken_brick_wall.tres")
 const BASEMENT_FLOOR_MATERIAL: Material = preload("res://materials/polyhaven/mat_basement_floor_gravel_concrete_03.tres")
+const CAVE_PLASTER_MATERIAL: Material = preload("res://materials/polyhaven/mat_cave_painted_plaster_wall.tres")
+const CAVE_CRACKED_CONCRETE_MATERIAL: Material = preload("res://materials/polyhaven/mat_cave_cracked_concrete_wall.tres")
+const CAVE_SAND_ROCK_MATERIAL: Material = preload("res://materials/polyhaven/mat_cave_coast_sand_rocks.tres")
+const CLIFF_MARBLE_MATERIAL: Material = preload("res://materials/polyhaven/mat_cliff_marble_cliff_04.tres")
 const WET_GRASS_MATERIAL: Material = preload("res://materials/mat_underground_wet_grass.tres")
 const WATER_MATERIAL: Material = preload("res://materials/mat_underground_water.tres")
 const FLOWER_WHITE_MATERIAL: Material = preload("res://materials/mat_underground_flower_white.tres")
@@ -17,19 +21,19 @@ const FLOWER_WHITE_SCENE_PATH := "res://assets/models/vegetation_fallback/fallba
 const CLOUD_TEXTURE_DIR := "res://assets/textures/sky/clouds_runtime_clean"
 
 const MAZE := [
-	"#######################",
-	"#S#.#.........#########",
-	"#.#.#.#.#####.#########",
-	"#.#...#....o#.#########",
-	"#.#.#######.#.#########",
-	"#.#.#.f.#...#l#########",
-	"#.#.###.#.###.#########",
-	"#.#.....#.#.f.#########",
-	"#.#.#####.#.###RRRRRR##",
-	"#l#.#..h#.#...#RPRPRR##",
-	"#.n##.#.#.###.#RPRRRR##",
-	"#.....#...#.F.RRPRPRE##",
-	"#######################"
+	"######################################################",
+	"#S#.#.........########################################",
+	"#.#.#.#.#####.########################################",
+	"#.#...#....o#.########################################",
+	"#.#.#######.#.########################################",
+	"#.#.#.f.#...#l########################################",
+	"#.#.###.#.###.########################################",
+	"#.#.....#.#.f.#####################sssssss############",
+	"#.#.#####.#.###RRRRRR#########sssccccccsss############",
+	"#l#.#..h#.#...#RRRRRR#######ssccccrrrrrccccss#########",
+	"#.n##.#.#.###.#RRRRRR#####ssccrrrcccccccrrrccss#######",
+	"#.....#...#.F.RRRRRRRRRrrrccrrrsssssrrrrrrrrrrrrrrrEss",
+	"######################################################"
 ]
 
 const TILE_SIZE := 3.0
@@ -94,10 +98,12 @@ func _build_level() -> void:
 	_configure_maze_origin()
 	_build_stair_to_maze_connector()
 	_build_maze()
+	_build_cave_details()
 	_build_folklore_lady_alcove()
 	_build_water()
 	_build_vegetation()
 	_build_exit_marker()
+	_build_cliff_exit()
 	_build_final_soldier_room()
 
 
@@ -254,7 +260,7 @@ func _build_maze() -> void:
 					"MazeWall_%02d_%02d" % [x, y],
 					Vector3(TILE_SIZE, BASEMENT_WALL_HEIGHT, TILE_SIZE),
 					center + Vector3(0.0, BASEMENT_WALL_HEIGHT * 0.5, 0.0),
-					BASEMENT_WALL_MATERIAL
+					_wall_material_for_cell(grid_position)
 				)
 				continue
 
@@ -267,13 +273,13 @@ func _build_maze() -> void:
 				"MazeFloor_%02d_%02d" % [x, y],
 				Vector3(TILE_SIZE, 0.16, TILE_SIZE),
 				center + Vector3(0.0, -0.08, 0.0),
-				BASEMENT_FLOOR_MATERIAL
+				_floor_material_for_cell(cell)
 			)
 
 			if cell == "o":
 				_build_fake_sky_hole(center)
 			else:
-				_add_ceiling_panel("MazeCeiling_%02d_%02d" % [x, y], center, _ceiling_height_for_cell(cell), cell == "l")
+				_add_ceiling_panel("MazeCeiling_%02d_%02d" % [x, y], center, _ceiling_height_for_cell(cell), cell == "l", _ceiling_material_for_cell(cell))
 
 			if cell == "f" or cell == "F":
 				_build_fire_marker(center, cell == "F")
@@ -373,7 +379,7 @@ func _spawn_folklore_lady(center: Vector3) -> void:
 	_generated_root.add_child(lamp_shadow)
 
 
-func _add_ceiling_panel(node_name: String, center: Vector3, height: float, is_low: bool) -> void:
+func _add_ceiling_panel(node_name: String, center: Vector3, height: float, is_low: bool, material: Material) -> void:
 	var split := node_name.split("_")
 	if split.size() >= 3:
 		var x := int(split[1])
@@ -383,12 +389,14 @@ func _add_ceiling_panel(node_name: String, center: Vector3, height: float, is_lo
 	var size := Vector3(TILE_SIZE + 0.08, CEILING_THICKNESS, TILE_SIZE + 0.08)
 	if is_low:
 		size = Vector3(TILE_SIZE + 0.1, CEILING_THICKNESS * 1.25, TILE_SIZE + 0.1)
-	_add_static_box(node_name, size, center + Vector3(0.0, height + size.y * 0.5, 0.0), CONCRETE_MATERIAL)
+	_add_static_box(node_name, size, center + Vector3(0.0, height + size.y * 0.5, 0.0), material)
 
 
 func _ceiling_height_for_cell(cell: String) -> float:
 	if cell == "R" or cell == "P" or cell == "E":
 		return HIGH_CEILING_HEIGHT
+	if cell == "r" or cell == "c" or cell == "s":
+		return NORMAL_CEILING_HEIGHT + float((cell.unicode_at(0) + 3) % 4) * 0.36
 	if cell == "l":
 		return LOW_CEILING_HEIGHT
 	if cell == "h":
@@ -396,10 +404,238 @@ func _ceiling_height_for_cell(cell: String) -> float:
 	return NORMAL_CEILING_HEIGHT
 
 
+func _floor_material_for_cell(cell: String) -> Material:
+	match cell:
+		"r":
+			return CAVE_PLASTER_MATERIAL
+		"c":
+			return CAVE_CRACKED_CONCRETE_MATERIAL
+		"s":
+			return CAVE_SAND_ROCK_MATERIAL
+		"E":
+			return CLIFF_MARBLE_MATERIAL
+		_:
+			return BASEMENT_FLOOR_MATERIAL
+
+
+func _ceiling_material_for_cell(cell: String) -> Material:
+	match cell:
+		"r":
+			return CAVE_PLASTER_MATERIAL
+		"c":
+			return CAVE_CRACKED_CONCRETE_MATERIAL
+		"s", "E":
+			return CAVE_SAND_ROCK_MATERIAL
+		_:
+			return CONCRETE_MATERIAL
+
+
+func _wall_material_for_cell(cell: Vector2i) -> Material:
+	var strongest_material := BASEMENT_WALL_MATERIAL
+	var directions: Array[Vector2i] = [
+		Vector2i(1, 0),
+		Vector2i(-1, 0),
+		Vector2i(0, 1),
+		Vector2i(0, -1)
+	]
+	for direction in directions:
+		var neighbor_marker := _maze_cell(cell.x + direction.x, cell.y + direction.y)
+		if neighbor_marker == "E":
+			return CLIFF_MARBLE_MATERIAL
+		if neighbor_marker == "s":
+			strongest_material = CAVE_SAND_ROCK_MATERIAL
+		elif neighbor_marker == "c" and strongest_material != CAVE_SAND_ROCK_MATERIAL:
+			strongest_material = CAVE_CRACKED_CONCRETE_MATERIAL
+		elif neighbor_marker == "r" and strongest_material == BASEMENT_WALL_MATERIAL:
+			strongest_material = CAVE_PLASTER_MATERIAL
+	return strongest_material
+
+
+func _is_cave_cell_marker(marker: String) -> bool:
+	return marker == "r" or marker == "c" or marker == "s" or marker == "E"
+
+
+func _build_cave_details() -> void:
+	for cell in _passable_cells:
+		var marker := _maze_cell(cell.x, cell.y)
+		if not _is_cave_cell_marker(marker):
+			continue
+
+		var center := _maze_cell_to_world(cell)
+		if marker != "E":
+			_build_cave_floor_lumps(cell, center, _floor_material_for_cell(marker))
+			_build_cave_wall_shoulders(cell, center, _ceiling_material_for_cell(marker))
+
+		if int(cell.x * 13 + cell.y * 17) % 9 == 0:
+			_add_cave_low_light("CaveWarmSeamLight_%02d_%02d" % [cell.x, cell.y], center + Vector3(0.0, 1.1, 0.0), Color(0.95, 0.72, 0.48, 1.0), 0.18, 4.2)
+
+
+func _build_cave_floor_lumps(cell: Vector2i, center: Vector3, material: Material) -> void:
+	var lump_count := 1 + int(abs(cell.x * 5 + cell.y * 3) % 3)
+	for index in range(lump_count):
+		var offset := _detail_offset(cell.x + index * 2, cell.y + index, 0.88)
+		var size := Vector3(
+			0.34 + float((cell.x + index) % 4) * 0.11,
+			0.08 + float((cell.y + index) % 3) * 0.045,
+			0.28 + float((cell.x + cell.y + index) % 5) * 0.08
+		)
+		var lump := _add_mesh_box(
+			"CaveFloorLump_%02d_%02d_%02d" % [cell.x, cell.y, index],
+			size,
+			center + offset + Vector3(0.0, size.y * 0.5 + 0.005, 0.0),
+			material
+		)
+		lump.rotation_degrees.y = float((cell.x * 29 + cell.y * 31 + index * 53) % 360)
+
+
+func _build_cave_wall_shoulders(cell: Vector2i, center: Vector3, material: Material) -> void:
+	var directions: Array[Vector2i] = [
+		Vector2i(1, 0),
+		Vector2i(-1, 0),
+		Vector2i(0, 1),
+		Vector2i(0, -1)
+	]
+	for direction in directions:
+		if _maze_cell(cell.x + direction.x, cell.y + direction.y) != "#":
+			continue
+		if int(abs((cell.x + direction.x * 7) * 19 + (cell.y + direction.y * 5) * 23)) % 3 == 0:
+			continue
+
+		var outward := (_maze_col_axis.normalized() * float(direction.x) + _maze_row_axis.normalized() * float(direction.y)).normalized()
+		var tangent := Vector3(-outward.z, 0.0, outward.x)
+		var size := Vector3(0.42, 1.1 + float((cell.x + cell.y) % 4) * 0.22, 0.32)
+		var shoulder := _add_mesh_box(
+			"CaveWallShoulder_%02d_%02d_%d_%d" % [cell.x, cell.y, direction.x, direction.y],
+			size,
+			center + outward * (TILE_SIZE * 0.43) + Vector3(0.0, 0.62, 0.0),
+			material
+		)
+		shoulder.look_at(shoulder.global_position + tangent, Vector3.UP)
+		shoulder.rotation_degrees.y += float((cell.x * 11 + cell.y * 7) % 18) - 9.0
+
+
+func _build_cliff_exit() -> void:
+	if _maze_exit_cell == Vector2i.ZERO:
+		return
+
+	var exit_center := _maze_cell_to_world(_maze_exit_cell)
+	var forward := _maze_col_axis.normalized()
+	var side := _maze_row_axis.normalized()
+	var mouth_center := exit_center + forward * (TILE_SIZE * 1.35)
+	var ledge_center := exit_center + forward * (TILE_SIZE * 3.45)
+
+	_add_static_box(
+		"CliffExitMarbleLedge",
+		Vector3(7.8, 0.34, 8.8),
+		ledge_center + Vector3(0.0, -0.18, 0.0),
+		CLIFF_MARBLE_MATERIAL
+	)
+	_add_mesh_box(
+		"CliffExitLeftCaveCorner",
+		Vector3(1.2, 4.8, 7.2),
+		mouth_center + side * 3.9 + Vector3(0.0, 1.8, 0.0),
+		CLIFF_MARBLE_MATERIAL
+	).rotation_degrees.y = -7.0
+	_add_mesh_box(
+		"CliffExitRightCaveCorner",
+		Vector3(1.35, 4.5, 6.8),
+		mouth_center - side * 3.8 + Vector3(0.0, 1.65, 0.0),
+		CLIFF_MARBLE_MATERIAL
+	).rotation_degrees.y = 9.0
+	_add_mesh_box(
+		"CliffExitLowOverhang",
+		Vector3(8.2, 0.85, 4.4),
+		mouth_center + Vector3(0.0, 3.55, 0.0) + forward * 0.8,
+		CLIFF_MARBLE_MATERIAL
+	)
+
+	for index in range(7):
+		var offset_side := -3.1 + float(index) * 1.02
+		var offset_forward := 1.7 + float((index * 5) % 7) * 0.38
+		var size := Vector3(0.55 + float(index % 3) * 0.22, 0.24 + float(index % 4) * 0.11, 0.72 + float((index + 1) % 3) * 0.24)
+		var rock := _add_mesh_box(
+			"CliffExitBrokenLip_%02d" % index,
+			size,
+			ledge_center + side * offset_side + forward * offset_forward + Vector3(0.0, size.y * 0.5 + 0.02, 0.0),
+			CLIFF_MARBLE_MATERIAL
+		)
+		rock.rotation_degrees.y = float((index * 37) % 360)
+
+	_build_cliff_horizon(exit_center, forward)
+	_add_cave_low_light("CliffExitSunBounce", mouth_center + Vector3(0.0, 1.45, 0.0), Color(1.0, 0.76, 0.42, 1.0), 1.15, 12.0)
+
+
+func _build_cliff_horizon(exit_center: Vector3, forward: Vector3) -> void:
+	var horizon := MeshInstance3D.new()
+	horizon.name = "CliffExitWarmHorizon"
+	var horizon_mesh := QuadMesh.new()
+	horizon_mesh.size = Vector2(96.0, 28.0)
+	horizon.mesh = horizon_mesh
+	horizon.position = exit_center + forward * 34.0 + Vector3(0.0, 7.8, 0.0)
+	horizon.set_surface_override_material(0, _make_sun_horizon_material())
+	_generated_root.add_child(horizon)
+
+	var sun := MeshInstance3D.new()
+	sun.name = "CliffExitLowSun"
+	var sun_mesh := SphereMesh.new()
+	sun_mesh.radius = 2.8
+	sun_mesh.height = 5.6
+	sun.mesh = sun_mesh
+	sun.position = exit_center + forward * 31.5 + Vector3(0.0, 6.2, 0.0)
+	sun.set_surface_override_material(0, _make_unshaded_material(Color(1.0, 0.78, 0.34, 1.0), null))
+	_generated_root.add_child(sun)
+
+	var glare := MeshInstance3D.new()
+	glare.name = "CliffExitSquintGlare"
+	var glare_mesh := QuadMesh.new()
+	glare_mesh.size = Vector2(28.0, 3.2)
+	glare.mesh = glare_mesh
+	glare.position = exit_center + forward * 30.6 + Vector3(0.0, 6.2, 0.0)
+	glare.set_surface_override_material(0, _make_unshaded_material(Color(1.0, 0.86, 0.48, 0.32), null))
+	_generated_root.add_child(glare)
+
+	var sun_light := DirectionalLight3D.new()
+	sun_light.name = "CliffExitSunDirectionalLight"
+	sun_light.light_color = Color(1.0, 0.78, 0.48, 1.0)
+	sun_light.light_energy = 2.1
+	sun_light.rotation_degrees = Vector3(-8.0, 180.0, 0.0)
+	_generated_root.add_child(sun_light)
+
+
+func _make_sun_horizon_material() -> ShaderMaterial:
+	var shader := Shader.new()
+	shader.code = """
+shader_type spatial;
+render_mode unshaded, cull_disabled, blend_mix, depth_draw_never;
+
+void fragment() {
+	float horizon = smoothstep(0.0, 0.52, UV.y);
+	vec3 low = vec3(1.0, 0.62, 0.24);
+	vec3 high = vec3(0.42, 0.56, 0.72);
+	float sun_band = 1.0 - smoothstep(0.36, 0.64, abs(UV.y - 0.48));
+	ALBEDO = mix(low, high, horizon) + vec3(0.42, 0.28, 0.08) * sun_band;
+	ALPHA = 1.0;
+}
+"""
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	return material
+
+
+func _add_cave_low_light(node_name: String, position: Vector3, color: Color, energy: float, radius: float) -> void:
+	var light := OmniLight3D.new()
+	light.name = node_name
+	light.position = position
+	light.light_color = color
+	light.light_energy = energy
+	light.omni_range = radius
+	_generated_root.add_child(light)
+
+
 func _build_water() -> void:
 	for cell in _passable_cells:
 		var marker := _maze_cell(cell.x, cell.y)
-		if marker == "S" or marker == "E" or marker == "R" or marker == "P" or marker == "l" or marker == "n" or marker == "o" or marker == "f" or marker == "F":
+		if marker == "S" or marker == "E" or marker == "R" or marker == "P" or marker == "l" or marker == "n" or marker == "o" or marker == "f" or marker == "F" or _is_cave_cell_marker(marker):
 			continue
 		if int(cell.x * 17 + cell.y * 11) % 10 != 0:
 			continue
@@ -417,7 +653,7 @@ func _build_vegetation() -> void:
 
 	for cell in _passable_cells:
 		var marker := _maze_cell(cell.x, cell.y)
-		if marker == "S" or marker == "E" or marker == "R" or marker == "P" or marker == "l" or marker == "n" or marker == "o" or marker == "f" or marker == "F":
+		if marker == "S" or marker == "E" or marker == "R" or marker == "P" or marker == "l" or marker == "n" or marker == "o" or marker == "f" or marker == "F" or _is_cave_cell_marker(marker):
 			continue
 		if int(cell.x * 23 + cell.y * 19) % 7 != 0:
 			continue

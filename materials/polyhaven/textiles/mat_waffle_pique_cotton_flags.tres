@@ -18,6 +18,6 @@ ao_enabled = true
 ao_light_affect = 0.28
 ao_texture = ExtResource("4_ao")
 cull_mode = 2
-texture_filter = 4
+texture_filter = 3
 texture_repeat = 1
 uv1_scale = Vector3(2.0, 2.0, 1)

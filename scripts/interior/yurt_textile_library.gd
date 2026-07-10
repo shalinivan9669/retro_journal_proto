@@ -25,7 +25,7 @@ func add_draped_rect(
 	mesh_instance.position = position
 	mesh_instance.rotation.y = rotation_y
 	mesh_instance.mesh = make_draped_rect_mesh(size, thickness, fold, wave, seed, false)
-	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mesh_instance.set_surface_override_material(0, material)
 	parent.add_child(mesh_instance)
 	return mesh_instance
@@ -45,7 +45,7 @@ func add_irregular_hide(
 	mesh_instance.position = position
 	mesh_instance.rotation.y = rotation_y
 	mesh_instance.mesh = make_draped_rect_mesh(size, 0.045, 0.085, 0.045, seed, true)
-	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mesh_instance.set_surface_override_material(0, material)
 	parent.add_child(mesh_instance)
 	return mesh_instance
@@ -66,7 +66,7 @@ func add_folded_stack(parent: Node3D, node_name: String, position: Vector3, mate
 		layer.mesh = mesh
 		layer.position = Vector3(float(index) * 0.05, float(index) * 0.08, sin(float(index) * 1.7) * 0.03)
 		layer.rotation_degrees = Vector3(0.0, float(index) * 2.5, 1.5 - float(index))
-		layer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		layer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		layer.set_surface_override_material(0, material)
 		root.add_child(layer)
 

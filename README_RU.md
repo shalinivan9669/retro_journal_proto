@@ -1,79 +1,121 @@
-# Albasty Low-Poly Pack
+# Retro Contamination VFX Pack для Godot 4.7
 
-Пакет для Codex/Blender/Godot: процедурная low-poly модель Албасты и базовая интеграция в игру.
+Пакет даёт готовую систему эффектов для `retro_journal_proto`:
 
-## Что внутри
+- кровать: бело-чёрный шум, холодный сон, мягкая белая пыль/вуаль;
+- телевизор: тяжёлый CRT/glitch/postprocess, разрыв строк, RGB split, статический шум;
+- ЛЭП/белые опоры: три варианта — радиация, ржавчина, белый ионный мёртвый ореол;
+- дополнительный вариант: dead signal — слабый радио/ТВ-паразитный эффект для любой опоры.
 
-- `blender_scripts/create_albasty_lowpoly.py` — Blender Python-скрипт, создаёт модель и экспортирует `.glb`.
-- `run_generate_albasty.ps1` — запуск генерации из Windows PowerShell.
-- `assets/models/` — сюда будет сохранён `albasty_lowpoly.glb`.
-- `scripts/albasty_controller.gd` — поведение Албасты в Godot 4.
-- `scripts/albasty_spawn_controller.gd` — редкое появление у ЛЭП/спавн-точек.
-- `scripts/horse_guard_zone.gd` — зона лошадей, сигнал если Албасты подошла слишком близко.
-- `scenes/albasty_instance.tscn` — сцена-обёртка для модели в Godot.
-- `docs/CODEX_PROMPT_RU.md` — готовый промт для Codex.
-- `config/albasty_model_spec.json` — краткая спецификация существа.
+Пакет не требует внешних аддонов. Всё процедурное: GDScript + `.gdshader` + несколько служебных PNG-масок.
 
-## Быстрый запуск
+## Быстрая установка
 
-Из корня проекта:
-
-```powershell
-./run_generate_albasty.ps1
-```
-
-Или напрямую:
-
-```powershell
-blender --background --python blender_scripts/create_albasty_lowpoly.py
-```
-
-После успешного запуска должен появиться файл:
+1. Скопировать папки из архива в корень проекта Godot:
 
 ```text
-assets/models/albasty_lowpoly.glb
+scripts/vfx
+shaders/postprocess
+shaders/spatial
+materials/postprocess
+materials/vfx
+scenes/vfx
+assets/vfx
 ```
 
-## Импорт в Godot 4
+2. Открыть `scenes/Main.tscn`.
 
-1. Скопируй папки `assets`, `scripts`, `scenes` в корень Godot-проекта.
-2. Открой проект в Godot, дождись импорта `assets/models/albasty_lowpoly.glb`.
-3. Открой `scenes/albasty_instance.tscn`.
-4. Поставь сцену на уровень или подключи через `albasty_spawn_controller.gd`.
+3. Добавить resource в верхнюю часть файла рядом с другими `ext_resource`:
 
-## Масштаб
+```text
+[ext_resource type="PackedScene" path="res://scenes/vfx/RetroContaminationVFXRuntime.tscn" id="99_rcv"]
+```
 
-Скрипт строит модель в метрах. Высота существа около `2.8 м`, origin внизу по центру.
+4. Добавить node внутрь корневого `Main`:
 
-## Визуальная идея
+```text
+[node name="RetroContaminationVFXRuntime" parent="." instance=ExtResource("99_rcv")]
+auto_install_on_ready = true
+install_bed_dream = true
+install_tv_glitch = true
+install_lep_effects = true
+```
 
-Албасты — высокая сгорбленная степная дух-обманщица: красивое женское лицо почти скрыто чёрными волосами-корнями, руки непропорционально длинные, одежда из крупных треугольных листьев/перьев, золотая диадема, висюльки, амулеты, красные нити, бирюза.
+Если ID `99_rcv` занят, выбрать любой свободный id.
 
-## Ограничение
+## Как система ищет объекты
 
-Это процедурная игровая заготовка, не финальная AAA-модель. Её цель — быстро получить читаемый силуэт в Godot и потом допиливать топологию/анимации.
+Автосканер ищет объекты по именам:
 
-## Visual Quality Preset / Main.tscn
+- кровать: `bed`, `mattress`, `pillow`, `blanket`, `cot`, `sleep`, `krovat`, `кровать`, `матрас`, `подушка`;
+- телевизор: `InteractableTV`, `tv`, `television`, `screen`, `monitor`, `crt`, `телевизор`, `экран`;
+- ЛЭП: `lep`, `лэп`, `powerline`, `power_line`, `power-pole`, `transmission`, `electric_pole`, `pylon`, `tower_lep`.
 
-Forward+ уже включён в `project.godot`: `renderer/rendering_method="forward_plus"`.
+Если имена в твоей сцене другие, не переименовывай всё подряд. Лучше добавь нужным объектам группы:
 
-Главная сцена использует `res://scripts/visual_quality_preset.gd` на узле `VisualQualityPreset` в `res://scenes/Main.tscn`.
+```text
+vfx_bed_dream
+vfx_tv_glitch
+vfx_lep_radiation
+vfx_lep_rust
+vfx_lep_ion
+vfx_lep_dead_signal
+```
 
-Включены эффекты:
+## Ручное навешивание
 
-- ACES tonemapping, пониженная экспозиция, умеренный контраст, приглушенная насыщенность.
-- Более плотный пыльный fog. Volumetric fog оставлен в пресете, но выключен по умолчанию, потому что может слишком затемнить сцену на части конфигураций.
-- SSAO для контактных теней у пола, стен, мебели и объектов.
-- Очень мягкий SSIL, если свойство Environment существует в текущей версии Godot.
-- Слабый glow с высоким порогом, чтобы светились emissive-объекты, экран ТВ, радио, огонь и лампы, а не вся сцена.
-- Мягкие тени DirectionalLight3D и сниженный RoomFillLight, чтобы юрта не выглядела плоско пересвеченной.
-- Декоративные визуальные слои без геймплейной логики: пыльные плоскости, мелкий мусор/камни/сухая трава, дальние силуэты, холодно-синяя дымка и тусклые красные акценты.
+Если надо точно повесить эффект на конкретный объект:
 
-Если падает FPS, открой узел `VisualQualityPreset` в `Main.tscn` или файл `res://scripts/visual_quality_preset.gd` и отключи тяжелые флаги:
+1. Добавь к объекту child `Node3D`.
+2. Повесь на child скрипт:
 
-- `low_end = true`;
-- `enable_volumetric_fog = false`;
-- `enable_ssil = false`;
-- `enable_ssao = false`;
-- `enable_glow = false`;
-- `enable_scene_details = false`, если нужны только базовые постэффекты без дополнительных декоративных мешей.
+```text
+res://scripts/vfx/rcv_manual_attach.gd
+```
+
+3. Выбери preset:
+
+```text
+BED_DREAM
+TV_GLITCH
+LEP_RADIATION
+LEP_RUST
+LEP_ION_WHITE
+LEP_DEAD_SIGNAL
+```
+
+## Настройка силы
+
+Главные параметры в `RetroContaminationVFXRuntime.tscn`:
+
+```text
+bed_distance = 3.4
+TV distance = 3.0
+lep_distance = 7.5
+max_beds = 4
+max_tvs = 3
+max_leps = 12
+```
+
+В каждом target-компоненте есть:
+
+```text
+activation_distance
+screen_intensity
+particle_intensity
+enable_screen_overlay
+enable_particles
+enable_lights
+enable_corrosion_overlay
+```
+
+## Важное по производительности
+
+- Пакет рассчитан на Forward Plus.
+- Экранные оверлеи включаются только рядом с объектом.
+- Частицы локальные и не требуют внешних текстур.
+- На слабом железе сначала уменьшить `particle_intensity`, потом `max_leps`.
+
+## Сильная рекомендация по стилю
+
+Не делай радиацию кислотно-зелёной. В этой игре лучше работает грязный язык: ржавчина, соль, белая пыль, приборный шум, слабое янтарное свечение, мёртвый холодный экран.

@@ -3,8 +3,9 @@ class_name YurtInteriorDressingBuilder
 
 const TEXTILE_LIBRARY_SCRIPT: Script = preload("res://scripts/interior/yurt_textile_library.gd")
 const PROP_MANAGER_SCRIPT: Script = preload("res://scripts/interior/yurt_prop_replacement_manager.gd")
-const YURT_WALL_MATERIAL: Material = preload("res://materials/polyhaven/textiles/mat_yurt_wall_fabric_leather_02.tres")
-const YURT_CEILING_MATERIAL: Material = preload("res://materials/polyhaven/mat_yurt_ceiling_old_linoleum_flooring_01.tres")
+const BED_VOID_INTERACTABLE_SCRIPT: Script = preload("res://scripts/bed_void_interactable.gd")
+const YURT_WALL_MATERIAL: Material = preload("res://materials/yurt/mat_yurt_wall_weathered_felt.tres")
+const YURT_CEILING_MATERIAL: Material = preload("res://materials/yurt/mat_yurt_roof_smoked_felt.tres")
 const MAT_VELVET: Material = preload("res://materials/polyhaven/textiles/mat_velour_velvet_hero.tres")
 const MAT_TEDDY: Material = preload("res://materials/polyhaven/textiles/mat_curly_teddy_checkered_thick.tres")
 const MAT_JACQUARD: Material = preload("res://materials/polyhaven/textiles/mat_quatrefoil_jacquard_tablecloth.tres")
@@ -12,8 +13,8 @@ const MAT_WOOL: Material = preload("res://materials/polyhaven/textiles/mat_wool_
 const MAT_WAFFLE: Material = preload("res://materials/polyhaven/textiles/mat_waffle_pique_cotton_flags.tres")
 
 @export var interior_upgrade_enabled: bool = true
-@export var textile_density_level: int = 3
-@export var use_ultra_textile_quality: bool = true
+@export_range(1, 3, 1) var textile_density_level: int = 1
+@export var use_ultra_textile_quality: bool = false
 @export var enlarge_yurt_enabled: bool = true
 @export var add_low_table_enabled: bool = true
 @export var add_screen_enabled: bool = true
@@ -26,6 +27,9 @@ const MAT_WAFFLE: Material = preload("res://materials/polyhaven/textiles/mat_waf
 @export var yurt_scale_xz: float = 1.175
 @export var wall_uv_repeats_per_meter: Vector2 = Vector2(0.07, 0.063333)
 @export var roof_uv_repeats_per_meter: Vector2 = Vector2(0.204, 0.18)
+@export var widen_shanyrak_enabled: bool = true
+@export var shanyrak_open_radius: float = 3.35
+@export var shanyrak_open_blend_radius: float = 1.45
 
 var _root: Node3D
 var _textiles
@@ -62,6 +66,7 @@ func _apply_upgrade() -> void:
 	_project_clean_yurt_uvs(scene)
 	_apply_yurt_wall_material(scene)
 	_apply_yurt_ceiling_material(scene)
+	_widen_shanyrak(scene)
 	_fix_window_after_yurt_scale(scene)
 	_build_yurt_interior_lights(scene)
 
@@ -156,16 +161,17 @@ func _replace_mesh_with_projected_uvs(mesh_instance: MeshInstance3D, is_roof: bo
 		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 		if vertices.is_empty():
 			continue
-		var uvs := _make_projected_uvs(mesh_instance, vertices, is_roof)
+		var shaped_vertices := _widen_roof_opening_vertices(mesh_instance, vertices) if is_roof and widen_shanyrak_enabled else vertices
+		var uvs := _make_projected_uvs(mesh_instance, shaped_vertices, is_roof)
 		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
 		var surface_tool := SurfaceTool.new()
 		surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 		if indices.is_empty():
-			for vertex_index in range(vertices.size()):
-				_add_projected_vertex(surface_tool, vertices, uvs, vertex_index)
+			for vertex_index in range(shaped_vertices.size()):
+				_add_projected_vertex(surface_tool, shaped_vertices, uvs, vertex_index)
 		else:
 			for vertex_index in indices:
-				_add_projected_vertex(surface_tool, vertices, uvs, vertex_index)
+				_add_projected_vertex(surface_tool, shaped_vertices, uvs, vertex_index)
 		surface_tool.generate_normals()
 		surface_tool.commit(projected_mesh)
 		var material := source_mesh.surface_get_material(surface_index)
@@ -175,6 +181,24 @@ func _replace_mesh_with_projected_uvs(mesh_instance: MeshInstance3D, is_roof: bo
 	if projected_mesh.get_surface_count() == 0:
 		return
 	mesh_instance.mesh = projected_mesh
+
+
+func _widen_roof_opening_vertices(mesh_instance: MeshInstance3D, vertices: PackedVector3Array) -> PackedVector3Array:
+	var shaped := PackedVector3Array()
+	shaped.resize(vertices.size())
+	for index in range(vertices.size()):
+		var world_vertex := mesh_instance.to_global(vertices[index])
+		var flat := Vector2(world_vertex.x, world_vertex.z)
+		var radius := flat.length()
+		if radius > 0.001 and radius < shanyrak_open_radius + shanyrak_open_blend_radius:
+			var target_radius := maxf(radius, shanyrak_open_radius)
+			var blend := 1.0 - smoothstep(shanyrak_open_radius, shanyrak_open_radius + shanyrak_open_blend_radius, radius)
+			var new_radius := lerpf(radius, target_radius, blend)
+			var direction := flat / radius
+			world_vertex.x = direction.x * new_radius
+			world_vertex.z = direction.y * new_radius
+		shaped[index] = mesh_instance.to_local(world_vertex)
+	return shaped
 
 
 func _add_projected_vertex(surface_tool: SurfaceTool, vertices: PackedVector3Array, uvs: PackedVector2Array, vertex_index: int) -> void:
@@ -223,6 +247,40 @@ func _is_yurt_roof_mesh_name(mesh_name: String) -> bool:
 	return mesh_name.begins_with("YurtRoof_") or mesh_name.begins_with("YurtRoofSegment_")
 
 
+func _widen_shanyrak(scene: Node) -> void:
+	if not widen_shanyrak_enabled:
+		return
+	var yurt_world := scene.get_node_or_null("CleanYurt/world")
+	if yurt_world == null:
+		return
+
+	for child in yurt_world.get_children():
+		var node := child as Node3D
+		if node == null:
+			continue
+		var node_name := String(node.name)
+		if node_name == "LargeOpenShanyrakRing":
+			node.scale.x *= 1.34
+			node.scale.z *= 1.34
+			node.position.y += 0.08
+		elif node_name.begins_with("RoofRadialBeam_"):
+			var flat := Vector2(node.position.x, node.position.z)
+			if flat.length() > 0.001:
+				var widened := flat.normalized() * (flat.length() + 0.34)
+				node.position.x = widened.x
+				node.position.z = widened.y
+			node.scale.z *= 0.88
+			node.position.y += 0.04
+		elif node_name.begins_with("ShanyrakCrossbar_"):
+			var suffix := int(node_name.get_slice("_", 1))
+			if suffix % 8 != 0:
+				node.visible = false
+			else:
+				node.scale.x *= 1.22
+				node.scale.z *= 1.22
+				node.position.y += 0.1
+
+
 func _fix_window_after_yurt_scale(scene: Node) -> void:
 	var window_vision := scene.get_node_or_null("YurtWindowVision") as Node3D
 	if window_vision == null:
@@ -242,17 +300,19 @@ func _fix_window_after_yurt_scale(scene: Node) -> void:
 	var light := window_vision.get_node_or_null("RoundWindowOutsideLight") as OmniLight3D
 	if light != null:
 		light.global_position = scaled_window + Vector3(-0.65, -0.2, 0.0)
-		light.light_energy = 4.4
-		light.omni_range = 8.5
+		light.light_energy = 0.45
+		light.omni_range = 4.5
 
 	if window_vision.has_method("_apply_round_window_cutout"):
 		window_vision.call("_apply_round_window_cutout")
 
 
 func _build_yurt_interior_lights(scene: Node) -> void:
-	_add_spot_light("Phase2ShanyrakSunShaft", Vector3(0.0, 8.9, 0.0), Vector3(-90.0, 0.0, 0.0), Color(1.0, 0.82, 0.52, 1.0), 9.5, 14.0, 39.0)
-	_add_omni_light("Phase2DoorWarmSpill", Vector3(0.0, 2.25, -8.35), Color(1.0, 0.78, 0.46, 1.0), 3.2, 8.0)
-	_add_omni_light("Phase2WindowWarmSpill", Vector3(8.15 * yurt_scale_xz, 2.35, 0.85 * yurt_scale_xz), Color(1.0, 0.86, 0.58, 1.0), 4.8, 8.5)
+	# A restrained key/fill setup keeps the felt readable and avoids several
+	# full-room lights accumulating over every carpet pixel.
+	_add_spot_light("Phase2ShanyrakSunShaft", Vector3(0.0, 8.9, 0.0), Vector3(-90.0, 0.0, 0.0), Color(0.84, 0.88, 0.86, 1.0), 4.2, 13.0, 36.0)
+	_add_omni_light("Phase2DoorWarmSpill", Vector3(0.0, 2.25, -8.35), Color(1.0, 0.68, 0.38, 1.0), 1.15, 6.5)
+	_add_omni_light("Phase2WindowWarmSpill", Vector3(8.15 * yurt_scale_xz, 2.35, 0.85 * yurt_scale_xz), Color(0.72, 0.82, 0.90, 1.0), 0.65, 5.5)
 
 
 func _add_spot_light(node_name: String, position: Vector3, rotation_degrees_value: Vector3, color: Color, energy: float, range_value: float, angle: float) -> void:
@@ -281,16 +341,15 @@ func _add_omni_light(node_name: String, position: Vector3, color: Color, energy:
 
 
 func _build_floor_textile_composition() -> void:
-	_textiles.add_draped_rect(_root, "VelourMainLivingCarpet", Vector3(-0.85, 0.095, 0.35), Vector2(5.55, 3.45), MAT_VELVET, deg_to_rad(7.0), 0.055, 0.075, 0.035, 11)
-	_textiles.add_draped_rect(_root, "WoolBoucleSideGroundLayer", Vector3(-2.7, 0.13, -2.85), Vector2(3.35, 1.65), MAT_WOOL, deg_to_rad(-13.0), 0.07, 0.09, 0.04, 23)
-	_textiles.add_draped_rect(_root, "CurlyTeddyCheckeredThrow", Vector3(-3.2, 0.18, 1.95), Vector2(2.7, 1.62), MAT_TEDDY, deg_to_rad(22.0), 0.11, 0.115, 0.055, 41)
-	_textiles.add_irregular_hide(_root, "RoughWoolHideNearBed", Vector3(4.65, 0.12, 1.3), Vector2(2.1, 1.35), MAT_WOOL, deg_to_rad(-28.0), 55)
-	_textiles.add_irregular_hide(_root, "RoughWoolHideNearMediaCorner", Vector3(-6.15, 0.115, -3.9), Vector2(1.95, 1.18), MAT_WOOL, deg_to_rad(34.0), 63)
+	# YurtFloorRich already owns the large carpet composition. Keep only a few
+	# lived-in accents here instead of rendering another stack of overlapping rugs.
+	_textiles.add_irregular_hide(_root, "RoughWoolHideNearBed", Vector3(4.65, 0.105, 1.3), Vector2(1.85, 1.12), MAT_WOOL, deg_to_rad(-28.0), 55)
 	_textiles.add_folded_stack(_root, "FoldedWoolBoucleBundleA", Vector3(2.1, 0.16, 2.9), MAT_WOOL, deg_to_rad(-18.0), 3)
 
-	if textile_density_level >= 3:
-		_textiles.add_folded_stack(_root, "FoldedVelvetBundleB", Vector3(-4.35, 0.14, 3.0), MAT_VELVET, deg_to_rad(18.0), 2)
+	if textile_density_level >= 2:
 		_textiles.add_draped_rect(_root, "SmallVelourThresholdLayer", Vector3(0.1, 0.1, -5.85), Vector2(2.35, 1.05), MAT_VELVET, deg_to_rad(-4.0), 0.045, 0.06, 0.025, 71)
+	if textile_density_level >= 3 and use_ultra_textile_quality:
+		_textiles.add_folded_stack(_root, "FoldedVelvetBundleB", Vector3(-4.35, 0.14, 3.0), MAT_VELVET, deg_to_rad(18.0), 2)
 
 
 func _build_low_table() -> void:
@@ -316,24 +375,27 @@ func _build_interior_props(scene: Node) -> void:
 		var old_stand := scene.get_node_or_null("SignalCenterStand") as Node3D
 		if old_stand != null:
 			old_stand.visible = false
-		var media_table: Node3D = _props.add_media_table(_root, Vector3(-7.78, -0.2, -1.92), deg_to_rad(50.0), _wood_material)
+		var media_table_yaw := deg_to_rad(131.0)
+		var tv_yaw := media_table_yaw
+		var media_table: Node3D = _props.add_media_table(_root, Vector3(-6.45, 0.0, 5.45), media_table_yaw, _wood_material)
 		var tv := scene.get_node_or_null("InteractableTV") as Node3D
 		if tv != null:
 			if media_table != null:
-				tv.global_position = media_table.to_global(Vector3(-0.28, 0.48, 0.22))
-				tv.rotation.y = media_table.rotation.y
+				tv.global_position = media_table.to_global(Vector3(-0.34, 0.31, 0.18))
+				tv.rotation.y = tv_yaw
 				tv.scale = Vector3.ONE * 3.52
 			_props.replace_tv_visual(tv)
 		var radio := scene.get_node_or_null("RadioOnBox") as Node3D
 		if radio != null:
 			if media_table != null:
-				radio.global_position = media_table.to_global(Vector3(0.46, 0.50, 0.02))
+				radio.global_position = media_table.to_global(Vector3(0.48, 0.33, 0.04))
 				radio.rotation.y = media_table.rotation.y
 				radio.scale = Vector3.ONE * 1.22
 			_props.replace_radio_visual(radio)
 
 	if add_bed_enabled:
-		_props.add_bed(_root, Vector3(6.55, 0.02, 1.42), deg_to_rad(-82.0), _wood_material, MAT_TEDDY)
+		var bed := _props.add_bed(_root, Vector3(6.55, 0.02, 1.42), deg_to_rad(-82.0), _wood_material, MAT_TEDDY) as Node3D
+		_add_bed_void_interaction(bed)
 		_props.add_bull_head(_root, Vector3(5.05, 2.65, -8.6), deg_to_rad(190.0), _dark_material)
 
 	if add_screen_enabled:
@@ -351,6 +413,25 @@ func _build_exterior_props(scene: Node) -> void:
 	var boulder_04_pos := _grounded_position(scene, Vector3(-8.6, 0.0, -11.7), -0.06)
 	_props.add_boulder_02(_root, boulder_02_pos, deg_to_rad(34.0))
 	_props.add_boulder_04(_root, boulder_04_pos, deg_to_rad(-28.0))
+
+
+func _add_bed_void_interaction(bed: Node3D) -> void:
+	if bed == null:
+		return
+	var area := Area3D.new()
+	area.name = "BedVoidInteractionArea"
+	area.monitorable = true
+	area.monitoring = true
+	area.set_script(BED_VOID_INTERACTABLE_SCRIPT)
+	area.position = Vector3(0.0, 0.92, 0.0)
+	bed.add_child(area)
+
+	var shape := CollisionShape3D.new()
+	shape.name = "CollisionShape3D"
+	var box := BoxShape3D.new()
+	box.size = Vector3(4.8, 1.4, 6.4)
+	shape.shape = box
+	area.add_child(shape)
 
 
 func _grounded_position(scene: Node, position: Vector3, offset: float) -> Vector3:

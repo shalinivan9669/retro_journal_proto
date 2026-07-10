@@ -58,7 +58,7 @@ func add_media_table(parent: Node3D, position: Vector3, rotation_y: float, fallb
 	parent.add_child(table)
 	table.position = position
 	table.rotation.y = rotation_y
-	table.scale = Vector3(4.25, 3.4, 3.65)
+	table.scale = Vector3(4.25, 2.15, 3.35)
 	return table
 
 
@@ -70,6 +70,7 @@ func add_bed(parent: Node3D, position: Vector3, rotation_y: float, fallback_mate
 	bed.position = position
 	bed.rotation.y = rotation_y
 	bed.scale = Vector3.ONE * 1.84
+	bed.add_to_group("vfx_bed_dream")
 	_add_toy_under_bed_leg(bed)
 	return bed
 
@@ -254,10 +255,16 @@ func _retarget_video_screen(tv_root: Node, screen_mesh: MeshInstance3D) -> void:
 	var video_screen := tv_root.get_node_or_null("TVVideoScreen")
 	if video_screen == null:
 		return
+	screen_mesh.visible = true
+	screen_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	video_screen.set("screen_mesh_path", video_screen.get_path_to(screen_mesh))
 	video_screen.set("screen_mesh", screen_mesh)
 	if video_screen.has_method("_prepare_screen_material"):
 		video_screen.call("_prepare_screen_material")
+	if video_screen.has_method("_play_pending_channel"):
+		video_screen.call_deferred("_play_pending_channel")
+	elif video_screen.has_method("_apply_video_texture"):
+		video_screen.call_deferred("_apply_video_texture")
 
 
 func _find_screen_proxy(root: Node) -> MeshInstance3D:

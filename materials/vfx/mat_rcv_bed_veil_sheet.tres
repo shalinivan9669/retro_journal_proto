@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/spatial/rcv_bed_veil_sheet.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/veil_color = Color(0.96, 0.985, 1, 0.32)
+shader_parameter/density = 1.35
+shader_parameter/drift_speed = 0.42
+shader_parameter/grain_scale = 38.0

@@ -1,0 +1,9 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/spatial/rcv_ion_particle_unshaded.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/ion_color = Color(1, 0.74, 0.28, 0.86)
+shader_parameter/core_power = 1.35
+shader_parameter/flicker = 0.74

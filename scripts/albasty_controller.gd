@@ -12,7 +12,8 @@ enum AlbastyState {
 	HIDDEN_AFTER_STEAL,
 	APPROACHING_YURT,
 	YURT_REACHED,
-	REPELLED
+	REPELLED,
+	PEACEFUL_POWERLINE
 }
 
 @export var target_path: NodePath
@@ -66,6 +67,18 @@ func set_spawn_position(position: Vector3) -> void:
 	_has_spawn_position = true
 
 
+func set_peaceful_powerline_mode(marker: Node3D = null) -> void:
+	_current_horse = null
+	_yurt_target = null
+	_horse_wait_timer = 0.0
+	if marker != null:
+		global_position = marker.global_position
+	_state = AlbastyState.PEACEFUL_POWERLINE
+	visible = true
+	_set_interaction_enabled(false)
+	_set_collision_enabled(true)
+
+
 func _physics_process(delta: float) -> void:
 	if not _has_spawn_position:
 		set_spawn_position(global_position)
@@ -90,6 +103,8 @@ func _physics_process(delta: float) -> void:
 			pass
 		AlbastyState.REPELLED:
 			_process_repelled(delta)
+		AlbastyState.PEACEFUL_POWERLINE:
+			_process_peaceful_powerline(delta)
 
 
 func interact(_dialogue_ui: Node = null) -> void:
@@ -289,6 +304,13 @@ func _process_repelled(delta: float) -> void:
 		queue_free()
 
 
+func _process_peaceful_powerline(delta: float) -> void:
+	var marker := _get_peaceful_powerline_marker()
+	if marker != null:
+		global_position = global_position.move_toward(marker.global_position, move_speed * 0.35 * delta)
+	_slow_look_at(global_position + Vector3(0.0, 0.0, -1.0), delta)
+
+
 func _get_available_horses() -> Array[Node3D]:
 	var result: Array[Node3D] = []
 	for node in get_tree().get_nodes_in_group("horse"):
@@ -328,6 +350,14 @@ func _is_valid_horse(horse: Node3D) -> bool:
 
 func _get_yurt_entrance() -> Node3D:
 	for node in get_tree().get_nodes_in_group("yurt_entrance"):
+		var marker := node as Node3D
+		if marker != null:
+			return marker
+	return null
+
+
+func _get_peaceful_powerline_marker() -> Node3D:
+	for node in get_tree().get_nodes_in_group("albasty_peace_marker"):
 		var marker := node as Node3D
 		if marker != null:
 			return marker

@@ -8,6 +8,7 @@ const STEPPE_TERRAIN_BUILDER_SCRIPT: Script = preload("res://scripts/environment
 const POLYHAVEN_SCATTER_SCRIPT: Script = preload("res://scripts/environment/polyhaven_landscape_scatter.gd")
 const AMBIENT_FAUNA_SCRIPT: Script = preload("res://scripts/environment/ambient_fauna_controller.gd")
 const MOUNTAIN_MEGAWALL_SCENE: PackedScene = preload("res://systems/mountain_megawall/MountainMegawallRoot.tscn")
+const LEP_LIGHTNING_STRIKE_SCRIPT: Script = preload("res://scripts/visuals/lep_lightning_strike.gd")
 
 const PYLON_SCENE_PATH := "res://assets/models/props/lowpoly_power_pylon_no_wires.glb"
 const GRASS_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_grass_patch.glb"
@@ -250,7 +251,8 @@ func _build_yurt_entrance_marker() -> void:
 
 
 func _build_power_pylon() -> void:
-	_add_power_pylon(self, "PowerPylon", pylon_position, 1.0, true)
+	var pylon := _add_power_pylon(self, "PowerPylon", pylon_position, 1.0, true)
+	_attach_lep_lightning(pylon)
 
 
 func _build_secondary_powerline() -> void:
@@ -294,6 +296,13 @@ func _add_power_pylon(parent: Node3D, node_name: String, position: Vector3, scal
 	pylon_root.name = node_name
 	pylon_root.position = position
 	pylon_root.scale = Vector3.ONE * scale_value
+	match node_name:
+		"PowerPylon":
+			pylon_root.add_to_group("vfx_lep_radiation")
+		"DistantPowerPylon":
+			pylon_root.add_to_group("vfx_lep_rust")
+		"RearDistantPowerPylon":
+			pylon_root.add_to_group("vfx_lep_ion")
 	parent.add_child(pylon_root)
 
 	var pylon_scene := load(PYLON_SCENE_PATH) as PackedScene
@@ -317,6 +326,22 @@ func _add_power_pylon(parent: Node3D, node_name: String, position: Vector3, scal
 	collision.shape = shape
 	base_collision.add_child(collision)
 	return pylon_root
+
+
+func _attach_lep_lightning(pylon: Node3D) -> void:
+	if pylon == null:
+		return
+	var strike := Node3D.new()
+	strike.name = "LEPThirtySecondLightningStrike"
+	strike.set_script(LEP_LIGHTNING_STRIKE_SCRIPT)
+	strike.set("strike_interval", 30.0)
+	strike.set("first_strike_delay", 5.0)
+	strike.set("bolt_height", 36.0)
+	strike.set("bolt_width", 8.0)
+	strike.set("flash_energy", 44.0)
+	strike.set("flash_range", 96.0)
+	strike.set("thunder_volume_db", -15.0)
+	pylon.add_child(strike)
 
 
 func _build_vista_environment() -> void:

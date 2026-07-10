@@ -25,6 +25,12 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not spawn_on_ready:
 		return
+	var game_state := get_node_or_null("/root/GameState")
+	if game_state != null and game_state.has_method("is_albasty_hidden_by_ritual") and bool(game_state.call("is_albasty_hidden_by_ritual")):
+		if _active_albasty != null and is_instance_valid(_active_albasty):
+			_active_albasty.queue_free()
+		_active_albasty = null
+		return
 	if _active_albasty != null and not is_instance_valid(_active_albasty):
 		_active_albasty = null
 		_timer = respawn_delay
@@ -90,7 +96,21 @@ func spawn_albasty() -> Node3D:
 	shape.position = Vector3(0.0, 5.0, 0.0)
 	detection_area.add_child(shape)
 
+	var game_state := get_node_or_null("/root/GameState")
+	if game_state != null and game_state.has_method("is_albasty_peaceful_after_ritual") and bool(game_state.call("is_albasty_peaceful_after_ritual")):
+		var marker := _get_peace_marker()
+		if albasty.has_method("set_peaceful_powerline_mode"):
+			albasty.call("set_peaceful_powerline_mode", marker)
+
 	return albasty
+
+
+func _get_peace_marker() -> Node3D:
+	for node in get_tree().get_nodes_in_group("albasty_peace_marker"):
+		var marker := node as Node3D
+		if marker != null:
+			return marker
+	return null
 
 
 func _on_albasty_finished() -> void:

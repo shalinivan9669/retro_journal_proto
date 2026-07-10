@@ -1,0 +1,15 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/postprocess/rcv_tv_glitch_heavy.gdshader" id="1_shader"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/opacity = 0.78
+shader_parameter/split = 0.018
+shader_parameter/horizontal_tear = 0.035
+shader_parameter/wave_strength = 0.018
+shader_parameter/noise_strength = 0.32
+shader_parameter/roll_speed = 4.8
+shader_parameter/scanline_strength = 0.34
+shader_parameter/blackout_chance = 0.18
+shader_parameter/phosphor_tint = Color(0.62, 0.95, 0.86, 1)

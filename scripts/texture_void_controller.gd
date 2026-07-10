@@ -32,7 +32,7 @@ float noise(vec2 p) {
 }
 
 void fragment() {
-	vec2 world_uv = WORLD_POSITION.xz * uv_scale;
+	vec2 world_uv = (UV - vec2(0.5)) * (1.0 / max(uv_scale, 0.001));
 	float n1 = noise(world_uv * 0.65);
 	float n2 = noise(world_uv * 1.7 + vec2(18.0, 4.0));
 	float n3 = noise(world_uv * 3.3 - vec2(2.0, 11.0));

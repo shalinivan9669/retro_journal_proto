@@ -1,0 +1,15 @@
+# Add to the top ext_resource block of scenes/Main.tscn:
+[ext_resource type="PackedScene" path="res://scenes/vfx/RetroContaminationVFXRuntime.tscn" id="99_rcv"]
+
+# Add under the root Main node, preferably near the existing VisualEffectsRuntime:
+[node name="RetroContaminationVFXRuntime" parent="." instance=ExtResource("99_rcv")]
+auto_install_on_ready = true
+install_bed_dream = true
+install_tv_glitch = true
+install_lep_effects = true
+max_beds = 4
+max_tvs = 3
+max_leps = 12
+bed_distance = 3.4
+tv_distance = 3.0
+lep_distance = 7.5

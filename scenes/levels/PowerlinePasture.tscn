@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://scripts/powerline_pasture_controller.gd" id="2_pasture_controller"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/horse_guard_zone.gd" id="4_horse_zone"]
 [ext_resource type="Script" path="res://scripts/albasty_spawner.gd" id="5_albasty_spawner"]
 [ext_resource type="PackedScene" path="res://scenes/ui/AlbastyScareWindow.tscn" id="6_scare_window"]
+[ext_resource type="PackedScene" path="res://scenes/vfx/RetroContaminationVFXRuntime.tscn" id="7_rcv_runtime"]
 
 [sub_resource type="Environment" id="Environment_powerline_pasture"]
 background_mode = 1
@@ -29,6 +30,12 @@ environment = SubResource("Environment_powerline_pasture")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.819152, -0.286788, 0.496732, 0, 0.866025, 0.5, -0.573576, -0.409576, 0.709406, 0, 10, 0)
 light_energy = 1.35
+
+[node name="RetroContaminationVFXRuntime" parent="." instance=ExtResource("7_rcv_runtime")]
+install_bed_dream = false
+install_tv_glitch = false
+max_leps = 3
+lep_distance = 10.5
 
 [node name="Player" parent="." instance=ExtResource("1_player") groups=["player"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
@@ -65,6 +72,9 @@ shape = SubResource("BoxShape3D_horse_guard_zone")
 
 [node name="AlbastySpawnPoint" type="Marker3D" parent="." groups=["albasty_spawn_points"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -34)
+
+[node name="AlbastyPeacePowerlineMarker" type="Marker3D" parent="." groups=["albasty_peace_marker"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.5, 0, -34.8)
 
 [node name="AlbastySpawner" type="Node3D" parent="."]
 script = ExtResource("5_albasty_spawner")

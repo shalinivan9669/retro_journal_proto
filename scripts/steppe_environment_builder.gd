@@ -27,6 +27,9 @@ const TEX_INDUSTRIAL := BACKDROP_DIR + "/balkhash_industrial_smudge_01.png"
 const TEX_HORIZON_FOG := BACKDROP_DIR + "/balkhash_horizon_fog_01.png"
 const TEX_LOW_CLOUD_DARK := "res://assets/textures/sky/cloud_dark_ash_red_alpha.png"
 const TEX_LOW_CLOUD_ROSE := "res://assets/textures/sky/cloud_rose_ash_red_alpha.png"
+const TEX_SOVIET_LAB_RUIN := "res://assets/backgrounds/poligon/soviet_era_industrial_building_ruin.png"
+const TEX_POLIGON_HORIZON := "res://assets/backgrounds/poligon/poligon_backdrop_42K_43008x17199.png"
+const POLIGON_HORIZON_SHADER := preload("res://systems/tien_shan_backdrop/poligon_horizon_chroma.gdshader")
 
 @export var ground_size: float = 200.0
 @export var sky_radius: float = 520.0
@@ -43,7 +46,7 @@ const TEX_LOW_CLOUD_ROSE := "res://assets/textures/sky/cloud_rose_ash_red_alpha.
 @export_group("Terrain")
 @export var terrain_enabled: bool = true
 @export var terrain_size: float = 620.0
-@export var terrain_resolution: int = 257
+@export var terrain_resolution: int = 161
 @export var terrain_height_scale: float = 1.45
 @export var terrain_seed: int = 9669
 @export var yurt_flat_radius: float = 14.0
@@ -55,11 +58,13 @@ const TEX_LOW_CLOUD_ROSE := "res://assets/textures/sky/cloud_rose_ash_red_alpha.
 
 @export_group("Poly Haven Landscape")
 @export var polyhaven_scatter_enabled: bool = true
-@export_range(0.0, 3.0, 0.1) var vegetation_density_multiplier: float = 1.0
+@export_range(0.0, 3.0, 0.1) var vegetation_density_multiplier: float = 0.7
 @export_range(0.0, 3.0, 0.1) var hero_asset_density_multiplier: float = 1.0
-@export var allow_heavy_hero_assets: bool = true
+@export var allow_heavy_hero_assets: bool = false
 @export var use_lod_assets: bool = true
-@export var use_multimesh_flora: bool = true
+@export var use_multimesh_flora: bool = false
+@export_range(24.0, 96.0, 4.0) var flora_chunk_size: float = 40.0
+@export_range(60.0, 240.0, 10.0) var flora_visibility_range: float = 120.0
 @export var enable_far_impostors: bool = true
 @export var ambient_fauna_enabled: bool = true
 
@@ -96,6 +101,8 @@ func _ready() -> void:
 	if stage1_sky_cards_enabled:
 		_build_stage1_sky_atmosphere()
 	_build_vista_environment()
+	_build_poligon_horizon_backdrop()
+	_build_distant_laboratory_backdrop()
 	_build_tien_shan_backdrop()
 	_build_yurt_entrance_marker()
 	_build_power_pylon()
@@ -372,6 +379,61 @@ func _build_vista_environment() -> void:
 		_build_low_cloud_mass_cards(root, low_cloud_dark_mat, low_cloud_rose_mat)
 
 
+func _build_distant_laboratory_backdrop() -> void:
+	var root := Node3D.new()
+	root.name = "DistantLaboratoryBackdrop"
+	add_child(root)
+
+	# The supplied PNG is a single-view cutout, so keep it as a fixed, unlit card.
+	# It sits well beyond the yurt and slightly to the right of the entrance view,
+	# with its visible rubble line aligned to the far terrain rather than the sky.
+	var material := _make_unshaded_alpha_material(
+		"mat_soviet_laboratory_ruin_dusty_alpha",
+		TEX_SOVIET_LAB_RUIN,
+		Color(0.76, 0.74, 0.69, 0.86),
+		true
+	)
+	material.no_depth_test = false
+	material.render_priority = -8
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+
+	var building := _add_backdrop_card(
+		root,
+		"LaboratoryRuinCard",
+		Vector3(-18.0, 12.0, 145.0),
+		Vector2(48.0, 36.0),
+		material,
+		PI
+	)
+	building.sorting_offset = -4.0
+
+
+func _build_poligon_horizon_backdrop() -> void:
+	var root := Node3D.new()
+	root.name = "PoligonHorizonBackdrop"
+	add_child(root)
+
+	var material := ShaderMaterial.new()
+	material.resource_name = "mat_poligon_horizon_green_keyed"
+	material.shader = POLIGON_HORIZON_SHADER
+	material.render_priority = -24
+	material.set_shader_parameter("albedo_texture", load(TEX_POLIGON_HORIZON))
+	material.set_shader_parameter("color_tint", Color(0.78, 0.76, 0.70, 0.88))
+
+	# Wide far card: its bottom is below the terrain while the real horizon in
+	# the source image lands around y=0, matching the mountain backdrop layers.
+	var card := _add_backdrop_card(
+		root,
+		"PoligonHorizonCard",
+		Vector3(0.0, 64.0, 330.0),
+		Vector2(620.0, 248.0),
+		material,
+		PI
+	)
+	card.sorting_offset = -12.0
+
+
 func _build_tien_shan_backdrop() -> void:
 	if not tien_shan_backdrop_enabled:
 		return
@@ -408,12 +470,12 @@ func _build_industrial_horizon_silhouettes(parent: Node3D, silhouette_mat: Mater
 	root.name = "IndustrialHorizonSilhouettes"
 	parent.add_child(root)
 
-	_add_backdrop_card(root, "IndustrialSmudgeCard", Vector3(-204.0, 6.0, -56.0), Vector2(78.0, 11.0), smudge_mat, deg_to_rad(90.0))
-	_add_silhouette_box(root, "LowFactoryBlockA", Vector3(-198.0, 1.45, -78.0), Vector3(0.9, 2.9, 12.0), silhouette_mat)
-	_add_silhouette_box(root, "LowFactoryBlockB", Vector3(-198.2, 1.1, -62.0), Vector3(0.9, 2.2, 18.0), silhouette_mat)
-	_add_silhouette_box(root, "ThinChimneyA", Vector3(-197.8, 5.0, -68.5), Vector3(0.55, 10.0, 0.55), silhouette_mat)
-	_add_silhouette_box(root, "ThinChimneyB", Vector3(-197.9, 4.1, -51.0), Vector3(0.48, 8.2, 0.48), silhouette_mat)
-	_add_silhouette_box(root, "DistantWarehouseSlab", Vector3(-199.0, 1.0, 72.0), Vector3(0.9, 2.0, 22.0), silhouette_mat)
+	_add_backdrop_card(root, "IndustrialSmudgeCard", Vector3(-294.0, 6.0, -56.0), Vector2(78.0, 11.0), smudge_mat, deg_to_rad(90.0))
+	_add_silhouette_box(root, "LowFactoryBlockA", Vector3(-288.0, 1.45, -78.0), Vector3(0.9, 2.9, 12.0), silhouette_mat)
+	_add_silhouette_box(root, "LowFactoryBlockB", Vector3(-288.2, 1.1, -62.0), Vector3(0.9, 2.2, 18.0), silhouette_mat)
+	_add_silhouette_box(root, "ThinChimneyA", Vector3(-287.8, 5.0, -68.5), Vector3(0.55, 10.0, 0.55), silhouette_mat)
+	_add_silhouette_box(root, "ThinChimneyB", Vector3(-287.9, 4.1, -51.0), Vector3(0.48, 8.2, 0.48), silhouette_mat)
+	_add_silhouette_box(root, "DistantWarehouseSlab", Vector3(-289.0, 1.0, 72.0), Vector3(0.9, 2.0, 22.0), silhouette_mat)
 
 	_add_horizon_power_tower(root, "TinyPowerlineTowerA", Vector3(-196.0, 0.18, 18.0), 8.8, 5.6, silhouette_mat)
 	_add_horizon_power_tower(root, "TinyPowerlineTowerB", Vector3(-198.0, 0.16, 46.0), 7.2, 4.8, silhouette_mat)
@@ -487,6 +549,8 @@ func _build_polyhaven_landscape() -> void:
 	scatter.allow_heavy_hero_assets = allow_heavy_hero_assets
 	scatter.use_lod_assets = use_lod_assets
 	scatter.use_multimesh_flora = use_multimesh_flora
+	scatter.flora_chunk_size = flora_chunk_size
+	scatter.flora_visibility_range = flora_visibility_range
 	scatter.seed_value = terrain_seed + 101
 	scatter.debug_disable_flora = debug_disable_flora
 	scatter.debug_disable_hero_rocks = debug_disable_hero_rocks

@@ -7,6 +7,10 @@ signal requested_passage_after_dialogue
 @export_multiline var first_intro_text: String = "Ты пришёл ниже земли, но всё ещё думаешь, что спустился в подвал. Нет. Подвалы строят люди. Это место старше их страха."
 @export_multiline var repeat_intro_text: String = "Ты вернулся не ко мне. Ты вернулся к вопросу, который не смог унести."
 
+@export_range(0.0, 1.0, 0.01) var material_normal_scale := 0.08
+@export_range(0.0, 1.0, 0.01) var material_roughness := 0.88
+@export_range(0.0, 1.0, 0.01) var material_specular := 0.18
+
 @onready var lamp_light: OmniLight3D = $LampLight
 
 var has_spoken_once := false
@@ -17,8 +21,33 @@ var _base_lamp_energy := 1.2
 
 func _ready() -> void:
 	add_to_group("folklore_lady_npc")
+	_apply_soft_matte_materials()
 	if lamp_light != null:
 		_base_lamp_energy = lamp_light.light_energy
+
+
+func _apply_soft_matte_materials() -> void:
+	# Override only this NPC instance; preserve the imported GLB and albedo details.
+	for node in find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance == null or mesh_instance.mesh == null:
+			continue
+		for surface in range(mesh_instance.mesh.get_surface_count()):
+			var source := mesh_instance.get_active_material(surface) as BaseMaterial3D
+			if source == null:
+				continue
+			var material := source.duplicate(true) as BaseMaterial3D
+			if material == null:
+				continue
+			material.metallic = 0.0
+			material.metallic_specular = material_specular
+			material.roughness = material_roughness
+			material.roughness_texture = null
+			material.normal_scale = material_normal_scale
+			material.clearcoat_enabled = false
+			material.anisotropy_enabled = false
+			material.heightmap_enabled = false
+			mesh_instance.set_surface_override_material(surface, material)
 
 
 func _process(delta: float) -> void:

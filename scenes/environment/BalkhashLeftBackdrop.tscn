@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/environment/balkhash_left_backdrop.gd" id="1"]
+
+[node name="BalkhashLeftBackdrop" type="Node3D"]
+script = ExtResource("1")
+
+[node name="FarHorizon" type="Node3D" parent="."]
+[node name="LakeWater" type="Node3D" parent="."]
+[node name="DistantTreeline" type="Node3D" parent="."]
+[node name="SideDeadTrees" type="Node3D" parent="."]
+[node name="ForegroundReedsBushes" type="Node3D" parent="."]
+[node name="Debug" type="Node3D" parent="."]

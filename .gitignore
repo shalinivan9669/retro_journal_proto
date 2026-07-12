@@ -52,6 +52,11 @@ dist/
 *.exr.import
 *.hdr.import
 *.ktx.import
+!assets/backgrounds/poligon/
+!assets/backgrounds/poligon/soviet_era_industrial_building_ruin.png
+!assets/backgrounds/poligon/soviet_era_industrial_building_ruin.png.import
+!assets/backgrounds/poligon/poligon_backdrop_42K_43008x17199.png
+!assets/backgrounds/poligon/poligon_backdrop_42K_43008x17199.png.import
 *.ktx2.import
 
 # 3D models and editable DCC source files are also local / external assets.
@@ -68,3 +73,6 @@ dist/
 *.fbx.import
 *.obj.import
 *.dae.import
+!assets/characters/wizard/
+!assets/characters/wizard/wizard.glb
+!assets/characters/wizard/wizard.glb.import

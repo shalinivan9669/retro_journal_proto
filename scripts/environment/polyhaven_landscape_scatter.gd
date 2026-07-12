@@ -18,6 +18,8 @@ const ZONE_PATH_EDGE := 6
 @export var allow_heavy_hero_assets: bool = true
 @export var use_lod_assets: bool = true
 @export var use_multimesh_flora: bool = true
+@export_range(24.0, 96.0, 4.0) var flora_chunk_size: float = 40.0
+@export_range(60.0, 240.0, 10.0) var flora_visibility_range: float = 120.0
 @export var seed_value: int = 9669
 @export var debug_disable_flora: bool = false
 @export var debug_disable_hero_rocks: bool = false
@@ -90,9 +92,9 @@ func _build_hero_rocks() -> void:
 
 func _build_hero_trees() -> void:
 	var placements := [
-		{"name": "FarLeftLonelyTree", "asset": "island_tree_02", "p": Vector2(-68.0, 54.0), "scale": Vector3.ONE * 1.05, "rot": deg_to_rad(-12.0)},
-		{"name": "RearRightWindTree", "asset": "island_tree_03", "p": Vector2(82.0, 46.0), "scale": Vector3.ONE * 0.92, "rot": deg_to_rad(31.0)},
-		{"name": "PowerlineTinySapling", "asset": "pine_sapling_medium", "p": Vector2(58.0, -102.0), "scale": Vector3.ONE * 0.72, "rot": deg_to_rad(-48.0)}
+		{"name": "FarLeftLonelyTree", "asset": "island_tree_02", "p": Vector2(-168.0, 146.0), "scale": Vector3.ONE * 1.05, "rot": deg_to_rad(-12.0)},
+		{"name": "RearRightWindTree", "asset": "island_tree_03", "p": Vector2(184.0, 132.0), "scale": Vector3.ONE * 0.92, "rot": deg_to_rad(31.0)},
+		{"name": "PowerlineTinySapling", "asset": "pine_sapling_medium", "p": Vector2(154.0, -184.0), "scale": Vector3.ONE * 0.72, "rot": deg_to_rad(-48.0)}
 	]
 
 	var max_items := clampi(int(round(2.0 * hero_density_multiplier)), 1, placements.size())
@@ -106,16 +108,16 @@ func _build_hero_trees() -> void:
 
 func _build_dry_shrubs() -> void:
 	var centers := [
-		Vector2(24.0, -24.0),
-		Vector2(-24.0, -22.0),
-		Vector2(27.0, 8.0),
-		Vector2(-25.0, 12.0),
-		Vector2(-76.0, -18.0),
-		Vector2(-54.0, -42.0),
-		Vector2(20.0, -68.0),
-		Vector2(-20.0, -68.0),
-		Vector2(44.0, 22.0),
-		Vector2(-46.0, 28.0)
+		Vector2(-282.0, -188.0),
+		Vector2(-286.0, -132.0),
+		Vector2(-282.0, -76.0),
+		Vector2(-288.0, -20.0),
+		Vector2(-282.0, 36.0),
+		Vector2(-286.0, 92.0),
+		Vector2(-282.0, 148.0),
+		Vector2(-286.0, 204.0),
+		Vector2(-278.0, 252.0),
+		Vector2(-276.0, -244.0)
 	]
 	var shrub_assets := ["searsia_lucida", "searsia_burchellii", "wild_rooibos_bush"]
 	var target_count := clampi(int(round(38.0 * density_multiplier)), 0, 70)
@@ -196,16 +198,16 @@ func _build_grass_patches() -> void:
 		Vector2(-28.0, 24.0)
 	]
 	var steppe_centers := [
-		Vector2(-58.0, -28.0), Vector2(-82.0, -4.0), Vector2(54.0, -34.0), Vector2(14.0, -58.0),
-		Vector2(-24.0, -72.0), Vector2(48.0, 28.0), Vector2(-46.0, 42.0), Vector2(18.0, 68.0),
-		Vector2(-76.0, 58.0), Vector2(82.0, 54.0), Vector2(-94.0, -52.0), Vector2(92.0, -70.0),
-		Vector2(-8.0, 92.0), Vector2(68.0, 4.0), Vector2(-64.0, 8.0), Vector2(6.0, -96.0)
+		Vector2(-172.0, -92.0), Vector2(-194.0, -18.0), Vector2(164.0, -98.0), Vector2(62.0, -176.0),
+		Vector2(-72.0, -194.0), Vector2(174.0, 74.0), Vector2(-162.0, 104.0), Vector2(54.0, 188.0),
+		Vector2(-204.0, 126.0), Vector2(214.0, 118.0), Vector2(-224.0, -118.0), Vector2(226.0, -142.0),
+		Vector2(-24.0, 222.0), Vector2(212.0, 18.0), Vector2(-218.0, 22.0), Vector2(18.0, -228.0)
 	]
 	var far_steppe_centers := [
-		Vector2(-138.0, -76.0), Vector2(-154.0, 18.0), Vector2(-126.0, 104.0),
-		Vector2(-54.0, 142.0), Vector2(38.0, 148.0), Vector2(126.0, 96.0),
-		Vector2(148.0, 8.0), Vector2(134.0, -96.0), Vector2(62.0, -144.0),
-		Vector2(-52.0, -152.0), Vector2(-112.0, -128.0), Vector2(106.0, -134.0)
+		Vector2(-214.0, -128.0), Vector2(-224.0, 34.0), Vector2(-196.0, 186.0),
+		Vector2(-86.0, 218.0), Vector2(74.0, 224.0), Vector2(196.0, 168.0),
+		Vector2(226.0, 20.0), Vector2(208.0, -176.0), Vector2(96.0, -226.0),
+		Vector2(-78.0, -232.0), Vector2(-184.0, -206.0), Vector2(166.0, -214.0)
 	]
 	var near_count := clampi(int(round(4800.0 * density_multiplier)), 0, 8200)
 	var near_transforms := _make_patch_transforms(near_yurt_centers, near_count, 0.35, 12.0, 1.0, 2.15, 0.008, false)
@@ -243,12 +245,12 @@ func _build_grass_patches() -> void:
 
 func _build_lowland_reeds_like_patches() -> void:
 	var centers := [
-		Vector2(-88.0, -42.0),
-		Vector2(-96.0, 24.0),
-		Vector2(-70.0, 38.0),
-		Vector2(84.0, -34.0),
-		Vector2(102.0, 28.0),
-		Vector2(74.0, 62.0)
+		Vector2(-256.0, -88.0),
+		Vector2(-268.0, -18.0),
+		Vector2(-252.0, 56.0),
+		Vector2(-260.0, 124.0),
+		Vector2(-248.0, 186.0),
+		Vector2(-244.0, -154.0)
 	]
 	var target_count := clampi(int(round(700.0 * density_multiplier)), 0, 1400)
 	var transforms := _make_patch_transforms(centers, target_count, 4.0, 24.0, 0.82, 1.75, 0.015, false)
@@ -409,14 +411,14 @@ func _build_asset_variant_multimeshes(
 		return 0
 	if not use_multimesh_flora or skipped_assets.has(asset_id):
 		var fallback_helper = MULTIMESH_SCRIPT.new()
-		fallback_helper.build_multimesh_from_mesh(self, fallback_mesh, fallback_material, transforms, node_name + "Fallback")
+		fallback_helper.build_chunked_multimesh_from_mesh(self, fallback_mesh, fallback_material, transforms, node_name + "Fallback", flora_chunk_size, flora_visibility_range)
 		return transforms.size()
 
 	var scene: PackedScene = registry.get_scene_for_asset(asset_id, true)
 	if scene == null:
 		_register_skipped(asset_id)
 		var missing_helper = MULTIMESH_SCRIPT.new()
-		missing_helper.build_multimesh_from_mesh(self, fallback_mesh, fallback_material, transforms, node_name + "Fallback")
+		missing_helper.build_chunked_multimesh_from_mesh(self, fallback_mesh, fallback_material, transforms, node_name + "Fallback", flora_chunk_size, flora_visibility_range)
 		return transforms.size()
 
 	var source_root := scene.instantiate()
@@ -426,7 +428,7 @@ func _build_asset_variant_multimeshes(
 		source_root.free()
 		_register_skipped(asset_id)
 		var empty_helper = MULTIMESH_SCRIPT.new()
-		empty_helper.build_multimesh_from_mesh(self, fallback_mesh, fallback_material, transforms, node_name + "Fallback")
+		empty_helper.build_chunked_multimesh_from_mesh(self, fallback_mesh, fallback_material, transforms, node_name + "Fallback", flora_chunk_size, flora_visibility_range)
 		return transforms.size()
 
 	var transform_sets: Array[Array] = []
@@ -446,12 +448,14 @@ func _build_asset_variant_multimeshes(
 			continue
 		var variant_transforms: Array[Transform3D] = []
 		variant_transforms.assign(transform_sets[variant_index])
-		helper.build_multimesh_from_mesh(
+		helper.build_chunked_multimesh_from_mesh(
 			self,
 			prepared_mesh,
 			null,
 			variant_transforms,
-			"%s_Variant%02d" % [node_name, variant_index + 1]
+			"%s_Variant%02d" % [node_name, variant_index + 1],
+			flora_chunk_size,
+			flora_visibility_range
 		)
 	source_root.free()
 	return transforms.size()

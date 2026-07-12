@@ -62,6 +62,19 @@ func _set_blood_active(active: bool) -> void:
 		particles.process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
 		if active:
 			particles.restart()
+		else:
+			# Stop and clear already spawned droplets immediately; disabling
+			# emission alone would leave existing particles frozen on screen.
+			particles.restart()
+	for node in find_children("*", "GPUParticles3D", true, false):
+		var extra_particles := node as GPUParticles3D
+		if extra_particles == particles:
+			continue
+		extra_particles.emitting = active
+		extra_particles.visible = active
+		extra_particles.process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
+		if not active:
+			extra_particles.restart()
 	for path in blood_visual_nodes:
 		var visual := get_node_or_null(path)
 		if visual is VisualInstance3D:

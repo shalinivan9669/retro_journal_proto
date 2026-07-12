@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3]
+[gd_scene load_steps=56 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/objects/InteractableTV.tscn" id="2_tv"]
@@ -34,6 +34,9 @@
 [ext_resource type="Script" path="res://scripts/interior/yurt_interior_dressing_builder.gd" id="33_interior_builder"]
 [ext_resource type="PackedScene" path="res://assets/polyhaven/props/bull_head_2k.gltf" id="34_bull_head"]
 [ext_resource type="PackedScene" path="res://scenes/vfx/RetroContaminationVFXRuntime.tscn" id="35_rcv_runtime"]
+[ext_resource type="PackedScene" path="res://scenes/characters/wizard_npc.tscn" id="36_wizard_npc"]
+[ext_resource type="PackedScene" path="res://scenes/environment/BalkhashLeftBackdrop.tscn" id="37_balkhash_left"]
+[ext_resource type="Script" path="res://scripts/visuals/yurt_visual_director.gd" id="38_yurt_visual_director"]
 
 [sub_resource type="Environment" id="Environment_room"]
 background_mode = 1
@@ -118,6 +121,9 @@ material = SubResource("StandardMaterial3D_blood_puddle")
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_room")
 
+[node name="YurtVisualDirector" type="Node" parent="."]
+script = ExtResource("38_yurt_visual_director")
+
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.707107, -0.353553, 0.612372, 0, 0.866025, 0.5, -0.707107, -0.353553, 0.612372, 0, 11, 0)
 light_color = Color(0.95, 0.82, 0.62, 1)
@@ -148,6 +154,7 @@ shadow_enabled = false
 
 [node name="VisualQualityPreset" type="Node" parent="."]
 script = ExtResource("29_visual_preset")
+enable_scene_details = false
 
 [node name="VisualEffectsRuntime" parent="." instance=ExtResource("30_visual_runtime")]
 enable_outdoor_sandstorm = false
@@ -160,6 +167,8 @@ sandstorm_sheet_alpha = 0.55
 
 [node name="SteppeEnvironment" type="Node3D" parent="."]
 script = ExtResource("12_steppe_builder")
+
+[node name="BalkhashLeftBackdrop" parent="." instance=ExtResource("37_balkhash_left")]
 
 [node name="SkyCloudsController" type="Node" parent="."]
 script = ExtResource("13_cloud_controller")
@@ -175,6 +184,10 @@ visible = false
 
 [node name="CleanYurt" parent="." instance=ExtResource("14_clean_yurt")]
 transform = Transform3D(-1, 0, -0.0000000874228, 0, 1, 0, 0.0000000874228, 0, -1, 0, 0, 0)
+
+[node name="WizardNPC" parent="." instance=ExtResource("36_wizard_npc")]
+position = Vector3(0, 0, -14.0)
+rotation_degrees = Vector3(0, 180, 0)
 
 [node name="YurtOctagonFloor" parent="CleanYurt/world" index="0"]
 visible = false
@@ -416,7 +429,9 @@ shovel_ritual_duration_seconds = 600.0
 blood_visual_nodes = [NodePath("../BullHeadBloodPuddle"), NodePath("../BullHeadBloodGlow")]
 
 [node name="BleedingBullHead" parent="." instance=ExtResource("34_bull_head")]
-transform = Transform3D(6.495, 0, -8.625, 0, 10.8, 0, 8.625, 0, 6.495, -4.58, 1.05, -12.45)
+position = Vector3(-4.58, 1.05, -12.45)
+rotation_degrees = Vector3(0, 180, 0)
+scale = Vector3(10.8, 10.8, 10.8)
 
 [node name="BullHeadBloodPuddle" type="MeshInstance3D" parent="."]
 transform = Transform3D(1.55, 0, 0, 0, 1, 0, 0, 0, 1.05, -4.95, 0.045, -12.82)
@@ -426,7 +441,7 @@ cast_shadow = 0
 [node name="BullHeadBloodGlow" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.75, 1.15, -12.65)
 light_color = Color(0.72, 0.05, 0.025, 1)
-light_energy = 0.85
+light_energy = 0.35
 omni_range = 3.6
 shadow_enabled = false
 

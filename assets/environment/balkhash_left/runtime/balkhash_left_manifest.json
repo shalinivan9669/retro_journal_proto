@@ -1,0 +1,130 @@
+{
+  "tile_size_limit": 4096,
+  "layers": [
+    {
+      "name": "00_far_horizon",
+      "source": "source/balkhash_left_00_far_horizon.png",
+      "source_size": [
+        2508,
+        627
+      ],
+      "source_had_alpha": false,
+      "alpha_reconstructed": true,
+      "tiles": [
+        {
+          "file": "tile_00.png",
+          "crop": [
+            0,
+            0,
+            2508,
+            627
+          ],
+          "size": [
+            2508,
+            627
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01_lake_water",
+      "source": "source/balkhash_left_01_lake_water.png",
+      "source_size": [
+        2508,
+        627
+      ],
+      "source_had_alpha": false,
+      "alpha_reconstructed": true,
+      "tiles": [
+        {
+          "file": "tile_00.png",
+          "crop": [
+            0,
+            0,
+            2508,
+            627
+          ],
+          "size": [
+            2508,
+            627
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02_distant_treeline",
+      "source": "source/balkhash_left_02_distant_treeline.png",
+      "source_size": [
+        2508,
+        627
+      ],
+      "source_had_alpha": false,
+      "alpha_reconstructed": true,
+      "tiles": [
+        {
+          "file": "tile_00.png",
+          "crop": [
+            0,
+            0,
+            2508,
+            627
+          ],
+          "size": [
+            2508,
+            627
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03_side_dead_trees",
+      "source": "source/balkhash_left_03_side_dead_trees.png",
+      "source_size": [
+        2508,
+        627
+      ],
+      "source_had_alpha": false,
+      "alpha_reconstructed": true,
+      "tiles": [
+        {
+          "file": "tile_00.png",
+          "crop": [
+            0,
+            0,
+            2508,
+            627
+          ],
+          "size": [
+            2508,
+            627
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04_foreground_reeds_bushes",
+      "source": "source/balkhash_left_04_foreground_reeds_bushes.png",
+      "source_size": [
+        2508,
+        627
+      ],
+      "source_had_alpha": false,
+      "alpha_reconstructed": true,
+      "tiles": [
+        {
+          "file": "tile_00.png",
+          "crop": [
+            0,
+            0,
+            2508,
+            627
+          ],
+          "size": [
+            2508,
+            627
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -15,6 +15,7 @@ const SMALL_FIRE_SCENE: PackedScene = preload("res://scenes/effects/SmallFire.ts
 const SOLDIER_SCENE: PackedScene = preload("res://scenes/actors/SovietSoldierEnemy.tscn")
 const FOLKLORE_LADY_SCENE: PackedScene = preload("res://scenes/npcs/FolkloreLady.tscn")
 const FINAL_SOLDIER_ROOM_EVENT_SCRIPT: Script = preload("res://scripts/final_soldier_room_event.gd")
+const BASEMENT_PROP_SET_BUILDER: Script = preload("res://scripts/props/basement_prop_set_builder.gd")
 
 const GRASS_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_grass_patch.glb"
 const FLOWER_WHITE_SCENE_PATH := "res://assets/models/vegetation_fallback/fallback_flower_white.glb"
@@ -100,6 +101,7 @@ func _build_level() -> void:
 	_build_maze()
 	_build_cave_details()
 	_build_folklore_lady_alcove()
+	_build_basement_prop_set()
 	_build_water()
 	_build_vegetation()
 	_build_exit_marker()
@@ -278,7 +280,7 @@ func _build_maze() -> void:
 
 			if cell == "o":
 				_build_fake_sky_hole(center)
-			else:
+			elif grid_position != FOLKLORE_ALCOVE_CELL:
 				_add_ceiling_panel("MazeCeiling_%02d_%02d" % [x, y], center, _ceiling_height_for_cell(cell), cell == "l", _ceiling_material_for_cell(cell))
 
 			if cell == "f" or cell == "F":
@@ -287,64 +289,32 @@ func _build_maze() -> void:
 
 func _build_folklore_lady_alcove() -> void:
 	var center := _maze_cell_to_world(FOLKLORE_ALCOVE_CELL)
-	var clay_material := _make_alcove_material("mat_folklore_alcove_old_clay", Color(0.24, 0.16, 0.12, 1.0), 0.0)
-	var dark_clay_material := _make_alcove_material("mat_folklore_alcove_dark_crack", Color(0.055, 0.042, 0.036, 1.0), 0.0)
-	var rug_shadow_material := _make_alcove_material("mat_folklore_alcove_rug_shadow", Color(0.17, 0.025, 0.027, 1.0), 0.0)
-	var warm_embedded_material := _make_alcove_material("mat_folklore_alcove_lamp_warmth", Color(0.52, 0.22, 0.08, 1.0), 0.18)
-
-	_add_static_box(
-		"FolkloreAlcoveCarpetWalkableLayer",
-		Vector3(TILE_SIZE * 0.84, 0.035, TILE_SIZE * 0.72),
-		center + Vector3(0.0, 0.017, 0.18),
-		rug_shadow_material
-	)
-	_add_mesh_box(
-		"FolkloreAlcoveBackClayBlend",
-		Vector3(TILE_SIZE * 0.92, WALL_HEIGHT_BASE * 0.92, 0.08),
-		center + Vector3(0.0, WALL_HEIGHT_BASE * 0.46, -TILE_SIZE * 0.48),
-		clay_material
-	)
-	_add_static_box(
-		"FolkloreAlcoveTurnSideSeal",
-		Vector3(0.18, BASEMENT_WALL_HEIGHT, TILE_SIZE * 0.92),
-		center + Vector3(TILE_SIZE * 0.5, BASEMENT_WALL_HEIGHT * 0.5, 0.0),
-		BASEMENT_WALL_MATERIAL
-	)
-	_add_mesh_box(
-		"FolkloreAlcoveLeftClayReturn",
-		Vector3(0.08, WALL_HEIGHT_BASE * 0.75, TILE_SIZE * 0.78),
-		center + Vector3(-TILE_SIZE * 0.5 + 0.04, WALL_HEIGHT_BASE * 0.38, -0.18),
-		dark_clay_material
-	)
-	_add_mesh_box(
-		"FolkloreAlcoveWarmLampStain",
-		Vector3(1.4, 1.05, 0.035),
-		center + Vector3(-0.68, 1.02, -TILE_SIZE * 0.455),
-		warm_embedded_material
-	)
-	_add_alcove_entry_frame(center, clay_material, dark_clay_material)
-	_add_alcove_cracks(center, dark_clay_material)
 	_spawn_folklore_lady(center)
+
+
+func _build_basement_prop_set() -> void:
+	# The lady is at (2, 10). The route continues south to (2, 11), then
+	# turns east; keep the dressing beyond that corner and leave the aisle clear.
+	BASEMENT_PROP_SET_BUILDER.build(
+		_generated_root,
+		_maze_cell_to_world(Vector2i(2, 11)),
+		_maze_cell_to_world(Vector2i(4, 11)),
+		_maze_cell_to_world(Vector2i(5, 11))
+	)
 
 
 func _add_alcove_entry_frame(center: Vector3, clay_material: Material, dark_clay_material: Material) -> void:
 	_add_mesh_box(
 		"FolkloreAlcoveEntryLeftPost",
 		Vector3(0.16, WALL_HEIGHT_BASE * 0.84, 0.16),
-		center + Vector3(-TILE_SIZE * 0.42, WALL_HEIGHT_BASE * 0.42, TILE_SIZE * 0.5),
+		center + Vector3(-TILE_SIZE * 0.63, WALL_HEIGHT_BASE * 0.42, TILE_SIZE * 0.5),
 		dark_clay_material
 	)
 	_add_mesh_box(
 		"FolkloreAlcoveEntryRightPost",
 		Vector3(0.16, WALL_HEIGHT_BASE * 0.84, 0.16),
-		center + Vector3(TILE_SIZE * 0.42, WALL_HEIGHT_BASE * 0.42, TILE_SIZE * 0.5),
+		center + Vector3(TILE_SIZE * 0.63, WALL_HEIGHT_BASE * 0.42, TILE_SIZE * 0.5),
 		dark_clay_material
-	)
-	_add_mesh_box(
-		"FolkloreAlcoveEntryLowLintel",
-		Vector3(TILE_SIZE * 0.86, 0.18, 0.18),
-		center + Vector3(0.0, LOW_CEILING_HEIGHT + 0.04, TILE_SIZE * 0.5),
-		clay_material
 	)
 
 

@@ -4,7 +4,7 @@
 
 [node name="VisualEffectsRuntime" type="Node"]
 script = ExtResource("1_runtime")
-tune_world_environment = true
+tune_world_environment = false
 apply_tv_radio_emission = true
 enable_device_glitch_overlay = true
 enable_outdoor_sandstorm = false

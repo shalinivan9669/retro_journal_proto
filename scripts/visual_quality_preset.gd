@@ -11,7 +11,7 @@ extends Node
 @export_range(0, 3, 1) var msaa_3d: int = 0
 @export_range(0, 1, 1) var msaa_2d: int = 0
 @export_range(0, 1, 1) var screen_space_aa: int = 0
-@export var enable_scene_details: bool = true
+@export var enable_scene_details: bool = false
 
 @export var world_environment_path: NodePath = NodePath("../WorldEnvironment")
 @export var directional_light_path: NodePath = NodePath("../DirectionalLight3D")
@@ -77,8 +77,8 @@ var _soft_haze_shader: Shader
 
 func _ready() -> void:
 	_apply_viewport_quality()
-	_apply_environment_preset()
-	_apply_light_preset()
+	# Environment and core yurt lights are owned by YurtVisualDirector.
+	# Legacy preset functions stay below temporarily for controlled comparison only.
 	if enable_scene_details:
 		_build_scene_details.call_deferred()
 

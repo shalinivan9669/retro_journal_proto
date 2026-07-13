@@ -1,6 +1,8 @@
 class_name BallisticTrail3D
 extends MeshInstance3D
 
+signal impact_reached(world_position: Vector3, visual_importance: float)
+
 const TRAIL_SHADER := preload("res://addons/archive_barrage/shaders/tracer_trail.gdshader")
 
 var camera: Camera3D
@@ -17,6 +19,7 @@ var elapsed := 0.0
 
 var _immediate_mesh := ImmediateMesh.new()
 var _trail_material: ShaderMaterial
+var _impact_emitted := false
 
 
 func configure(
@@ -35,6 +38,7 @@ func configure(
 	trail_lifetime = trail_duration
 	importance = visual_importance
 	elapsed = 0.0
+	_impact_emitted = false
 	visible = true
 	halo_pixels = lerpf(7.5, 15.0, clampf(importance, 0.0, 1.0))
 
@@ -56,12 +60,16 @@ func configure(
 func recycle() -> void:
 	camera = null
 	elapsed = 0.0
+	_impact_emitted = false
 	visible = false
 	_immediate_mesh.clear_surfaces()
 
 
 func advance(fx_delta: float) -> void:
 	elapsed += fx_delta
+	if not _impact_emitted and elapsed >= flight_time:
+		_impact_emitted = true
+		impact_reached.emit(_ballistic_position(flight_time, 0.0), importance)
 	_rebuild_mesh()
 
 

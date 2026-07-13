@@ -62,6 +62,7 @@ var _rng := RandomNumberGenerator.new()
 var _concrete_material: ShaderMaterial
 var _wire_material: StandardMaterial3D
 var _performance_mode := false
+var _background_materials: Array[ShaderMaterial] = []
 
 
 func build(target_terrain: BarrageTerrain, use_performance_profile: bool = false) -> void:
@@ -76,7 +77,15 @@ func build(target_terrain: BarrageTerrain, use_performance_profile: bool = false
 	_build_berms()
 	_build_mud_patches()
 	_build_puddles()
-	_build_background_layers()
+	# The real terrain and shader sky now reach the horizon.  The former giant
+	# transparent cards intersected the play surface and exposed rectangular
+	# silhouettes when viewed from an ultrawide angle.
+
+
+func set_flash_response(level: float) -> void:
+	var clamped_level := clampf(level, 0.0, 1.0)
+	for material in _background_materials:
+		material.set_shader_parameter("flash_level", clamped_level)
 
 
 func _create_concrete_material() -> ShaderMaterial:
@@ -209,7 +218,7 @@ func _build_ruined_concrete() -> void:
 
 func _build_berms() -> void:
 	var dark_material := StandardMaterial3D.new()
-	dark_material.albedo_color = Color(0.009, 0.010, 0.011)
+	dark_material.albedo_color = Color(0.030, 0.032, 0.036)
 	dark_material.roughness = 0.96
 	var berm_count := 8 if _performance_mode else 12
 	for index in range(berm_count):
@@ -238,15 +247,14 @@ func _build_mud_patches() -> void:
 		var x := _rng.randf_range(-185.0, 185.0)
 		var z := _rng.randf_range(-205.0, 58.0)
 		var patch := MeshInstance3D.new()
-		var plane := PlaneMesh.new()
-		plane.size = Vector2(_rng.randf_range(7.0, 22.0), _rng.randf_range(4.0, 13.0))
-		patch.mesh = plane
+		var patch_size := Vector2(_rng.randf_range(7.0, 22.0), _rng.randf_range(4.0, 13.0))
+		patch.mesh = _make_conforming_patch_mesh(x, z, patch_size, 0.032)
 		var material := ShaderMaterial.new()
 		material.shader = MUD_SHADER
 		material.set_shader_parameter("mud_mask", MUD_MASKS[index % MUD_MASKS.size()])
 		patch.material_override = material
-		patch.position = Vector3(x, terrain.height_at_world(x, z) + 0.028, z)
-		patch.rotation.y = _rng.randf_range(0.0, TAU)
+		# The mesh samples the terrain at every grid point.  A single tilted plane
+		# intersected the rolling steppe and looked like a rectangular floor hole.
 		patch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(patch)
 
@@ -257,30 +265,86 @@ func _build_puddles() -> void:
 		var x := _rng.randf_range(-145.0, 145.0)
 		var z := _rng.randf_range(-150.0, 50.0)
 		var puddle := MeshInstance3D.new()
-		var plane := PlaneMesh.new()
-		plane.size = Vector2(_rng.randf_range(4.0, 15.0), _rng.randf_range(2.0, 8.0))
-		puddle.mesh = plane
+		var puddle_size := Vector2(_rng.randf_range(4.0, 15.0), _rng.randf_range(2.0, 8.0))
+		puddle.mesh = _make_conforming_patch_mesh(x, z, puddle_size, 0.040)
 		var material := ShaderMaterial.new()
 		material.shader = PUDDLE_SHADER
 		material.set_shader_parameter(
 			"puddle_mask", PUDDLE_MASKS[index % PUDDLE_MASKS.size()]
 		)
 		puddle.material_override = material
-		puddle.position = Vector3(x, terrain.height_at_world(x, z) + 0.035, z)
-		puddle.rotation.y = _rng.randf_range(0.0, TAU)
 		puddle.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(puddle)
 
 
+func _make_conforming_patch_mesh(
+	center_x: float,
+	center_z: float,
+	size: Vector2,
+	y_offset: float
+) -> ArrayMesh:
+	var columns := 9 if _performance_mode else 13
+	var rows := 7 if _performance_mode else 11
+	var angle := _rng.randf_range(0.0, TAU)
+	var rotation_2d := Transform2D(angle, Vector2.ZERO)
+	var vertices := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var uvs := PackedVector2Array()
+	var indices := PackedInt32Array()
+	var sample_distance := 0.65
+
+	for row in range(rows):
+		for column in range(columns):
+			var uv := Vector2(
+				float(column) / float(columns - 1),
+				float(row) / float(rows - 1)
+			)
+			var unrotated := (uv - Vector2(0.5, 0.5)) * size
+			var offset := rotation_2d * unrotated
+			var world_x := center_x + offset.x
+			var world_z := center_z + offset.y
+			var height := terrain.height_at_world(world_x, world_z)
+			var height_left := terrain.height_at_world(world_x - sample_distance, world_z)
+			var height_right := terrain.height_at_world(world_x + sample_distance, world_z)
+			var height_back := terrain.height_at_world(world_x, world_z - sample_distance)
+			var height_front := terrain.height_at_world(world_x, world_z + sample_distance)
+			var normal := Vector3(
+				height_left - height_right,
+				sample_distance * 2.0,
+				height_back - height_front
+			).normalized()
+			vertices.append(Vector3(world_x, height + y_offset, world_z))
+			normals.append(normal)
+			uvs.append(uv)
+
+	for row in range(rows - 1):
+		for column in range(columns - 1):
+			var a := row * columns + column
+			var b := a + 1
+			var c := a + columns
+			var d := c + 1
+			indices.append_array([a, c, b, b, c, d])
+
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_TEX_UV] = uvs
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var result := ArrayMesh.new()
+	result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return result
+
+
 func _build_background_layers() -> void:
 	_make_background_layer(
-		FAR_BERMS, Vector3(0.0, 44.0, -585.0), Vector2(2400.0, 300.0), 1.0
+		FAR_BERMS, Vector3(0.0, 54.0, -1050.0), Vector2(2600.0, 110.0), 0.72
 	)
 	_make_background_layer(
-		FAR_FENCE, Vector3(0.0, 41.0, -575.0), Vector2(2400.0, 300.0), 0.72
+		FAR_FENCE, Vector3(0.0, 52.0, -1035.0), Vector2(2600.0, 105.0), 0.54
 	)
 	_make_background_layer(
-		FAR_FOG_BAND, Vector3(0.0, 48.0, -565.0), Vector2(2400.0, 300.0), 0.66
+		FAR_FOG_BAND, Vector3(0.0, 58.0, -1020.0), Vector2(2600.0, 120.0), 0.38
 	)
 
 
@@ -297,6 +361,8 @@ func _make_background_layer(
 	material.shader = BACKGROUND_SHADER
 	material.set_shader_parameter("layer_texture", layer_texture)
 	material.set_shader_parameter("opacity", opacity)
+	material.set_shader_parameter("flash_level", 0.0)
 	layer.material_override = material
+	_background_materials.append(material)
 	layer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(layer)

@@ -8,7 +8,7 @@ uniform sampler2D detail_normal : hint_normal, filter_linear_mipmap_anisotropic,
 
 uniform float plaster_tiling = 1.4;
 uniform float detail_tiling = 7.0;
-uniform float night_scale = 0.38;
+uniform float night_scale = 1.0;
 
 void fragment() {
 	vec3 plaster = texture(plaster_albedo, UV * plaster_tiling).rgb;

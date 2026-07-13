@@ -13,10 +13,10 @@ uniform sampler2D rock_normal : hint_normal, filter_linear_mipmap_anisotropic, r
 uniform sampler2D rock_roughness : hint_default_white, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D rock_displacement : hint_default_black, filter_linear_mipmap_anisotropic, repeat_enable;
 
-uniform float steppe_tiling = 88.0;
-uniform float rock_tiling = 270.0;
-uniform float rock_coverage = 0.26;
-uniform float night_albedo_scale = 0.42;
+uniform float steppe_tiling = 220.0;
+uniform float rock_tiling = 675.0;
+uniform float rock_coverage = 0.12;
+uniform float night_albedo_scale = 1.0;
 
 mat2 rotation_2d(float angle) {
 	float c = cos(angle);
@@ -39,11 +39,14 @@ void fragment() {
 	vec3 rock_a = texture(rock_albedo, uv_rock_a).rgb;
 	vec3 rock_b = texture(rock_albedo, uv_rock_b).rgb;
 	vec3 rock_color = mix(rock_a, rock_b, 0.34);
+	rock_color = max(rock_color, ground_color * 0.68);
 	vec3 rock_n = texture(rock_normal, uv_rock_a).rgb;
 	float rock_rough = texture(rock_roughness, uv_rock_a).r;
-	float rock_height = texture(rock_displacement, UV * 11.0).r;
+	float rock_height = texture(rock_displacement, UV * 27.5).r;
 
-	float patch_noise = texture(rock_displacement, UV * 4.7 + vec2(0.17, 0.31)).r;
+	// Keep rocky variation at a terrain-detail scale.  The old low-frequency
+	// mask made single near-black regions more than a hundred metres wide.
+	float patch_noise = texture(rock_displacement, UV * 46.7 + vec2(0.17, 0.31)).r;
 	float coverage = clamp(rock_coverage, 0.0, 0.35);
 	float patch_threshold = mix(0.92, 0.54, coverage / 0.35);
 	float rock_mask = smoothstep(
@@ -51,12 +54,13 @@ void fragment() {
 		patch_threshold + 0.12,
 		patch_noise + rock_height * 0.18
 	);
-	rock_mask *= 1.0 - wet * 0.74;
+	rock_mask *= (1.0 - wet * 0.74) * 0.62;
 
 	vec3 color = mix(ground_color, rock_color, rock_mask);
 	color *= mix(0.91, 1.045, micro_height);
 	color *= night_albedo_scale;
-	color *= mix(1.0, 0.58, wet);
+	color *= mix(1.0, 0.82, wet);
+	color = max(color, vec3(0.028, 0.030, 0.032));
 
 	ALBEDO = color;
 	NORMAL_MAP = mix(ground_normal, rock_n, rock_mask);
@@ -64,6 +68,6 @@ void fragment() {
 	ROUGHNESS = mix(mix(ground_rough, rock_rough, rock_mask), 0.075, wet);
 	SPECULAR = mix(0.28, 0.82, wet);
 	METALLIC = 0.0;
-	AO = mix(ground_ao, min(ground_ao, 0.78), rock_mask);
-	AO_LIGHT_AFFECT = 0.72;
+	AO = mix(max(ground_ao, 0.68), min(max(ground_ao, 0.68), 0.84), rock_mask);
+	AO_LIGHT_AFFECT = 0.38;
 }

@@ -44,8 +44,8 @@ const ROCK_DISPLACEMENT := preload(
 	"res://addons/archive_barrage/assets/polyhaven/dark_rock_4k/dark_rock_disp_4k.jpg"
 )
 
-@export var terrain_width := 720.0
-@export var terrain_depth := 720.0
+@export var terrain_width := 1800.0
+@export var terrain_depth := 1800.0
 @export var maximum_height := 20.0
 @export var grid_resolution := 257
 

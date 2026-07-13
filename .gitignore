@@ -30,6 +30,8 @@ dist/
 # Large art source and runtime assets are kept locally / distributed separately.
 # Do not add textures, baked image formats, or their Godot import sidecars.
 *.png
+!assets/archive/films/film_01_hidden_image.png
+!assets/archive/terminals/terminal_walking_walls.png
 *.jpg
 *.jpeg
 *.webp
@@ -76,3 +78,16 @@ dist/
 !assets/characters/wizard/
 !assets/characters/wizard/wizard.glb
 !assets/characters/wizard/wizard.glb.import
+!assets/models/blue_legs/
+!assets/models/blue_legs/blue_legs_rigged_animated.glb
+!assets/models/blue_legs/blue_legs_rigged_animated.glb.import
+!assets/cutscenes/steppe_wolf/
+!assets/cutscenes/steppe_wolf/steppe_wolf.png
+!assets/cutscenes/steppe_wolf/steppe_wolf.png.import
+!assets/polyhaven/diner/
+!assets/polyhaven/diner/**
+
+# Lost Signal runtime pack is intentionally reproducible and license-documented.
+!assets/lost_signal/
+!assets/lost_signal/**
+assets/lost_signal/_sources/

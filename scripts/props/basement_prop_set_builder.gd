@@ -3,6 +3,9 @@ extends RefCounted
 
 const FAN_SCRIPT: Script = preload("res://scripts/props/ceiling_fan.gd")
 const CAMERA_SCRIPT: Script = preload("res://scripts/props/security_camera_mount.gd")
+const TERMINAL_SCRIPT: Script = preload("res://scripts/basement_terminal.gd")
+const TERMINAL_SHADER: Shader = preload("res://shaders/terminal_monochrome.gdshader")
+const TERMINAL_IMAGE: Texture2D = preload("res://assets/archive/terminals/terminal_walking_walls.png")
 
 const CART_PATH := "res://assets/polyhaven/industrial_storage_cart/industrial_storage_cart_4k.gltf"
 const LAPTOP_PATH := "res://assets/polyhaven/classic_laptop/classic_laptop_4k.gltf"
@@ -53,6 +56,7 @@ static func _build_workstation(root: Node3D, center: Vector3) -> void:
 		laptop.position = Vector3(-0.02, 1.39, -0.38)
 		laptop.rotation_degrees.y = 180.0
 		workstation.add_child(laptop)
+		_build_laptop_terminal(laptop)
 
 	var radio := _instantiate_model(RADIO_PATH, "Radio")
 	if radio != null:
@@ -67,6 +71,68 @@ static func _build_workstation(root: Node3D, center: Vector3) -> void:
 	glow.light_energy = 0.22
 	glow.omni_range = 2.1
 	workstation.add_child(glow)
+
+
+static func _build_laptop_terminal(laptop: Node3D) -> void:
+	# The imported Poly Haven laptop exposes its display under this name. The
+	# terminal is a thin separate surface above it, preserving the real laptop.
+	var laptop_screen := laptop.find_child("classic_laptop_screen", true, false) as MeshInstance3D
+	if laptop_screen == null:
+		push_warning("Basement terminal: classic_laptop_screen mesh was not found.")
+		return
+
+	var screen_material := ShaderMaterial.new()
+	screen_material.shader = TERMINAL_SHADER
+	screen_material.set_shader_parameter("terminal_image", TERMINAL_IMAGE)
+	screen_material.set_shader_parameter("power", 0.0)
+
+	# A 1 mm overlay sits directly in front of the native display surface. It
+	# keeps the physical laptop bezel intact and supplies clean rectangular UVs.
+	var screen_overlay := MeshInstance3D.new()
+	screen_overlay.name = "WalkingWallsScreenOverlay"
+	var overlay_mesh := QuadMesh.new()
+	overlay_mesh.size = Vector2(0.44, 0.36)
+	screen_overlay.mesh = overlay_mesh
+	screen_overlay.position = Vector3(0.0, 0.24, 0.039)
+	screen_overlay.material_override = screen_material
+	screen_overlay.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	laptop_screen.add_child(screen_overlay)
+
+	var indicator_material := StandardMaterial3D.new()
+	indicator_material.albedo_color = Color(0.42, 0.04, 0.02, 1.0)
+	indicator_material.emission_enabled = true
+	indicator_material.emission = Color(1.0, 0.08, 0.025, 1.0)
+	indicator_material.emission_energy_multiplier = 0.05
+	var indicator := MeshInstance3D.new()
+	indicator.name = "PowerIndicator"
+	var indicator_mesh := SphereMesh.new()
+	indicator_mesh.radius = 0.014
+	indicator_mesh.height = 0.028
+	indicator.mesh = indicator_mesh
+	indicator.position = Vector3(0.196, 0.081, 0.048)
+	indicator.set_surface_override_material(0, indicator_material)
+	laptop_screen.add_child(indicator)
+
+	var light := OmniLight3D.new()
+	light.name = "TerminalScreenGlow"
+	light.position = Vector3(0.0, 0.24, 0.08)
+	light.light_color = Color(0.85, 0.96, 0.88, 1.0)
+	light.light_energy = 0.0
+	light.omni_range = 2.3
+	light.shadow_enabled = false
+	laptop_screen.add_child(light)
+
+	var button := Area3D.new()
+	button.name = "TerminalPowerButton"
+	button.set_script(TERMINAL_SCRIPT)
+	button.position = Vector3(0.196, 0.081, 0.056)
+	var button_shape := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(0.055, 0.055, 0.04)
+	button_shape.shape = shape
+	button.add_child(button_shape)
+	laptop_screen.add_child(button)
+	button.call("configure", screen_material, light, indicator)
 
 
 static func _build_camera(root: Node3D, center: Vector3, target: Marker3D) -> void:

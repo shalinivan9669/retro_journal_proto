@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://addons/archive_barrage/scripts/barrage_demo_builder.gd" id="1_barrage"]
+
+[node name="ArchiveNightBarragePerformance" type="Node3D"]
+script = ExtResource("1_barrage")
+quality_profile = 1

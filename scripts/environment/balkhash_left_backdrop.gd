@@ -30,11 +30,14 @@ func _initialize_after_scene_ready() -> void:
 		return
 	_spawn_player_position = _player.global_position
 	# Spawn forward is -Z, spawn left is -X; sector is a fixed 90 degree left turn.
+	# Keep the complete lake/shore backdrop at the far edge. The five cards are
+	# separated by exactly 5 m so their parallax remains readable without any
+	# layer drifting into the playable foreground.
 	_build_layer($FarHorizon, "00_far_horizon", 220.0, 0.98, 1.1, 10.0, show_far_horizon, 0)
-	_build_layer($LakeWater, "01_lake_water", 190.0, 0.96, -1.05, 21.0, show_lake_water, 1)
-	_build_layer($DistantTreeline, "02_distant_treeline", 140.0, 0.90, -0.5, 16.0, show_distant_treeline, 2)
-	_build_layer($SideDeadTrees, "03_side_dead_trees", 85.0, 0.78, -1.0, 25.0, show_side_dead_trees, 3)
-	_build_layer($ForegroundReedsBushes, "04_foreground_reeds_bushes", 45.0, 0.60, -1.6, 13.0, show_foreground_reeds, 4)
+	_build_layer($LakeWater, "01_lake_water", 215.0, 0.96, -1.05, 21.0, show_lake_water, 1)
+	_build_layer($DistantTreeline, "02_distant_treeline", 210.0, 0.90, -0.5, 16.0, show_distant_treeline, 2)
+	_build_layer($SideDeadTrees, "03_side_dead_trees", 205.0, 0.78, -1.0, 25.0, show_side_dead_trees, 3)
+	_build_layer($ForegroundReedsBushes, "04_foreground_reeds_bushes", 200.0, 0.60, -1.6, 13.0, show_foreground_reeds, 4)
 	if debug_enabled:
 		_build_debug()
 
@@ -84,7 +87,7 @@ func _build_debug() -> void:
 	var center := deg_to_rad(sector_yaw_offset_degrees)
 	var half_arc := deg_to_rad(sector_arc_degrees * 0.5)
 	mesh.surface_begin(Mesh.PRIMITIVE_LINES)
-	for radius in [45.0, 85.0, 140.0, 190.0, 220.0]:
+	for radius in [200.0, 205.0, 210.0, 215.0, 220.0]:
 		for step in range(24):
 			var a := center - half_arc + (half_arc * 2.0) * float(step) / 24.0
 			var b := center - half_arc + (half_arc * 2.0) * float(step + 1) / 24.0

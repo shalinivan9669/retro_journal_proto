@@ -3,13 +3,17 @@ config_version=5
 [application]
 
 config/name="Retro Journal Prototype"
-run/main_scene="res://scenes/Main.tscn"
+run/main_scene="res://scenes/lost_signal/road/NightDrive.tscn"
 config/features=PackedStringArray("4.7")
 config/icon=""
 
 [autoload]
 
 GameState="*res://scripts/game_state.gd"
+LostSignalInputLock="*res://scripts/lost_signal/core/lost_signal_input_lock.gd"
+LostSignalSceneLoader="*res://scripts/lost_signal/core/lost_signal_scene_loader.gd"
+LostSignalFlow="*res://scripts/lost_signal/core/lost_signal_flow.gd"
+SceneHotkeySwitcher="*res://scripts/scene_hotkey_switcher.gd"
 
 [display]
 
@@ -18,9 +22,44 @@ window/size/viewport_height=1080
 window/size/mode=3
 window/size/borderless=true
 
+[input]
+
+interact={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":69,"unicode":101), Object(InputEventMouseButton,"button_index":1)]
+}
+restroom={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":70,"unicode":102)]
+}
+menu_option_1={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":49,"unicode":49)]
+}
+menu_option_2={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":50,"unicode":50)]
+}
+menu_option_3={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":51,"unicode":51)]
+}
+cancel={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194305)]
+}
+debug_open_qumran_location={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194343)]
+}
+debug_return_from_test_scene={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194342)]
+}
+
 [rendering]
 
-renderer/rendering_method="gl_compatibility"
+renderer/rendering_method="forward_plus"
 renderer/rendering_method.mobile="gl_compatibility"
 renderer/rendering_method.web="gl_compatibility"
 anti_aliasing/quality/msaa_2d=0

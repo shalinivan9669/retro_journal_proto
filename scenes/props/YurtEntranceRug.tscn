@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Material" path="res://materials/interior/mat_yurt_entrance_rug.tres" id="1_material"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_rug"]
+material = ExtResource("1_material")
+size = Vector2(2.4, 4.8)
+subdivide_width = 5
+subdivide_depth = 11
+
+[node name="YurtEntranceRug" type="Node3D"]
+
+[node name="RugCloth" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_rug")
+cast_shadow = 1

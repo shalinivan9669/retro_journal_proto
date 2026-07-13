@@ -12,7 +12,7 @@ extends Node
 
 @export_group("Environment")
 @export var ambient_light_color := Color(0.72, 0.64, 0.52, 1.0)
-@export_range(0.0, 2.0, 0.01) var ambient_light_energy := 0.96
+@export_range(0.0, 2.0, 0.01) var ambient_light_energy := 0.58
 @export var fog_enabled := true
 @export var fog_light_color := Color(0.52, 0.47, 0.38, 1.0)
 @export_range(0.0, 0.1, 0.0001) var fog_density := 0.0016
@@ -20,25 +20,25 @@ extends Node
 @export var adjustment_enabled := true
 @export_range(0.5, 1.5, 0.01) var adjustment_brightness := 0.98
 @export_range(0.5, 2.0, 0.01) var adjustment_contrast := 1.08
-@export_range(0.0, 2.0, 0.01) var adjustment_saturation := 0.88
+@export_range(0.0, 2.0, 0.01) var adjustment_saturation := 1.0
 @export var glow_enabled := true
 @export_range(0.0, 1.0, 0.01) var glow_intensity := 0.18
 @export_range(0.0, 1.0, 0.01) var glow_strength := 0.42
 @export_range(0.0, 0.2, 0.01) var glow_bloom := 0.04
 
 @export_group("Key Light")
-@export var key_light_color := Color(0.95, 0.82, 0.62, 1.0)
-@export_range(0.0, 8.0, 0.01) var key_light_energy := 1.85
+@export var key_light_color := Color(0.72, 0.58, 0.48, 1.0)
+@export_range(0.0, 8.0, 0.01) var key_light_energy := 1.35
 @export var key_shadow_enabled := true
-@export_range(0.0, 10.0, 0.1) var key_shadow_blur := 7.0
-@export_range(0.0, 1.0, 0.01) var key_shadow_opacity := 0.22
+@export_range(0.0, 10.0, 0.1) var key_shadow_blur := 1.8
+@export_range(0.0, 1.0, 0.01) var key_shadow_opacity := 0.68
 @export_range(1.0, 200.0, 1.0) var key_shadow_max_distance := 64.0
 
 @export_group("Fill Light")
 @export var fill_enabled := true
-@export var fill_light_color := Color(1.0, 0.78, 0.52, 1.0)
-@export_range(0.0, 8.0, 0.01) var fill_light_energy := 4.2
-@export_range(0.0, 40.0, 0.1) var fill_light_range := 22.0
+@export var fill_light_color := Color(0.68, 0.57, 0.48, 1.0)
+@export_range(0.0, 8.0, 0.01) var fill_light_energy := 0.9
+@export_range(0.0, 40.0, 0.1) var fill_light_range := 12.0
 
 @export_group("TV Light")
 @export var tv_light_enabled := true

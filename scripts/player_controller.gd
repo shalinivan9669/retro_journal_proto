@@ -4,6 +4,10 @@ extends CharacterBody3D
 @export var sprint_multiplier: float = 2.6
 @export var mouse_sensitivity: float = 0.0025
 @export var gravity: float = 16.0
+@export var jump_enabled: bool = false
+@export var jump_velocity: float = 6.0
+@export_range(0.0, 89.0, 0.1) var floor_max_angle_degrees: float = 45.0
+@export var physics_floor_snap_length: float = 0.6
 @export var controls_locked: bool = false
 @export var standing_height: float = 1.7
 @export var crouch_height: float = 1.05
@@ -24,6 +28,7 @@ extends CharacterBody3D
 @onready var head: Node3D = $Head
 @onready var camera: Camera3D = $Head/Camera3D
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
+@onready var shadow_proxy: MeshInstance3D = $PlayerShadowProxy
 @onready var interaction_ray: RayCast3D = $Head/Camera3D/InteractionRay
 
 var pitch := 0.0
@@ -39,6 +44,7 @@ var _dig_phase := 0.0
 var _dig_call_cooldown := 0.0
 var _default_camera_fov := 75.0
 var _aim_zoom_held := false
+var _jump_was_pressed := false
 
 
 func _ready() -> void:
@@ -48,7 +54,12 @@ func _ready() -> void:
 	_capsule_shape = collision_shape.shape as CapsuleShape3D
 	if camera != null:
 		_default_camera_fov = camera.fov
-	floor_snap_length = maxf(0.6, landscape_ground_snap_down)
+	floor_max_angle = deg_to_rad(floor_max_angle_degrees)
+	floor_snap_length = (
+		maxf(physics_floor_snap_length, landscape_ground_snap_down)
+		if landscape_ground_assist_enabled
+		else physics_floor_snap_length
+	)
 	_steppe_environment = _find_steppe_environment()
 
 
@@ -88,6 +99,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_ESCAPE:
+			var film_viewer := get_tree().get_first_node_in_group("film_viewer")
+			if film_viewer != null and film_viewer.has_method("handle_key") and bool(film_viewer.call("handle_key", event.keycode)):
+				get_viewport().set_input_as_handled()
+				return
+
 			var signal_dialogue := _get_signal_dialogue_window()
 			if _is_signal_dialogue_open(signal_dialogue):
 				signal_dialogue.call("hide_signal_message")
@@ -106,6 +122,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 		if event.keycode == KEY_F:
+			var film_viewer := get_tree().get_first_node_in_group("film_viewer")
+			if film_viewer != null and film_viewer.has_method("handle_key") and bool(film_viewer.call("handle_key", event.keycode)):
+				get_viewport().set_input_as_handled()
+				return
+
 			var signal_dialogue := _get_signal_dialogue_window()
 			if _is_signal_dialogue_open(signal_dialogue):
 				return
@@ -139,6 +160,9 @@ func _get_zoom_fov(base_fov: float) -> float:
 
 
 func _physics_process(delta: float) -> void:
+	var jump_pressed := Input.is_key_pressed(KEY_SPACE)
+	var jump_just_pressed := jump_enabled and jump_pressed and not _jump_was_pressed
+	_jump_was_pressed = jump_pressed
 	if controls_locked:
 		_hide_interaction_prompt()
 		velocity = Vector3.ZERO
@@ -148,7 +172,9 @@ func _physics_process(delta: float) -> void:
 	_update_crouch(delta)
 	var assisted_floor := _apply_landscape_ground_assist(true)
 
-	if not assisted_floor and not is_on_floor():
+	if jump_just_pressed and (assisted_floor or is_on_floor()):
+		velocity.y = jump_velocity
+	elif not assisted_floor and not is_on_floor():
 		velocity.y -= gravity * delta
 	else:
 		velocity.y = -0.1
@@ -523,6 +549,9 @@ func _update_crouch(delta: float) -> void:
 		_capsule_shape.height = current_height
 	if collision_shape != null:
 		collision_shape.position.y = current_height * 0.5
+	if shadow_proxy != null:
+		shadow_proxy.position.y = current_height * 0.5
+		shadow_proxy.scale.y = current_height / standing_height
 	if head != null:
 		head.position.y = lerpf(head.position.y, target_head_y, weight)
 

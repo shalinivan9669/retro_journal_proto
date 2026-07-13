@@ -5,6 +5,12 @@ const ALBASTY_RITUAL_HIDE_SECONDS := 600.0
 var albasty_ritual_completed := false
 var albasty_hidden_until_msec := 0
 
+# Session-persistent archive film progression. This autoload already survives
+# scene transitions, so a separate inventory/save singleton is unnecessary.
+var film_01_collected := false
+var film_01_viewed := false
+var film_01_fully_revealed := false
+
 
 func pacify_albasty_from_blood_ritual() -> void:
 	albasty_ritual_completed = true

@@ -26,6 +26,13 @@ func interact(dialogue_ui: Node) -> void:
 
 	if transition_delay > 0.0:
 		await get_tree().create_timer(transition_delay).timeout
+	var splash := get_tree().get_first_node_in_group("intro_splash")
+	if splash != null and splash.has_method("play_cutscene"):
+		splash.call("play_cutscene", "res://assets/videos/cutscenes/flor.ogv", Callable(self, "_change_scene"))
+	else:
+		_change_scene()
+
+func _change_scene() -> void:
 	get_tree().change_scene_to_file(target_scene_path)
 
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=56 format=3]
+[gd_scene load_steps=59 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="1_player"]
 [ext_resource type="PackedScene" path="res://scenes/objects/InteractableTV.tscn" id="2_tv"]
@@ -37,13 +37,16 @@
 [ext_resource type="PackedScene" path="res://scenes/characters/wizard_npc.tscn" id="36_wizard_npc"]
 [ext_resource type="PackedScene" path="res://scenes/environment/BalkhashLeftBackdrop.tscn" id="37_balkhash_left"]
 [ext_resource type="Script" path="res://scripts/visuals/yurt_visual_director.gd" id="38_yurt_visual_director"]
+[ext_resource type="PackedScene" path="res://scenes/props/YurtTVWallRug.tscn" id="39_tv_wall_rug"]
+[ext_resource type="PackedScene" path="res://scenes/props/YurtEntranceRug.tscn" id="40_entrance_rug"]
+[ext_resource type="PackedScene" path="res://scenes/interactables/film/FilmPickup.tscn" id="41_film_pickup"]
 
 [sub_resource type="Environment" id="Environment_room"]
 background_mode = 1
 background_color = Color(0.048, 0.052, 0.052, 1)
 ambient_light_source = 2
 ambient_light_color = Color(0.72, 0.64, 0.52, 1)
-ambient_light_energy = 0.96
+ambient_light_energy = 0.58
 fog_enabled = true
 fog_light_color = Color(0.52, 0.47, 0.38, 1)
 fog_density = 0.0016
@@ -126,29 +129,29 @@ script = ExtResource("38_yurt_visual_director")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.707107, -0.353553, 0.612372, 0, 0.866025, 0.5, -0.707107, -0.353553, 0.612372, 0, 11, 0)
-light_color = Color(0.95, 0.82, 0.62, 1)
-light_energy = 1.85
+light_color = Color(0.72, 0.58, 0.48, 1)
+light_energy = 1.35
 shadow_enabled = true
-shadow_blur = 7.0
-shadow_opacity = 0.22
+shadow_blur = 1.8
+shadow_opacity = 0.68
 
 [node name="RoomFillLight" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8.5, 0)
-light_color = Color(1, 0.78, 0.52, 1)
-light_energy = 4.2
-omni_range = 22.0
+light_color = Color(0.68, 0.57, 0.48, 1)
+light_energy = 0.9
+omni_range = 12.0
 
 [node name="YurtFloorBounceLight" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 1.25, 1.3)
 light_color = Color(0.82, 0.72, 0.58, 1)
-light_energy = 3.0
+light_energy = 0.55
 omni_range = 11.5
 shadow_enabled = false
 
 [node name="YurtEntranceWarmFill" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, -4.8)
 light_color = Color(0.9, 0.72, 0.52, 1)
-light_energy = 1.35
+light_energy = 0.62
 omni_range = 8.0
 shadow_enabled = false
 
@@ -167,6 +170,8 @@ sandstorm_sheet_alpha = 0.55
 
 [node name="SteppeEnvironment" type="Node3D" parent="."]
 script = ExtResource("12_steppe_builder")
+grass_density_multiplier = 0.12
+flora_visibility_range = 60.0
 
 [node name="BalkhashLeftBackdrop" parent="." instance=ExtResource("37_balkhash_left")]
 
@@ -323,10 +328,18 @@ surface_material_override/0 = ExtResource("17_yurt_wood")
 surface_material_override/0 = ExtResource("17_yurt_wood")
 
 [node name="YurtFloorRich" parent="." instance=ExtResource("22_yurt_floor")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.035, 0)
+position = Vector3(0, 0.08, 0)
 floor_radius = 9.35
 edge_irregularity = 0.025
 wave_strength = 0.008
+
+[node name="YurtEntranceRug" parent="." instance=ExtResource("40_entrance_rug")]
+position = Vector3(0, 0.105, -6.65)
+rotation_degrees = Vector3(0, 180, 0)
+
+[node name="ArchiveFilm01" parent="." instance=ExtResource("41_film_pickup")]
+position = Vector3(2.15, 0.06, -10.85)
+rotation_degrees = Vector3(0, -18, 0)
 
 [node name="YurtCollision" type="Node3D" parent="."]
 
@@ -401,10 +414,14 @@ shape = SubResource("BoxShape3D_yurt_entrance_top_collision")
 visible = false
 transform = Transform3D(-0.656059, 0, -0.75471, 0, 1, 0, 0.75471, 0, -0.656059, -6.45, 0.2, 5.45)
 
+[node name="YurtTVWallRug" parent="." instance=ExtResource("39_tv_wall_rug")]
+position = Vector3(-8.0, 2.3, 7.05)
+rotation_degrees = Vector3(0, 131, 0)
+
 [node name="SignalCenterGlow" type="OmniLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.3, 1.92, 5.35)
 light_color = Color(0.62, 0.92, 0.76, 1)
-light_energy = 0.76
+light_energy = 0.12
 omni_range = 4.2
 
 [node name="InteractableTV" parent="." instance=ExtResource("2_tv") groups=["vfx_tv_glitch"]]

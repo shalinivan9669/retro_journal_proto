@@ -6,11 +6,19 @@ Open this folder in Godot:
 
 `C:\GameDev\retro_journal_proto`
 
-Main scene:
+Project start scene (Lost Signal vertical slice):
+
+`res://scenes/lost_signal/road/NightDrive.tscn`
+
+The slice continues through the diner, optional restroom and forest, then loads the legacy main prototype:
 
 `res://scenes/Main.tscn`
 
-Quick run:
+Quick Lost Signal run:
+
+`RUN_LOST_SIGNAL_DEMO.bat`
+
+Legacy yurt helper:
 
 `RUN_TEXTURED_PROTOTYPE.bat`
 

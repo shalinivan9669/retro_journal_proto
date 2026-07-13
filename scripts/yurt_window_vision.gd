@@ -3,6 +3,7 @@ extends Node3D
 @export var player_path: NodePath = NodePath("../Player")
 @export var world_environment_path: NodePath = NodePath("../WorldEnvironment")
 @export var yurt_world_path: NodePath = NodePath("../CleanYurt/world")
+@export var window_wall_path: NodePath = NodePath("../CleanYurt/world/YurtWall_06")
 @export var hold_seconds: float = 2.0
 @export var flower_fade_seconds: float = 2.5
 @export var step_scene_seconds: float = 11.0
@@ -12,6 +13,11 @@ extends Node3D
 @export var trigger_size: Vector3 = Vector3(3.2, 2.4, 3.2)
 
 const WALL_ALBEDO_TEXTURE: Texture2D = preload("res://assets/textures/yurt/yurt_interior_weathered_felt_v2.png")
+const BLUE_LEGS_SCENE: PackedScene = preload("res://assets/models/blue_legs/blue_legs_rigged_animated.glb")
+const BLUE_LEGS_ANIMATION := &"stomp_alternating_loop"
+const BLUE_LEGS_SOURCE_ANIMATION := &"stomp_alternating"
+const BLUE_LEGS_POSITION := Vector3(22.0, 0.02, 0.0)
+const BLUE_LEGS_SCALE := 9.48436
 const FLOWER_COUNT := 180
 const WINDOW_RADIUS := 1.32
 const SAMPLE_RATE := 22050
@@ -55,8 +61,8 @@ var _vision_started := false
 var _vision_time := 0.0
 var _vision_root: Node3D
 var _fade_materials: Array[StandardMaterial3D] = []
-var _leg_left: Node3D
-var _leg_right: Node3D
+var _blue_legs: Node3D
+var _blue_legs_animation_player: AnimationPlayer
 var _step_timer := 0.0
 var _next_left_step := true
 var _rng := RandomNumberGenerator.new()
@@ -99,30 +105,24 @@ func _process(delta: float) -> void:
 
 
 func _apply_round_window_cutout() -> void:
-	var yurt_world := get_node_or_null(yurt_world_path)
-	if yurt_world == null:
+	var mesh_instance := get_node_or_null(window_wall_path) as MeshInstance3D
+	if mesh_instance == null:
+		push_warning("YurtWindowVision: configured window wall is missing: %s" % window_wall_path)
 		return
 
 	var shader := Shader.new()
 	shader.code = WALL_CUTOUT_SHADER
-	for child in yurt_world.get_children():
-		var mesh_instance := child as MeshInstance3D
-		if mesh_instance == null:
-			continue
-		if not String(mesh_instance.name).begins_with("YurtWall_"):
-			continue
-		var material := ShaderMaterial.new()
-		material.shader = shader
-		material.set_shader_parameter("hole_center", window_position)
-		material.set_shader_parameter("hole_radius", WINDOW_RADIUS)
-		material.set_shader_parameter("hole_x_half_width", 0.9)
-		material.set_shader_parameter("wall_color", Color(0.78, 0.74, 0.66, 1.0))
-		material.set_shader_parameter("albedo_texture", WALL_ALBEDO_TEXTURE)
-		material.set_shader_parameter("uv_scale", Vector2(1.6, 1.45))
-		material.set_shader_parameter("texture_strength", 1.0)
-		mesh_instance.visible = true
-		mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		mesh_instance.set_surface_override_material(0, material)
+	var material := ShaderMaterial.new()
+	material.shader = shader
+	material.set_shader_parameter("hole_center", window_position)
+	material.set_shader_parameter("hole_radius", WINDOW_RADIUS)
+	material.set_shader_parameter("hole_x_half_width", 0.9)
+	material.set_shader_parameter("wall_color", Color(0.68, 0.64, 0.56, 1.0))
+	material.set_shader_parameter("albedo_texture", WALL_ALBEDO_TEXTURE)
+	material.set_shader_parameter("uv_scale", Vector2(1.6, 1.45))
+	material.set_shader_parameter("texture_strength", 1.0)
+	mesh_instance.visible = true
+	mesh_instance.set_surface_override_material(0, material)
 
 
 func _build_round_window() -> void:
@@ -314,39 +314,84 @@ func _build_sunflower(base: Vector3, scale_factor: float) -> void:
 
 
 func _build_sky_feet() -> void:
-	_leg_left = _build_single_leg("LeftSkyLeg", Vector3(20.0, 14.0, -2.8))
-	_leg_right = _build_single_leg("RightSkyLeg", Vector3(24.0, 14.0, 2.8))
-	_vision_root.add_child(_leg_left)
-	_vision_root.add_child(_leg_right)
+	_blue_legs = BLUE_LEGS_SCENE.instantiate() as Node3D
+	if _blue_legs == null:
+		push_error("YurtWindowVision: blue legs GLB could not be instantiated")
+		return
+	_blue_legs.name = "BlueLegsRiggedAnimated"
+	_blue_legs.position = BLUE_LEGS_POSITION
+	_blue_legs.scale = Vector3.ONE * BLUE_LEGS_SCALE
+	_vision_root.add_child(_blue_legs)
+	_prepare_blue_legs_fade_materials(_blue_legs)
+	_blue_legs_animation_player = _find_animation_player(_blue_legs)
+	if _blue_legs_animation_player == null:
+		push_error("YurtWindowVision: blue legs AnimationPlayer is missing")
+		return
+	_ensure_blue_legs_animation_alias(_blue_legs_animation_player)
+	if _blue_legs_animation_player.has_animation(BLUE_LEGS_ANIMATION):
+		_blue_legs_animation_player.play(BLUE_LEGS_ANIMATION)
+	else:
+		push_error("YurtWindowVision: animation stomp_alternating_loop is missing")
 
 
-func _build_single_leg(node_name: String, start_position: Vector3) -> Node3D:
-	var leg := Node3D.new()
-	leg.name = node_name
-	leg.position = start_position
-	var blue_material := _make_fade_material(Color(0.08, 0.18, 0.82, 0.0), Color(0.02, 0.06, 0.35), 0.25)
+func _prepare_blue_legs_fade_materials(root: Node) -> void:
+	for node in _collect_descendants(root):
+		if not node is MeshInstance3D:
+			continue
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance.mesh == null:
+			continue
+		for surface_index in range(mesh_instance.mesh.get_surface_count()):
+			var source_material := mesh_instance.get_active_material(surface_index)
+			if not source_material is StandardMaterial3D:
+				continue
+			var fade_material := source_material.duplicate(true) as StandardMaterial3D
+			fade_material.resource_local_to_scene = true
+			fade_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			var color := fade_material.albedo_color
+			color.a = 0.0
+			fade_material.albedo_color = color
+			mesh_instance.set_surface_override_material(surface_index, fade_material)
+			_fade_materials.append(fade_material)
 
-	var shin := MeshInstance3D.new()
-	shin.name = "HugeBlueShin"
-	var shin_mesh := CylinderMesh.new()
-	shin_mesh.top_radius = 0.62
-	shin_mesh.bottom_radius = 0.85
-	shin_mesh.height = 18.0
-	shin_mesh.radial_segments = 7
-	shin.mesh = shin_mesh
-	shin.position.y = 8.5
-	shin.set_surface_override_material(0, blue_material)
-	leg.add_child(shin)
 
-	var foot := MeshInstance3D.new()
-	foot.name = "HugeBlueFoot"
-	var foot_mesh := BoxMesh.new()
-	foot_mesh.size = Vector3(2.2, 0.55, 4.2)
-	foot.mesh = foot_mesh
-	foot.position = Vector3(0.55, -0.05, 0.65)
-	foot.set_surface_override_material(0, blue_material)
-	leg.add_child(foot)
-	return leg
+func _find_animation_player(root: Node) -> AnimationPlayer:
+	if root is AnimationPlayer:
+		return root as AnimationPlayer
+	for child in root.get_children():
+		var found := _find_animation_player(child)
+		if found != null:
+			return found
+	return null
+
+
+func _ensure_blue_legs_animation_alias(player: AnimationPlayer) -> void:
+	if player.has_animation(BLUE_LEGS_ANIMATION):
+		var existing := player.get_animation(BLUE_LEGS_ANIMATION)
+		existing.loop_mode = Animation.LOOP_LINEAR
+		return
+	if not player.has_animation(BLUE_LEGS_SOURCE_ANIMATION):
+		return
+	var source := player.get_animation(BLUE_LEGS_SOURCE_ANIMATION)
+	var default_library := player.get_animation_library(&"")
+	if default_library == null:
+		default_library = AnimationLibrary.new()
+		player.add_animation_library(&"", default_library)
+	else:
+		var local_library := default_library.duplicate(true) as AnimationLibrary
+		player.remove_animation_library(&"")
+		player.add_animation_library(&"", local_library)
+		default_library = local_library
+	var looping_animation := source.duplicate(true) as Animation
+	looping_animation.loop_mode = Animation.LOOP_LINEAR
+	default_library.add_animation(BLUE_LEGS_ANIMATION, looping_animation)
+
+
+func _collect_descendants(root: Node) -> Array[Node]:
+	var nodes: Array[Node] = [root]
+	for child in root.get_children():
+		nodes.append_array(_collect_descendants(child))
+	return nodes
 
 
 func _update_vision(delta: float) -> void:
@@ -376,26 +421,10 @@ func _update_sky_steps(delta: float) -> void:
 
 	_step_timer -= delta
 	if _step_timer <= 0.0:
-		_step_timer = 1.35
-		var leg: Node3D = _leg_left if _next_left_step else _leg_right
+		_step_timer = 1.4
 		_next_left_step = not _next_left_step
-		_slam_leg(leg)
 		_push_rumble()
 		print("Sky footstep rumble")
-
-
-func _slam_leg(leg: Node3D) -> void:
-	if leg == null:
-		return
-	var tween: Tween = create_tween()
-	var x_shift: float = _rng.randf_range(0.6, 1.2)
-	var z_shift: float = _rng.randf_range(-1.2, 1.2)
-	leg.position.x += x_shift
-	leg.position.z += z_shift
-	leg.position.y = 14.0
-	tween.tween_property(leg, "position:y", 0.7, 0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_interval(0.28)
-	tween.tween_property(leg, "position:y", 13.5, 0.75).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 
 
 func _push_rumble() -> void:

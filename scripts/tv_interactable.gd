@@ -19,7 +19,12 @@ func interact(dialogue_ui: Node) -> void:
 
 	var current: int = int(manager.call("get_tv_channel"))
 	manager.call("set_tv_channel", current + 1)
-	_update_video(int(manager.call("get_tv_channel")), true)
+	var selected_channel := int(manager.call("get_tv_channel"))
+	_update_video(selected_channel, true)
+	if manager.has_method("try_activate_door_from_tv_selection"):
+		var door_activated := bool(manager.call("try_activate_door_from_tv_selection"))
+		if door_activated:
+			return
 	_show_dialogue(dialogue_ui, String(manager.call("get_tv_status_text")))
 
 

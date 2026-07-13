@@ -22,6 +22,7 @@ const MEDIA_TABLE_RADIO_POSITION := Vector3(0.27, MEDIA_TABLE_TOP_Y, 0.20)
 @export var replace_media_props_enabled: bool = true
 @export var add_bed_enabled: bool = true
 @export var add_exterior_props_enabled: bool = true
+@export var add_wall_flags_enabled: bool = false
 @export var debug_hide_textiles: bool = false
 @export var debug_hide_new_props: bool = false
 
@@ -71,7 +72,7 @@ func _apply_upgrade() -> void:
 	_fix_window_after_yurt_scale(scene)
 	_build_yurt_interior_lights(scene)
 
-	if not debug_hide_textiles:
+	if add_wall_flags_enabled and not debug_hide_textiles:
 		_build_wall_flags()
 
 	if not debug_hide_new_props:
@@ -115,7 +116,8 @@ func _apply_ceiling_material_recursive(node: Node) -> void:
 		var name := String(mesh_instance.name)
 		if _is_yurt_roof_mesh_name(name):
 			mesh_instance.set_surface_override_material(0, YURT_CEILING_MATERIAL)
-			mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			# The roof shell must contribute a readable exterior shadow.
+			mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	for child in node.get_children():
 		_apply_ceiling_material_recursive(child)
 
@@ -126,7 +128,8 @@ func _apply_wall_material_recursive(node: Node) -> void:
 		var name := String(mesh_instance.name)
 		if _is_yurt_wall_mesh_name(name):
 			mesh_instance.set_surface_override_material(0, YURT_WALL_MATERIAL)
-			mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			# Keep wall shadows enabled so the open steppe lighting reads the yurt volume.
+			mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	for child in node.get_children():
 		_apply_wall_material_recursive(child)
 
@@ -310,9 +313,9 @@ func _fix_window_after_yurt_scale(scene: Node) -> void:
 func _build_yurt_interior_lights(scene: Node) -> void:
 	# A restrained key/fill setup keeps the felt readable and avoids several
 	# full-room lights accumulating over every carpet pixel.
-	_add_spot_light("Phase2ShanyrakSunShaft", Vector3(0.0, 8.9, 0.0), Vector3(-90.0, 0.0, 0.0), Color(0.84, 0.88, 0.86, 1.0), 4.2, 13.0, 36.0)
-	_add_omni_light("Phase2DoorWarmSpill", Vector3(0.0, 2.25, -8.35), Color(1.0, 0.68, 0.38, 1.0), 1.15, 6.5)
-	_add_omni_light("Phase2WindowWarmSpill", Vector3(8.15 * yurt_scale_xz, 2.35, 0.85 * yurt_scale_xz), Color(0.72, 0.82, 0.90, 1.0), 0.65, 5.5)
+	_add_spot_light("Phase2ShanyrakSunShaft", Vector3(0.0, 8.9, 0.0), Vector3(-90.0, 0.0, 0.0), Color(0.72, 0.58, 0.48, 1.0), 1.65, 11.5, 34.0)
+	_add_omni_light("Phase2DoorWarmSpill", Vector3(0.0, 2.25, -8.35), Color(0.76, 0.54, 0.42, 1.0), 0.58, 6.0)
+	_add_omni_light("Phase2WindowWarmSpill", Vector3(8.15 * yurt_scale_xz, 2.35, 0.85 * yurt_scale_xz), Color(0.58, 0.68, 0.76, 1.0), 0.42, 5.0)
 
 
 func _add_spot_light(node_name: String, position: Vector3, rotation_degrees_value: Vector3, color: Color, energy: float, range_value: float, angle: float) -> void:

@@ -39,6 +39,13 @@ func trigger_from_radio() -> bool:
 	return evaluate_combo(SOURCE_RADIO)
 
 
+func try_activate_door_from_tv_selection() -> bool:
+	if current_tv_channel == 1 and current_radio_frequency == 2:
+		_activate_temporary_door()
+		return true
+	return false
+
+
 func evaluate_combo(trigger_source: String) -> bool:
 	var source := trigger_source.to_upper()
 
@@ -46,7 +53,9 @@ func evaluate_combo(trigger_source: String) -> bool:
 		_play_cube_memory_cutscene()
 		return true
 
-	if source == SOURCE_RADIO and current_tv_channel == 2 and current_radio_frequency == 3:
+	# The door combo is order-independent: TV 01 then RADIO 02, or RADIO 02
+	# then TV 01, must both reveal the same doorway.
+	if current_tv_channel == 1 and current_radio_frequency == 2:
 		_activate_temporary_door()
 		return true
 
@@ -127,7 +136,7 @@ func _activate_temporary_door() -> void:
 
 	var dialogue_ui := get_tree().get_first_node_in_group("dialogue_ui")
 	if dialogue_ui != null and dialogue_ui.has_method("show_message"):
-		dialogue_ui.call("show_message", "RADIO FR 03\nДверь появилась у стены.")
+		dialogue_ui.call("show_message", "RADIO FR 02 + TV CH 01\nДверь появилась у стены.")
 
 
 func _show_signal_dialogue(text: String) -> void:

@@ -58,13 +58,14 @@ const POLIGON_HORIZON_SHADER := preload("res://systems/tien_shan_backdrop/poligo
 
 @export_group("Poly Haven Landscape")
 @export var polyhaven_scatter_enabled: bool = true
-@export_range(0.0, 3.0, 0.1) var vegetation_density_multiplier: float = 0.7
-@export_range(0.0, 3.0, 0.1) var hero_asset_density_multiplier: float = 1.0
-@export var allow_heavy_hero_assets: bool = false
+@export_range(0.0, 3.0, 0.1) var vegetation_density_multiplier: float = 1.0
+@export_range(0.0, 1.0, 0.01) var grass_density_multiplier: float = 0.12
+@export_range(0.0, 3.0, 0.1) var hero_asset_density_multiplier: float = 1.5
+@export var allow_heavy_hero_assets: bool = true
 @export var use_lod_assets: bool = true
-@export var use_multimesh_flora: bool = false
+@export var use_multimesh_flora: bool = true
 @export_range(24.0, 96.0, 4.0) var flora_chunk_size: float = 40.0
-@export_range(60.0, 240.0, 10.0) var flora_visibility_range: float = 120.0
+@export_range(60.0, 240.0, 10.0) var flora_visibility_range: float = 200.0
 @export var enable_far_impostors: bool = true
 @export var ambient_fauna_enabled: bool = true
 
@@ -545,6 +546,7 @@ func _build_polyhaven_landscape() -> void:
 	scatter.name = "PolyHavenLandscapeScatter"
 	scatter.terrain_sampler = _terrain_sampler
 	scatter.density_multiplier = vegetation_density_multiplier
+	scatter.grass_density_multiplier = grass_density_multiplier
 	scatter.hero_density_multiplier = hero_asset_density_multiplier
 	scatter.allow_heavy_hero_assets = allow_heavy_hero_assets
 	scatter.use_lod_assets = use_lod_assets

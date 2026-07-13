@@ -108,7 +108,7 @@ func _apply_environment_preset() -> void:
 	_set_if_available(environment, "tonemap_white", 1.12)
 
 	_set_if_available(environment, "ambient_light_color", Color(0.72, 0.64, 0.52, 1.0))
-	_set_if_available(environment, "ambient_light_energy", 0.96)
+	_set_if_available(environment, "ambient_light_energy", 0.58)
 	_set_if_available(environment, "fog_enabled", true)
 	_set_if_available(environment, "fog_light_color", Color(0.52, 0.47, 0.38, 1.0))
 	_set_if_available(environment, "fog_density", 0.0016)
@@ -116,7 +116,7 @@ func _apply_environment_preset() -> void:
 
 	_set_if_available(environment, "adjustment_enabled", true)
 	_set_if_available(environment, "adjustment_contrast", 1.08)
-	_set_if_available(environment, "adjustment_saturation", 0.88)
+	_set_if_available(environment, "adjustment_saturation", 1.0)
 	# Godot uses brightness as a multiplier around 1.0; negative values crush the scene to black.
 	_set_if_available(environment, "adjustment_brightness", 0.98)
 
@@ -158,19 +158,19 @@ func _apply_environment_preset() -> void:
 func _apply_light_preset() -> void:
 	var directional_light := get_node_or_null(directional_light_path) as Light3D
 	if directional_light != null:
-		_set_if_available(directional_light, "light_energy", 1.85)
-		_set_if_available(directional_light, "light_color", Color(0.95, 0.82, 0.62, 1.0))
+		_set_if_available(directional_light, "light_energy", 1.35)
+		_set_if_available(directional_light, "light_color", Color(0.72, 0.58, 0.48, 1.0))
 		_set_if_available(directional_light, "shadow_enabled", true)
-		_set_if_available(directional_light, "shadow_blur", 7.0)
-		_set_if_available(directional_light, "shadow_opacity", 0.22)
+		_set_if_available(directional_light, "shadow_blur", 1.8)
+		_set_if_available(directional_light, "shadow_opacity", 0.68)
 		_set_if_available(directional_light, "directional_shadow_blend_splits", true)
 		_set_if_available(directional_light, "directional_shadow_max_distance", 64.0)
 
 	var room_fill_light := get_node_or_null(room_fill_light_path) as OmniLight3D
 	if room_fill_light != null:
-		_set_if_available(room_fill_light, "light_energy", 4.2)
-		_set_if_available(room_fill_light, "omni_range", 22.0)
-		_set_if_available(room_fill_light, "light_color", Color(1.0, 0.78, 0.52, 1.0))
+		_set_if_available(room_fill_light, "light_energy", 0.9)
+		_set_if_available(room_fill_light, "omni_range", 12.0)
+		_set_if_available(room_fill_light, "light_color", Color(0.68, 0.57, 0.48, 1.0))
 		_set_if_available(room_fill_light, "shadow_enabled", false)
 
 

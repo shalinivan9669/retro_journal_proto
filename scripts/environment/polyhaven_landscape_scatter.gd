@@ -14,6 +14,7 @@ const ZONE_PATH_EDGE := 6
 @export var terrain_sampler: Resource
 @export var player_path: NodePath
 @export var density_multiplier: float = 1.0
+@export_range(0.0, 1.0, 0.01) var grass_density_multiplier: float = 1.0
 @export var hero_density_multiplier: float = 1.0
 @export var allow_heavy_hero_assets: bool = true
 @export var use_lod_assets: bool = true
@@ -209,7 +210,7 @@ func _build_grass_patches() -> void:
 		Vector2(226.0, 20.0), Vector2(208.0, -176.0), Vector2(96.0, -226.0),
 		Vector2(-78.0, -232.0), Vector2(-184.0, -206.0), Vector2(166.0, -214.0)
 	]
-	var near_count := clampi(int(round(4800.0 * density_multiplier)), 0, 8200)
+	var near_count := clampi(int(round(4800.0 * grass_density_multiplier)), 0, 8200)
 	var near_transforms := _make_patch_transforms(near_yurt_centers, near_count, 0.35, 12.0, 1.0, 2.15, 0.008, false)
 	grass_count += _build_asset_variant_multimeshes(
 		"grass_medium_02",
@@ -220,7 +221,7 @@ func _build_grass_patches() -> void:
 		LEAF_MATERIAL
 	)
 
-	var steppe_count := clampi(int(round(3600.0 * density_multiplier)), 0, 6400)
+	var steppe_count := clampi(int(round(3600.0 * grass_density_multiplier)), 0, 6400)
 	var steppe_transforms := _make_patch_transforms(steppe_centers, steppe_count, 2.0, 24.0, 0.88, 1.95, 0.008, false)
 	grass_count += _build_asset_variant_multimeshes(
 		"grass_medium_02",
@@ -231,7 +232,7 @@ func _build_grass_patches() -> void:
 		LEAF_MATERIAL
 	)
 
-	var far_count := clampi(int(round(1700.0 * density_multiplier)), 0, 3400)
+	var far_count := clampi(int(round(1700.0 * grass_density_multiplier)), 0, 3400)
 	var far_transforms := _make_patch_transforms(far_steppe_centers, far_count, 8.0, 38.0, 0.72, 1.55, 0.008, false)
 	grass_count += _build_asset_variant_multimeshes(
 		"grass_medium_02",
@@ -252,7 +253,7 @@ func _build_lowland_reeds_like_patches() -> void:
 		Vector2(-248.0, 186.0),
 		Vector2(-244.0, -154.0)
 	]
-	var target_count := clampi(int(round(700.0 * density_multiplier)), 0, 1400)
+	var target_count := clampi(int(round(700.0 * grass_density_multiplier)), 0, 1400)
 	var transforms := _make_patch_transforms(centers, target_count, 4.0, 24.0, 0.82, 1.75, 0.015, false)
 	grass_count += _build_asset_variant_multimeshes(
 		"grass_medium_02",

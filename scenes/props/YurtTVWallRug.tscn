@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/props/yurt_tv_wall_rug.gd" id="1_script"]
+[ext_resource type="Material" path="res://materials/interior/mat_tv_wall_rug.tres" id="2_material"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_rail"]
+size = Vector3(5.34, 0.055, 0.055)
+
+[sub_resource type="StandardMaterial3D" id="Material_wood"]
+albedo_color = Color(0.105, 0.061, 0.035, 1)
+roughness = 0.9
+
+[node name="YurtTVWallRug" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="RugCloth" type="MeshInstance3D" parent="."]
+material_override = ExtResource("2_material")
+cast_shadow = 1
+
+[node name="TopWoodenRail" type="MeshInstance3D" parent="."]
+position = Vector3(0, 1.70, -0.018)
+mesh = SubResource("BoxMesh_rail")
+material_override = SubResource("Material_wood")
+cast_shadow = 1

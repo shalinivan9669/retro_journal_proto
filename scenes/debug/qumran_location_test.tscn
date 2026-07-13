@@ -1,0 +1,260 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://scripts/debug/qumran_location_test.gd" id="1_controller"]
+[ext_resource type="PackedScene" path="res://assets/environments/qumran/dead_sea_qumran.glb" id="2_qumran"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="3_player"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_qumran"]
+sky_top_color = Color(0.24, 0.31, 0.36, 1)
+sky_horizon_color = Color(0.67, 0.65, 0.58, 1)
+ground_bottom_color = Color(0.16, 0.14, 0.12, 1)
+ground_horizon_color = Color(0.56, 0.52, 0.45, 1)
+sun_angle_max = 18.0
+sun_curve = 0.08
+
+[sub_resource type="Sky" id="Sky_qumran"]
+sky_material = SubResource("ProceduralSkyMaterial_qumran")
+radiance_size = 3
+
+[sub_resource type="Environment" id="Environment_qumran"]
+background_mode = 2
+sky = SubResource("Sky_qumran")
+background_energy_multiplier = 0.58
+ambient_light_source = 3
+ambient_light_color = Color(0.62, 0.64, 0.62, 1)
+ambient_light_energy = 0.38
+reflected_light_source = 2
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.69, 0.66, 0.58, 1)
+fog_light_energy = 0.56
+fog_density = 0.007
+
+[sub_resource type="BoxShape3D" id="BoxShape_boundary_x"]
+size = Vector3(2, 60, 138)
+
+[sub_resource type="BoxShape3D" id="BoxShape_boundary_z"]
+size = Vector3(212, 60, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape_kill"]
+size = Vector3(260, 4, 190)
+
+[sub_resource type="StandardMaterial3D" id="Material_route_stone"]
+albedo_color = Color(0.31, 0.29, 0.25, 1)
+roughness = 0.96
+
+[sub_resource type="BoxMesh" id="BoxMesh_route_stone"]
+material = SubResource("Material_route_stone")
+size = Vector3(4, 0.8, 4)
+
+[sub_resource type="BoxShape3D" id="BoxShape_route_stone"]
+size = Vector3(4, 0.8, 4)
+
+[sub_resource type="StandardMaterial3D" id="Material_route_marker"]
+albedo_color = Color(0.64, 0.57, 0.39, 1)
+roughness = 0.82
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_route_marker"]
+material = SubResource("Material_route_marker")
+top_radius = 0.22
+bottom_radius = 0.48
+height = 3.0
+radial_segments = 8
+rings = 2
+
+[sub_resource type="SphereMesh" id="SphereMesh_route_cap"]
+material = SubResource("Material_route_marker")
+radius = 0.38
+height = 0.76
+radial_segments = 12
+rings = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_debug_panel"]
+bg_color = Color(0.025, 0.03, 0.032, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.62, 0.58, 0.46, 0.55)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="QumranLocationTest" type="Node3D"]
+script = ExtResource("1_controller")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_qumran")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.819152, -0.286788, 0.496732, 0, 0.866025, 0.5, -0.573576, -0.409576, 0.709406, 0, 22, 12)
+light_color = Color(0.94, 0.89, 0.77, 1)
+light_energy = 0.86
+light_angular_distance = 1.8
+shadow_enabled = true
+directional_shadow_max_distance = 180.0
+
+[node name="Terrain" type="Node3D" parent="."]
+
+[node name="VisualMesh" type="Node3D" parent="Terrain"]
+position = Vector3(1496.34, -8574.664, -6802.3)
+
+[node name="DeadSeaQumran" parent="Terrain/VisualMesh" instance=ExtResource("2_qumran")]
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Terrain"]
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+position = Vector3(-70, -2.7, 50)
+rotation = Vector3(0, -1.5708, 0)
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+position = Vector3(-70, -2.7, 50)
+rotation = Vector3(0, -1.5708, 0)
+walk_speed = 4.5
+sprint_multiplier = 1.55556
+gravity = 18.0
+jump_enabled = true
+jump_velocity = 6.0
+physics_floor_snap_length = 0.25
+landscape_ground_assist_enabled = false
+
+[node name="NavigationAndBoundaries" type="Node3D" parent="."]
+
+[node name="BoundaryCollisions" type="StaticBody3D" parent="NavigationAndBoundaries"]
+
+[node name="WestBoundary" type="CollisionShape3D" parent="NavigationAndBoundaries/BoundaryCollisions"]
+position = Vector3(-108, 0, 0)
+shape = SubResource("BoxShape_boundary_x")
+
+[node name="EastBoundary" type="CollisionShape3D" parent="NavigationAndBoundaries/BoundaryCollisions"]
+position = Vector3(108, 0, 0)
+shape = SubResource("BoxShape_boundary_x")
+
+[node name="NorthBoundary" type="CollisionShape3D" parent="NavigationAndBoundaries/BoundaryCollisions"]
+position = Vector3(0, 0, -69)
+shape = SubResource("BoxShape_boundary_z")
+
+[node name="SouthBoundary" type="CollisionShape3D" parent="NavigationAndBoundaries/BoundaryCollisions"]
+position = Vector3(0, 0, 69)
+shape = SubResource("BoxShape_boundary_z")
+
+[node name="KillPlane" type="Area3D" parent="NavigationAndBoundaries"]
+position = Vector3(0, -34, 0)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NavigationAndBoundaries/KillPlane"]
+shape = SubResource("BoxShape_kill")
+
+[node name="EnvironmentDetails" type="Node3D" parent="."]
+
+[node name="RouteJumpStones" type="Node3D" parent="EnvironmentDetails"]
+
+[node name="StoneA" type="MeshInstance3D" parent="EnvironmentDetails/RouteJumpStones"]
+position = Vector3(-31, -1.1, 30)
+rotation = Vector3(0.04, 0.19, -0.03)
+mesh = SubResource("BoxMesh_route_stone")
+
+[node name="StoneB" type="MeshInstance3D" parent="EnvironmentDetails/RouteJumpStones"]
+position = Vector3(-25, -3.2, 30.2)
+rotation = Vector3(-0.06, -0.12, 0.04)
+mesh = SubResource("BoxMesh_route_stone")
+
+[node name="StoneC" type="MeshInstance3D" parent="EnvironmentDetails/RouteJumpStones"]
+position = Vector3(-19, -5.2, 29.8)
+rotation = Vector3(0.03, 0.1, -0.02)
+mesh = SubResource("BoxMesh_route_stone")
+
+[node name="StoneD" type="MeshInstance3D" parent="EnvironmentDetails/RouteJumpStones"]
+position = Vector3(-13, -4.0, 30.1)
+rotation = Vector3(-0.02, -0.17, 0.03)
+mesh = SubResource("BoxMesh_route_stone")
+
+[node name="StoneCollisions" type="StaticBody3D" parent="EnvironmentDetails/RouteJumpStones"]
+
+[node name="StoneA" type="CollisionShape3D" parent="EnvironmentDetails/RouteJumpStones/StoneCollisions"]
+position = Vector3(-31, -1.1, 30)
+rotation = Vector3(0.04, 0.19, -0.03)
+shape = SubResource("BoxShape_route_stone")
+
+[node name="StoneB" type="CollisionShape3D" parent="EnvironmentDetails/RouteJumpStones/StoneCollisions"]
+position = Vector3(-25, -3.2, 30.2)
+rotation = Vector3(-0.06, -0.12, 0.04)
+shape = SubResource("BoxShape_route_stone")
+
+[node name="StoneC" type="CollisionShape3D" parent="EnvironmentDetails/RouteJumpStones/StoneCollisions"]
+position = Vector3(-19, -5.2, 29.8)
+rotation = Vector3(0.03, 0.1, -0.02)
+shape = SubResource("BoxShape_route_stone")
+
+[node name="StoneD" type="CollisionShape3D" parent="EnvironmentDetails/RouteJumpStones/StoneCollisions"]
+position = Vector3(-13, -4.0, 30.1)
+rotation = Vector3(-0.02, -0.17, 0.03)
+shape = SubResource("BoxShape_route_stone")
+
+[node name="StartGuide" type="MeshInstance3D" parent="EnvironmentDetails"]
+position = Vector3(-50, -0.9, 45)
+mesh = SubResource("CylinderMesh_route_marker")
+
+[node name="StartGuideCap" type="MeshInstance3D" parent="EnvironmentDetails"]
+position = Vector3(-50, 0.85, 45)
+mesh = SubResource("SphereMesh_route_cap")
+
+[node name="JumpGuide" type="MeshInstance3D" parent="EnvironmentDetails"]
+position = Vector3(-35, -0.2, 32)
+mesh = SubResource("CylinderMesh_route_marker")
+
+[node name="JumpGuideCap" type="MeshInstance3D" parent="EnvironmentDetails"]
+position = Vector3(-35, 1.55, 32)
+mesh = SubResource("SphereMesh_route_cap")
+
+[node name="RidgeGuide" type="MeshInstance3D" parent="EnvironmentDetails"]
+position = Vector3(35, 4.8, 45)
+mesh = SubResource("CylinderMesh_route_marker")
+
+[node name="RidgeGuideCap" type="MeshInstance3D" parent="EnvironmentDetails"]
+position = Vector3(35, 6.55, 45)
+mesh = SubResource("SphereMesh_route_cap")
+
+[node name="FinishGuide" type="MeshInstance3D" parent="EnvironmentDetails"]
+position = Vector3(92, 11.8, 50)
+mesh = SubResource("CylinderMesh_route_marker")
+
+[node name="FinishGuideCap" type="MeshInstance3D" parent="EnvironmentDetails"]
+position = Vector3(92, 13.55, 50)
+mesh = SubResource("SphereMesh_route_cap")
+
+[node name="DebugUI" type="CanvasLayer" parent="."]
+layer = 50
+
+[node name="Panel" type="PanelContainer" parent="DebugUI"]
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 330.0
+offset_bottom = 240.0
+theme_override_styles/panel = SubResource("StyleBox_debug_panel")
+
+[node name="Margin" type="MarginContainer" parent="DebugUI/Panel"]
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="DebugUI/Panel/Margin"]
+theme_override_constants/separation = 5
+
+[node name="Title" type="Label" parent="DebugUI/Panel/Margin/VBox"]
+theme_override_colors/font_color = Color(0.91, 0.86, 0.69, 1)
+theme_override_font_sizes/font_size = 18
+text = "Qumran terrain test"
+
+[node name="Controls" type="Label" parent="DebugUI/Panel/Margin/VBox"]
+theme_override_colors/font_color = Color(0.88, 0.88, 0.84, 1)
+theme_override_font_sizes/font_size = 14
+text = "WASD — движение\nShift — бег\nSpace — прыжок\nF11 — назад\nF12 — перезапустить\nСветлые столбы — маршрут"
+
+[node name="Stats" type="Label" parent="DebugUI/Panel/Margin/VBox"]
+theme_override_colors/font_color = Color(0.72, 0.82, 0.78, 1)
+theme_override_font_sizes/font_size = 13
+text = "FPS: --\nPosition: --\nOn floor: --\nSpeed: --"

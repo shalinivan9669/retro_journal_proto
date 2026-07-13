@@ -1,0 +1,5 @@
+Archive Night Barrage Pack
+Target engine: Godot 4.7 Forward+
+Pack version: 1.0.0
+Build date: 2026-07-13
+Deterministic seed: 667

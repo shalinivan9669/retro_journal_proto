@@ -41,6 +41,8 @@ dist/
 *.tga
 *.bmp
 *.dds
+# Oversized local HDRI source (984 MiB); never include it in Git history.
+/assets/textures/sky/overcast_soil_puresky_16k.exr
 *.exr
 *.hdr
 *.ktx

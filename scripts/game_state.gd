@@ -2,6 +2,8 @@ extends Node
 
 const ALBASTY_RITUAL_HIDE_SECONDS := 600.0
 
+signal film_archived(film_id: StringName, texture: Texture2D)
+
 var albasty_ritual_completed := false
 var albasty_hidden_until_msec := 0
 
@@ -10,6 +12,21 @@ var albasty_hidden_until_msec := 0
 var film_01_collected := false
 var film_01_viewed := false
 var film_01_fully_revealed := false
+
+var _film_archive: Dictionary = {}
+
+
+func archive_film(id: StringName, texture: Texture2D) -> void:
+	_film_archive[id] = texture
+	film_archived.emit(id, texture)
+
+
+func is_film_archived(id: StringName) -> bool:
+	return _film_archive.has(id)
+
+
+func get_archived_film_texture(id: StringName) -> Texture2D:
+	return _film_archive.get(id) as Texture2D
 
 
 func pacify_albasty_from_blood_ritual() -> void:

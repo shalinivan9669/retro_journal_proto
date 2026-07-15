@@ -1,0 +1,25 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=3]
+
+[ext_resource type="Shader" path="res://shaders/lost_signal/front_transition_backdrop.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/lost_signal/road/backplates/balkhash_left_4k.png" id="2_left"]
+[ext_resource type="Texture2D" path="res://assets/lost_signal/road/backplates/balkhash_left_emissive_4k.png" id="3_left_emissive"]
+[ext_resource type="Texture2D" path="res://assets/lost_signal/road/backplates/earth_ridge_right_4k.png" id="4_right"]
+[ext_resource type="Texture2D" path="res://assets/lost_signal/road/backplates/earth_ridge_right_emissive_4k.png" id="5_right_emissive"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/left_panorama = ExtResource("2_left")
+shader_parameter/left_emissive = ExtResource("3_left_emissive")
+shader_parameter/right_panorama = ExtResource("4_right")
+shader_parameter/right_emissive = ExtResource("5_right_emissive")
+shader_parameter/left_uv_rect = Vector4(0.5, 0.02, 0.326, 0.96)
+shader_parameter/right_uv_rect = Vector4(0.03, 0.02, 0.326, 0.96)
+shader_parameter/blend_start = 0.62
+shader_parameter/blend_end = 0.9
+shader_parameter/exposure = 0.6
+shader_parameter/emissive_strength = 0.15
+shader_parameter/haze_color = Color(0.025, 0.07, 0.09, 1)
+shader_parameter/haze_amount = 0.12
+shader_parameter/top_fade_start = 0.12
+shader_parameter/top_fade_end = 0.58
+shader_parameter/side_fade_width = 0.13

@@ -9,6 +9,9 @@ const SMOKE_TEXTURE := preload(
 const FLASH_TEXTURE := preload(
 	"res://addons/archive_barrage/assets/generated/fx/flash_radial_1k.png"
 )
+const DIRT_SPRAY_SCRIPT := preload(
+	"res://addons/archive_barrage/scripts/barrage_dirt_spray.gd"
+)
 const SLOWMO_HOLD_SECONDS := 0.30
 const SLOWMO_RECOVERY_SECONDS := 1.25
 const SLOWMO_COOLDOWN_MSEC := 1800
@@ -30,6 +33,8 @@ var _smoke_columns: Array[SmokeColumn] = []
 var _smoke_pool: Array[SmokeColumn] = []
 var _bursts: Array[BarrageFlashBurst] = []
 var _burst_pool: Array[BarrageFlashBurst] = []
+var _dirt_sprays: Array = []
+var _dirt_spray_pool: Array = []
 var _rng := RandomNumberGenerator.new()
 var _smoke_texture: Texture2D
 var _minor_shot_count := 38
@@ -132,6 +137,16 @@ func _process(delta: float) -> void:
 			burst.recycle()
 			_bursts.erase(burst)
 			_burst_pool.append(burst)
+
+	for dirt_spray in _dirt_sprays.duplicate():
+		if not is_instance_valid(dirt_spray):
+			_dirt_sprays.erase(dirt_spray)
+			continue
+		dirt_spray.advance(fx_delta)
+		if dirt_spray.is_finished():
+			dirt_spray.recycle()
+			_dirt_sprays.erase(dirt_spray)
+			_dirt_spray_pool.append(dirt_spray)
 
 	light_pool.advance(fx_delta, _trails, camera)
 	if environment_props != null:
@@ -238,7 +253,11 @@ func _spawn_shot(data: Dictionary) -> void:
 		_smoke_columns.append(smoke)
 
 
-func _on_trail_impact(world_position: Vector3, visual_importance: float) -> void:
+func _on_trail_impact(
+	world_position: Vector3,
+	incoming_velocity: Vector3,
+	visual_importance: float
+) -> void:
 	if terrain == null:
 		return
 	var impact_position := Vector3(
@@ -252,6 +271,7 @@ func _on_trail_impact(world_position: Vector3, visual_importance: float) -> void
 		camera, impact_position + Vector3.UP * 2.0, impact_energy, 1
 	)
 	_spawn_burst(impact_position, visual_importance, true)
+	_spawn_dirt_spray(impact_position, incoming_velocity, visual_importance)
 	if audio_director != null:
 		audio_director.queue_impact(impact_position, visual_importance)
 
@@ -291,6 +311,11 @@ func _reset_loop() -> void:
 			trail.recycle()
 			_trail_pool.append(trail)
 	_trails.clear()
+	for dirt_spray in _dirt_sprays:
+		if is_instance_valid(dirt_spray):
+			dirt_spray.recycle()
+			_dirt_spray_pool.append(dirt_spray)
+	_dirt_sprays.clear()
 
 
 func _prewarm_pools() -> void:
@@ -312,6 +337,12 @@ func _prewarm_pools() -> void:
 		burst.visible = false
 		add_child(burst)
 		_burst_pool.append(burst)
+	var dirt_reserve := 8 if _performance_mode else 14
+	while _dirt_spray_pool.size() + _dirt_sprays.size() < dirt_reserve:
+		var dirt_spray = DIRT_SPRAY_SCRIPT.new()
+		dirt_spray.visible = false
+		add_child(dirt_spray)
+		_dirt_spray_pool.append(dirt_spray)
 
 
 func _acquire_trail() -> BallisticTrail3D:
@@ -352,6 +383,30 @@ func _spawn_burst(position: Vector3, importance: float, impact: bool) -> void:
 		_rng.randi()
 	)
 	_bursts.append(burst)
+
+
+func _spawn_dirt_spray(
+	position: Vector3,
+	incoming_velocity: Vector3,
+	visual_importance: float
+) -> void:
+	var dirt_spray
+	if _dirt_spray_pool.is_empty():
+		dirt_spray = DIRT_SPRAY_SCRIPT.new()
+		add_child(dirt_spray)
+	else:
+		dirt_spray = _dirt_spray_pool.pop_back()
+	dirt_spray.configure(
+		camera,
+		terrain,
+		position,
+		incoming_velocity,
+		terrain.normal_at_world(position.x, position.z),
+		clampf(visual_importance, 0.08, 1.0),
+		_rng.randi(),
+		_performance_mode
+	)
+	_dirt_sprays.append(dirt_spray)
 
 
 func _trigger_slow_motion(strength: float) -> void:

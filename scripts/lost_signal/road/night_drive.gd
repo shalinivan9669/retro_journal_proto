@@ -1,5 +1,13 @@
 extends Node3D
 
+@export_range(0.0, 0.02, 0.0001) var camera_vibration_strength := 0.0025
+@export_range(40.0, 500.0, 1.0) var fog_distance := 210.0
+@export_range(1.0, 10.0, 0.5) var route_length_multiplier := 6.0
+
+const BASE_ARRIVAL_DISTANCE := 270.0
+const BASE_END_DISTANCE := 342.0
+const BASE_DINER_DISTANCE := 390.0
+
 @onready var vehicle: LostSignalVehicleInterior = $VehicleInterior
 @onready var road: LostSignalLoopingRoad = $LoopingRoad
 @onready var hud: LostSignalHUD = $LostSignalHUD
@@ -33,16 +41,20 @@ func _ready() -> void:
 
 
 func build_environment() -> void:
-	add_child(LostSignalVisualFactory.make_night_environment(0.006, 0.22))
-	LostSignalVisualFactory.make_star_field(self, 520, 185.0, 10227)
+	var balkhash_environment := BalkhashRoadEnvironment.new()
+	balkhash_environment.name = "DistantBackdrop"
+	balkhash_environment.fog_distance = fog_distance
+	add_child(balkhash_environment)
 	var moon := DirectionalLight3D.new()
 	moon.name = "MoonFill"
 	moon.rotation_degrees = Vector3(-36, -28, 0)
 	moon.light_color = Color(0.34, 0.46, 0.7)
-	moon.light_energy = 0.28
-	moon.shadow_enabled = false
+	moon.light_energy = 0.055
+	moon.light_volumetric_fog_energy = 0.02
+	moon.shadow_enabled = true
+	moon.directional_shadow_max_distance = 95.0
+	moon.directional_shadow_fade_start = 0.72
 	add_child(moon)
-	_build_distant_horizon()
 	_build_diner_proxy()
 
 
@@ -61,7 +73,7 @@ func _build_distant_horizon() -> void:
 func _build_diner_proxy() -> void:
 	_diner_proxy = Node3D.new()
 	_diner_proxy.name = "ArrivalDinerProxy"
-	_diner_proxy.position = Vector3(10.5, 0, -390)
+	_diner_proxy.position = Vector3(10.5, 0, -_diner_start_distance())
 	add_child(_diner_proxy)
 	var wall := LostSignalVisualFactory.material(Color(0.12, 0.13, 0.14), 0.72, 0.08)
 	var glass := LostSignalVisualFactory.material(Color(0.42, 0.58, 0.62), 0.18, 0.0, Color(0.86, 0.95, 1.0), 3.4)
@@ -94,18 +106,19 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if vehicle == null or road == null:
 		return
+	vehicle.update_headlight_motion(road.total_distance)
 	if not _dashcam.focused:
 		var weight := 1.0 - exp(-11.0 * delta)
 		vehicle.yaw_pivot.rotation.y = lerp_angle(vehicle.yaw_pivot.rotation.y, _yaw_target, weight)
 		vehicle.pitch_pivot.rotation.x = lerp_angle(vehicle.pitch_pivot.rotation.x, _pitch_target, weight)
 		var phase := road.total_distance * 0.19
-		vehicle.camera.position = _base_camera_position + Vector3(sin(phase * 0.73) * 0.0016, sin(phase) * 0.0025, 0)
+		vehicle.camera.position = _base_camera_position + Vector3(sin(phase * 0.73) * camera_vibration_strength * 0.64, sin(phase) * camera_vibration_strength, 0)
 
 
 func _on_distance_advanced(distance: float) -> void:
 	if _diner_proxy:
-		_diner_proxy.position.z = -390.0 + distance
-	if distance > 270.0 and not _arrival_started:
+		_diner_proxy.position.z = -_diner_start_distance() + distance
+	if distance > _arrival_distance() and not _arrival_started:
 		_arrival_started = true
 		LostSignalFlow.set_state(LostSignalFlow.FlowState.DINER_ARRIVAL)
 		hud.set_objective("Впереди придорожная закусочная")
@@ -114,11 +127,27 @@ func _on_distance_advanced(distance: float) -> void:
 		var engine := get_node_or_null("EngineLoop") as AudioStreamPlayer
 		if engine:
 			create_tween().tween_property(engine, "pitch_scale", 0.72, 4.0)
-	if distance > 342.0 and not LostSignalFlow.transition_in_progress:
+	if distance > _end_distance() and not LostSignalFlow.transition_in_progress:
 		hud.set_objective("")
 		hud.set_status("Парковка   •   Двигатель: холостой ход")
 		road.set_speed(0.0, 4.0)
 		LostSignalFlow.transition_to(LostSignalFlow.DINER_SCENE, LostSignalFlow.FlowState.DINER_ENTERING)
+
+
+func _route_extension() -> float:
+	return BASE_END_DISTANCE * (route_length_multiplier - 1.0)
+
+
+func _arrival_distance() -> float:
+	return BASE_ARRIVAL_DISTANCE + _route_extension()
+
+
+func _end_distance() -> float:
+	return BASE_END_DISTANCE * route_length_multiplier
+
+
+func _diner_start_distance() -> float:
+	return BASE_DINER_DISTANCE + _route_extension()
 
 
 func _exit_tree() -> void:

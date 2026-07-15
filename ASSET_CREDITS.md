@@ -1,5 +1,26 @@
 # Asset Credits
 
+## Two White Horses Riders
+
+- Source: two user-supplied `base_basic_pbr.glb` files
+- Project paths: `assets/film/two_white_horses/riders/white_rider_source.glb` and `black_rider_source.glb`
+- Use: static PBR rider manifestations in the Archive Night Barrage film reveal
+- License/author metadata: not embedded in the supplied filenames; retained as user-provided project assets
+
+## 2023 Chevrolet Traverse RS
+
+- Source: user-supplied `2023_chevrolet_traverse_rs.glb`
+- Use: F1/F4 vehicle exterior and interior model
+- License/author metadata: not embedded in the supplied filename; retained as a user-provided project asset
+
+## Poly Haven — Asphalt 02
+
+- Asset: `asphalt_02`
+- Author: Rob Tuytel / Poly Haven
+- Source: https://polyhaven.com/a/asphalt_02
+- License: CC0 1.0 Universal
+- Use: F1/F4 looping road surface PBR maps (4K JPG)
+
 Проверено 13 июля 2026 года. Ниже перечислены сторонние ассеты, фактически находящиеся в `res://assets/lost_signal/`. CC0 не требует атрибуции, но авторы и оригинальные страницы сохранены для происхождения и воспроизводимости. Перед релизом удалить строки payload-наборов, которые не используются ни одной финальной сценой.
 
 ## Creative Commons Zero / Public Domain

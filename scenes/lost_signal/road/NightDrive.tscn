@@ -1,15 +1,18 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scripts/lost_signal/road/night_drive.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/lost_signal/road/VehicleInterior.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/lost_signal/road/LoopingRoad.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/lost_signal/ui/LostSignalHUD.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/lost_signal/ui/BlinkOverlay.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/lost_signal/road/BackdropRig.tscn" id="6"]
 
 [node name="NightDrive" type="Node3D"]
 script = ExtResource("1")
 
 [node name="LoopingRoad" parent="." instance=ExtResource("3")]
+
+[node name="BackdropRig" parent="." instance=ExtResource("6")]
 
 [node name="VehicleInterior" parent="." instance=ExtResource("2")]
 

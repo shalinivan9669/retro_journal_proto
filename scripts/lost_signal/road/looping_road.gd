@@ -8,11 +8,15 @@ signal distance_advanced(total_distance: float)
 @export_range(0.0, 40.0, 0.1) var target_speed := 21.0
 @export_range(0.1, 20.0, 0.1) var acceleration := 3.0
 
-const SEGMENT_LENGTH := 60.0
-const SEGMENT_COUNT := 6
+const SEGMENT_LENGTH := 120.0
+const SEGMENT_COUNT := 5
+const ROAD_WIDTH := 8.6
 
 var segments: Array[Node3D] = []
 var total_distance := 0.0
+var _steppe_grass_mesh: Mesh
+var _steppe_bush_mesh: Mesh
+var _steppe_rock_mesh: Mesh
 
 
 func _ready() -> void:
@@ -27,7 +31,7 @@ func _physics_process(delta: float) -> void:
 	total_distance += travel
 	for segment in segments:
 		segment.position.z += travel
-		if segment.position.z > 31.0:
+		if segment.position.z > SEGMENT_LENGTH * 0.5 + 1.0:
 			segment.position.z -= SEGMENT_LENGTH * SEGMENT_COUNT
 	distance_advanced.emit(total_distance)
 
@@ -38,52 +42,124 @@ func set_speed(next_speed: float, rate := 3.0) -> void:
 
 
 func _build_segments() -> void:
-	var asphalt := load("res://assets/lost_signal/materials/road012c/Road012C_2K-JPG.tres") as StandardMaterial3D
-	if asphalt:
-		asphalt = asphalt.duplicate() as StandardMaterial3D
-		asphalt.uv1_scale = Vector3(1.9, 1.9, 1.9)
-		asphalt.albedo_color = Color(0.55, 0.59, 0.64)
-		asphalt.heightmap_enabled = false
-	else:
-		asphalt = LostSignalVisualFactory.material(Color(0.028, 0.032, 0.037), 0.86)
-	var shoulder := LostSignalVisualFactory.material(Color(0.055, 0.052, 0.045), 0.98)
-	var paint := LostSignalVisualFactory.material(
-		Color(0.56, 0.57, 0.52), 0.66, 0.0,
-		Color(0.22, 0.23, 0.2), 0.34
-	)
+	var shoulder := _make_steppe_material(Vector3(0.38, 3.8, 0.38))
+	var road_base := LostSignalVisualFactory.material(Color(0.018, 0.021, 0.025), 0.94)
 	var grass := LostSignalVisualFactory.material(
 		Color(0.035, 0.048, 0.035) if forest_mode else Color(0.075, 0.069, 0.05), 0.96
 	)
 	for index in SEGMENT_COUNT:
+		var asphalt := _make_asphalt_material(index)
 		var segment := Node3D.new()
 		segment.name = ("Forest" if forest_mode else "Road") + "Segment%02d" % index
-		segment.position.z = -30.0 - index * SEGMENT_LENGTH
+		segment.position.z = -SEGMENT_LENGTH * 0.5 - index * SEGMENT_LENGTH
 		add_child(segment)
 		segments.append(segment)
-		LostSignalVisualFactory.box(segment, "Asphalt", Vector3(7.4, 0.16, SEGMENT_LENGTH), Vector3(0, -0.12, 0), asphalt, Vector3.ZERO, false)
-		LostSignalVisualFactory.box(segment, "ShoulderL", Vector3(3.5, 0.12, SEGMENT_LENGTH), Vector3(-5.45, -0.16, 0), shoulder, Vector3.ZERO, false)
-		LostSignalVisualFactory.box(segment, "ShoulderR", Vector3(3.5, 0.12, SEGMENT_LENGTH), Vector3(5.45, -0.16, 0), shoulder, Vector3.ZERO, false)
-		LostSignalVisualFactory.box(segment, "GroundL", Vector3(20, 0.08, SEGMENT_LENGTH), Vector3(-16.5, -0.21, 0), grass, Vector3.ZERO, false)
-		LostSignalVisualFactory.box(segment, "GroundR", Vector3(20, 0.08, SEGMENT_LENGTH), Vector3(16.5, -0.21, 0), grass, Vector3.ZERO, false)
-		for mark_index in 6:
-			var z := -SEGMENT_LENGTH * 0.5 + 5.0 + mark_index * 10.0
-			LostSignalVisualFactory.box(segment, "CenterMark%02d" % mark_index, Vector3(0.12, 0.018, 4.1), Vector3(0, -0.025, z), paint, Vector3.ZERO, false)
-		for side in [-1.0, 1.0]:
-			LostSignalVisualFactory.box(segment, "EdgeLine%s" % side, Vector3(0.11, 0.02, SEGMENT_LENGTH), Vector3(3.25 * side, -0.022, 0), paint, Vector3.ZERO, false)
+		LostSignalVisualFactory.box(segment, "RoadFoundation", Vector3(ROAD_WIDTH, 0.16, SEGMENT_LENGTH), Vector3(0, -0.12, 0), road_base, Vector3.ZERO, false)
+		_build_asphalt_surface(segment, asphalt)
+		LostSignalVisualFactory.box(segment, "ShoulderL", Vector3(4.0, 0.12, SEGMENT_LENGTH), Vector3(-6.3, -0.16, 0), shoulder, Vector3.ZERO, false)
+		LostSignalVisualFactory.box(segment, "ShoulderR", Vector3(4.0, 0.12, SEGMENT_LENGTH), Vector3(6.3, -0.16, 0), shoulder, Vector3.ZERO, false)
+		LostSignalVisualFactory.box(segment, "GroundL", Vector3(64, 0.08, SEGMENT_LENGTH), Vector3(-40.3, -0.21, 0), grass if forest_mode else shoulder, Vector3.ZERO, false)
+		LostSignalVisualFactory.box(segment, "GroundR", Vector3(64, 0.08, SEGMENT_LENGTH), Vector3(40.3, -0.21, 0), grass if forest_mode else shoulder, Vector3.ZERO, false)
 		if forest_mode:
 			_build_forest_multimeshes(segment, index)
 		else:
-			_build_steppe_props(segment, index)
+			_build_steppe_details(segment, index)
 
 
-func _build_steppe_props(segment: Node3D, seed: int) -> void:
-	var post_mat := LostSignalVisualFactory.material(Color(0.16, 0.17, 0.16), 0.72, 0.45)
-	var reflector := LostSignalVisualFactory.material(Color(0.7, 0.65, 0.46), 0.4, 0.0, Color(0.8, 0.68, 0.42), 1.2)
-	for marker in 5:
-		var z := -24.0 + marker * 12.0 + float(seed % 2)
-		for side in [-1.0, 1.0]:
-			LostSignalVisualFactory.box(segment, "RoadPost", Vector3(0.08, 0.62, 0.08), Vector3(4.1 * side, 0.22, z), post_mat, Vector3.ZERO, false)
-			LostSignalVisualFactory.box(segment, "Reflector", Vector3(0.09, 0.09, 0.025), Vector3(4.06 * side, 0.42, z - 0.04), reflector, Vector3.ZERO, false)
+func _build_asphalt_surface(segment: Node3D, asphalt: ShaderMaterial) -> void:
+	# A dedicated upward-facing plane gives the Poly Haven maps stable,
+	# predictable UVs. The dark box below it only supplies road thickness.
+	var surface := MeshInstance3D.new()
+	surface.name = "PolyHavenAsphaltSurface"
+	var mesh := PlaneMesh.new()
+	mesh.size = Vector2(ROAD_WIDTH, SEGMENT_LENGTH)
+	mesh.subdivide_width = 24
+	mesh.subdivide_depth = 60
+	mesh.material = asphalt
+	surface.mesh = mesh
+	surface.position.y = -0.025
+	surface.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	segment.add_child(surface)
+
+
+func _make_asphalt_material(index: int) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = load("res://shaders/lost_signal_road_blend.gdshader") as Shader
+	var asphalt_root := "res://assets/lost_signal/materials/polyhaven/asphalt_02/"
+	var repair_root := "res://LostSignal_RoadScene_CodexPack/materials/road/"
+	material.set_shader_parameter("asphalt_albedo", load(asphalt_root + "asphalt_02_diff_4k.jpg"))
+	material.set_shader_parameter("asphalt_normal", load(asphalt_root + "asphalt_02_nor_gl_4k.jpg"))
+	material.set_shader_parameter("asphalt_roughness", load(asphalt_root + "asphalt_02_rough_4k.jpg"))
+	material.set_shader_parameter("asphalt_displacement", load(asphalt_root + "asphalt_02_disp_4k.jpg"))
+	material.set_shader_parameter("asphalt_ao", load(asphalt_root + "asphalt_02_ao_4k.jpg"))
+	material.set_shader_parameter("damage_normal", load(repair_root + "road_damaged/road_damaged_nor_gl_2k.jpg"))
+	material.set_shader_parameter("damage_mask", load(repair_root + "road_damage_blend_mask_2k.png"))
+	material.set_shader_parameter("repair_offset", Vector2(float(index) * 0.173, float(index) * 0.317))
+	material.set_shader_parameter("wave_phase", float(index) * 1.137)
+	return material
+
+
+func _make_steppe_material(uv_scale: Vector3) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	var root := "res://LostSignal_RoadScene_CodexPack/materials/steppe/dirt_aerial_03/"
+	material.albedo_texture = load(root + "dirt_aerial_03_diff_4k.jpg") as Texture2D
+	material.normal_enabled = true
+	material.normal_texture = load(root + "dirt_aerial_03_nor_gl_4k.jpg") as Texture2D
+	material.roughness_texture = load(root + "dirt_aerial_03_rough_4k.jpg") as Texture2D
+	material.roughness = 0.94
+	material.uv1_scale = uv_scale
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	return material
+
+
+func _build_steppe_details(segment: Node3D, seed: int) -> void:
+	if _steppe_grass_mesh == null:
+		_steppe_grass_mesh = _load_first_mesh("res://assets/polyhaven/processed/grass_medium_02_lod1.gltf")
+	if _steppe_bush_mesh == null:
+		_steppe_bush_mesh = _load_first_mesh("res://assets/polyhaven/processed/wild_rooibos_bush_lod1.gltf")
+	if _steppe_rock_mesh == null:
+		_steppe_rock_mesh = _load_first_mesh("res://assets/polyhaven/processed/coast_land_rocks_03_lod1.gltf")
+	var random := RandomNumberGenerator.new()
+	random.seed = 91037 + seed * 811
+	if _steppe_grass_mesh:
+		_add_steppe_multimesh(segment, "DryGrassTufts", _steppe_grass_mesh, 42, random, 5.3, 17.0, 0.90, 2.00, false)
+	if _steppe_bush_mesh:
+		_add_steppe_multimesh(segment, "LowSteppeScrub", _steppe_bush_mesh, 14, random, 6.0, 23.0, 0.42, 0.92, true)
+	if _steppe_rock_mesh:
+		_add_steppe_multimesh(segment, "ScatteredFieldStone", _steppe_rock_mesh, 7, random, 5.8, 19.0, 0.10, 0.28, true)
+
+
+func _add_steppe_multimesh(
+	segment: Node3D,
+	node_name: String,
+	mesh: Mesh,
+	count: int,
+	random: RandomNumberGenerator,
+	min_distance_from_centre: float,
+	max_distance_from_centre: float,
+	min_scale: float,
+	max_scale: float,
+	cast_shadows: bool
+) -> void:
+	var multimesh := MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.mesh = mesh
+	multimesh.instance_count = count
+	for item in count:
+		var side := -1.0 if item % 2 == 0 else 1.0
+		var x := side * random.randf_range(min_distance_from_centre, max_distance_from_centre)
+		var z := random.randf_range(-SEGMENT_LENGTH * 0.49, SEGMENT_LENGTH * 0.49)
+		var scale := random.randf_range(min_scale, max_scale)
+		var non_uniform_scale := Vector3(scale * random.randf_range(0.78, 1.25), scale, scale * random.randf_range(0.78, 1.25))
+		var basis := Basis.from_euler(Vector3(0.0, random.randf_range(-PI, PI), random.randf_range(-0.04, 0.04))).scaled(non_uniform_scale)
+		multimesh.set_instance_transform(item, Transform3D(basis, Vector3(x, -0.16, z)))
+	var instance := MultiMeshInstance3D.new()
+	instance.name = node_name
+	instance.multimesh = multimesh
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if cast_shadows else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	instance.visibility_range_end = 110.0 if cast_shadows else 82.0
+	instance.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+	segment.add_child(instance)
 
 
 func _build_forest_multimeshes(segment: Node3D, seed: int) -> void:

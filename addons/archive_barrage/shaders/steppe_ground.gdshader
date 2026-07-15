@@ -1,73 +1,61 @@
 shader_type spatial;
-render_mode depth_draw_opaque, cull_back;
+render_mode depth_draw_opaque, cull_disabled, diffuse_burley, specular_schlick_ggx;
 
-uniform sampler2D steppe_albedo : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
-uniform sampler2D steppe_normal : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
-uniform sampler2D steppe_roughness : hint_default_white, filter_linear_mipmap_anisotropic, repeat_enable;
-uniform sampler2D steppe_wet_mask : hint_default_black, filter_linear_mipmap_anisotropic, repeat_enable;
-uniform sampler2D steppe_ao : hint_default_white, filter_linear_mipmap_anisotropic, repeat_enable;
-uniform sampler2D steppe_height : hint_default_black, filter_linear_mipmap_anisotropic, repeat_enable;
+// Texture-free rollback material.  It stays safe when external texture assets
+// are unavailable, but remains lit so the terrain and barrage lights are legible.
+uniform vec3 solid_ground_color : source_color = vec3(0.155, 0.170, 0.185);
+uniform float macro_variation : hint_range(0.0, 0.25, 0.01) = 0.12;
+uniform float micro_variation : hint_range(0.0, 0.12, 0.005) = 0.045;
+uniform float roughness_floor : hint_range(0.75, 1.0, 0.01) = 0.92;
+uniform float residual_specular : hint_range(0.0, 0.3, 0.01) = 0.08;
 
-uniform sampler2D rock_albedo : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
-uniform sampler2D rock_normal : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
-uniform sampler2D rock_roughness : hint_default_white, filter_linear_mipmap_anisotropic, repeat_enable;
-uniform sampler2D rock_displacement : hint_default_black, filter_linear_mipmap_anisotropic, repeat_enable;
+varying vec3 ground_world_position;
 
-uniform float steppe_tiling = 220.0;
-uniform float rock_tiling = 675.0;
-uniform float rock_coverage = 0.12;
-uniform float night_albedo_scale = 1.0;
+float hash21(vec2 p) {
+	p = fract(p * vec2(123.34, 456.21));
+	p += dot(p, p + 45.32);
+	return fract(p.x * p.y);
+}
 
-mat2 rotation_2d(float angle) {
-	float c = cos(angle);
-	float s = sin(angle);
-	return mat2(vec2(c, -s), vec2(s, c));
+float value_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(
+		mix(hash21(i), hash21(i + vec2(1.0, 0.0)), f.x),
+		mix(hash21(i + vec2(0.0, 1.0)), hash21(i + vec2(1.0, 1.0)), f.x),
+		f.y
+	);
+}
+
+float fbm(vec2 p) {
+	float result = 0.0;
+	float amplitude = 0.5;
+	mat2 rotation = mat2(vec2(0.80, -0.60), vec2(0.60, 0.80));
+	for (int octave = 0; octave < 4; octave++) {
+		result += value_noise(p) * amplitude;
+		p = rotation * p * 2.03 + vec2(17.1, 9.2);
+		amplitude *= 0.5;
+	}
+	return result;
+}
+
+void vertex() {
+	ground_world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
 void fragment() {
-	vec2 uv_ground = UV * steppe_tiling;
-	vec2 uv_rock_a = UV * rock_tiling;
-	vec2 uv_rock_b = rotation_2d(0.73) * (UV - vec2(0.5)) * (rock_tiling * 0.61);
+	float broad = fbm(ground_world_position.xz * 0.045);
+	float grit = value_noise(ground_world_position.xz * 3.1 + vec2(11.2, -6.7));
+	float tone = mix(1.0 - macro_variation, 1.0 + macro_variation * 0.55, broad);
+	tone *= 1.0 + (grit - 0.5) * micro_variation;
 
-	vec3 ground_color = texture(steppe_albedo, uv_ground).rgb;
-	vec3 ground_normal = texture(steppe_normal, uv_ground).rgb;
-	float ground_rough = texture(steppe_roughness, uv_ground).r;
-	float wet = texture(steppe_wet_mask, uv_ground * 0.23).r;
-	float ground_ao = texture(steppe_ao, uv_ground).r;
-	float micro_height = texture(steppe_height, uv_ground).r;
-
-	vec3 rock_a = texture(rock_albedo, uv_rock_a).rgb;
-	vec3 rock_b = texture(rock_albedo, uv_rock_b).rgb;
-	vec3 rock_color = mix(rock_a, rock_b, 0.34);
-	rock_color = max(rock_color, ground_color * 0.68);
-	vec3 rock_n = texture(rock_normal, uv_rock_a).rgb;
-	float rock_rough = texture(rock_roughness, uv_rock_a).r;
-	float rock_height = texture(rock_displacement, UV * 27.5).r;
-
-	// Keep rocky variation at a terrain-detail scale.  The old low-frequency
-	// mask made single near-black regions more than a hundred metres wide.
-	float patch_noise = texture(rock_displacement, UV * 46.7 + vec2(0.17, 0.31)).r;
-	float coverage = clamp(rock_coverage, 0.0, 0.35);
-	float patch_threshold = mix(0.92, 0.54, coverage / 0.35);
-	float rock_mask = smoothstep(
-		patch_threshold,
-		patch_threshold + 0.12,
-		patch_noise + rock_height * 0.18
+	ALBEDO = solid_ground_color * tone;
+	ROUGHNESS = clamp(
+		mix(roughness_floor, 0.99, clamp(grit * 0.75 + broad * 0.25, 0.0, 1.0)),
+		roughness_floor,
+		1.0
 	);
-	rock_mask *= (1.0 - wet * 0.74) * 0.62;
-
-	vec3 color = mix(ground_color, rock_color, rock_mask);
-	color *= mix(0.91, 1.045, micro_height);
-	color *= night_albedo_scale;
-	color *= mix(1.0, 0.82, wet);
-	color = max(color, vec3(0.028, 0.030, 0.032));
-
-	ALBEDO = color;
-	NORMAL_MAP = mix(ground_normal, rock_n, rock_mask);
-	NORMAL_MAP_DEPTH = mix(0.46, 0.82, rock_mask);
-	ROUGHNESS = mix(mix(ground_rough, rock_rough, rock_mask), 0.075, wet);
-	SPECULAR = mix(0.28, 0.82, wet);
 	METALLIC = 0.0;
-	AO = mix(max(ground_ao, 0.68), min(max(ground_ao, 0.68), 0.84), rock_mask);
-	AO_LIGHT_AFFECT = 0.38;
+	SPECULAR = residual_specular;
 }

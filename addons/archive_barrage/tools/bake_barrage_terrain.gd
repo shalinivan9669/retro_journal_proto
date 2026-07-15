@@ -14,6 +14,7 @@ func _bake_all_profiles() -> void:
 
 func _bake_profile(performance_mode: bool) -> bool:
 	var terrain := BarrageTerrain.new()
+	terrain.film_reveal_hill_enabled = false
 	root.add_child(terrain)
 	terrain.build(performance_mode, true, false)
 	var terrain_mesh := terrain.mesh as ArrayMesh

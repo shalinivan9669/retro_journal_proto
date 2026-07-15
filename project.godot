@@ -44,6 +44,10 @@ menu_option_3={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"physical_keycode":51,"unicode":51)]
 }
+film_slot_4={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":52,"unicode":52)]
+}
 cancel={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"physical_keycode":4194305)]
@@ -56,6 +60,10 @@ debug_return_from_test_scene={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"physical_keycode":4194342)]
 }
+
+[layer_names]
+
+3d_physics/layer_27="FilmRevealTarget"
 
 [rendering]
 

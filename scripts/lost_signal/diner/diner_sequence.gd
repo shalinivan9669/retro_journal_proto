@@ -5,6 +5,50 @@ const POLYHAVEN_DRAWER_CABINET: PackedScene = preload("res://assets/polyhaven/di
 const POLYHAVEN_DISPLAY_SHELVES: PackedScene = preload("res://assets/polyhaven/diner/wooden_display_shelves_01/wooden_display_shelves_01_2k.gltf")
 const POLYHAVEN_ARM_CHAIR: PackedScene = preload("res://assets/polyhaven/diner/modern_arm_chair_01/modern_arm_chair_01_2k.gltf")
 const DINER_FLOOR_MATERIAL: Material = preload("res://materials/lost_signal/diner/mat_diner_floor_wood.tres")
+const WOMAN_WAITRESS_SCENE: PackedScene = preload(
+	"res://assets/lost_signal/characters/woman_catwalk/woman_catwalk_pbr.tscn"
+)
+const WAITRESS_MODEL_SCALE := 1.3
+const WAITRESS_CASHIER_POSITION := Vector3(-1.4, 0.0, -9.85)
+const WAITRESS_SERVICE_HOME := Vector3(3.2, 0.0, -10.0)
+const WAITRESS_OPPOSITE_TABLE_POSITION := Vector3(0.5, 0.0, -5.2)
+const DINER_ZOOM_MULTIPLIER := 3.0
+const DINER_ZOOM_SPEED := 11.0
+const FREE_CAMERA_WALK_SPEED := 3.8
+const FREE_CAMERA_SPRINT_SPEED := 6.2
+const FREE_CAMERA_CROUCH_OFFSET := 0.58
+
+const WAITRESS_DELIVERY_ROUTE: Array[Vector3] = [
+	Vector3(5.2, 0.0, -10.0),
+	Vector3(6.5, 0.0, -9.8),
+	Vector3(7.7, 0.0, -8.7),
+	Vector3(7.8, 0.0, -5.3),
+	Vector3(4.5, 0.0, -4.9),
+	Vector3(2.2, 0.0, -4.7),
+	Vector3(2.2, 0.0, -3.5),
+]
+const WAITRESS_RETURN_ROUTE: Array[Vector3] = [
+	Vector3(2.2, 0.0, -3.5),
+	Vector3(2.2, 0.0, -4.7),
+	Vector3(4.5, 0.0, -4.9),
+	Vector3(7.8, 0.0, -5.3),
+	Vector3(7.7, 0.0, -8.7),
+	Vector3(6.5, 0.0, -9.8),
+	Vector3(5.2, 0.0, -10.0),
+	Vector3(3.2, 0.0, -10.0),
+]
+const WAITRESS_FOREGROUND_ROUTE: Array[Vector3] = [
+	Vector3(5.2, 0.0, -10.0),
+	Vector3(6.5, 0.0, -9.8),
+	Vector3(7.7, 0.0, -8.7),
+	Vector3(7.8, 0.0, -5.3),
+	Vector3(5.2, 0.0, -4.9),
+	Vector3(3.2, 0.0, -4.9),
+]
+const WAITRESS_FINAL_TABLE_ROUTE: Array[Vector3] = [
+	Vector3(2.2, 0.0, -5.2),
+	WAITRESS_OPPOSITE_TABLE_POSITION,
+]
 
 enum DinerState {
 	ENTERING,
@@ -34,6 +78,7 @@ var _characters: Array[Node3D] = []
 var _cashier: Node3D
 var _server: Node3D
 var _server_home := Vector3.ZERO
+var _waitress_cycle_running := false
 var _meal_root: Node3D
 var _meal_states: Dictionary = {}
 var _menu_layer: CanvasLayer
@@ -45,6 +90,8 @@ var _pitch_target := 0.0
 var _walking := false
 var _walk_phase := 0.0
 var _base_camera_offset := Vector3.ZERO
+var _base_camera_fov := 70.0
+var _zoom_held := false
 var _cashier_press := 0.0
 var _diner_tables_root: Node3D
 var _diner_decor_root: Node3D
@@ -69,7 +116,10 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_animate_characters(delta)
-	if _walking:
+	_update_camera_zoom(delta)
+	if _is_free_camera_active():
+		_update_free_camera_movement(delta)
+	elif _walking:
 		_walk_phase += delta * 11.4
 		_camera.position = _base_camera_offset + Vector3(sin(_walk_phase * 0.5) * 0.004, abs(sin(_walk_phase)) * 0.016, 0)
 	else:
@@ -85,7 +135,52 @@ func _process(delta: float) -> void:
 			arm.rotation_degrees.x = lerpf(-34.0, 0.0, 1.0 - _cashier_press / 0.55)
 
 
+func _update_camera_zoom(delta: float) -> void:
+	if _camera == null:
+		return
+	var target_fov := _base_camera_fov
+	if _zoom_held:
+		var half_angle := deg_to_rad(_base_camera_fov) * 0.5
+		target_fov = rad_to_deg(atan(tan(half_angle) / DINER_ZOOM_MULTIPLIER) * 2.0)
+	var weight := 1.0 - exp(-DINER_ZOOM_SPEED * delta)
+	_camera.fov = lerpf(_camera.fov, target_fov, weight)
+
+
+func _is_free_camera_active() -> bool:
+	return state == DinerState.AFTER_MEAL and not LostSignalFlow.transition_in_progress
+
+
+func _update_free_camera_movement(delta: float) -> void:
+	var direction := Vector3.ZERO
+	var forward := -_look_yaw.global_transform.basis.z
+	var right := _look_yaw.global_transform.basis.x
+	forward.y = 0.0
+	right.y = 0.0
+	forward = forward.normalized()
+	right = right.normalized()
+	if Input.is_key_pressed(KEY_W):
+		direction += forward
+	if Input.is_key_pressed(KEY_S):
+		direction -= forward
+	if Input.is_key_pressed(KEY_D):
+		direction += right
+	if Input.is_key_pressed(KEY_A):
+		direction -= right
+	if direction.length_squared() > 0.0:
+		var speed := FREE_CAMERA_SPRINT_SPEED if Input.is_key_pressed(KEY_SHIFT) else FREE_CAMERA_WALK_SPEED
+		_camera_rig.global_position += direction.normalized() * speed * delta
+
+	var crouching := Input.is_key_pressed(KEY_CTRL)
+	var target_offset := Vector3(0.0, -FREE_CAMERA_CROUCH_OFFSET if crouching else 0.0, 0.0)
+	_camera.position = _camera.position.lerp(target_offset, clampf(delta * 12.0, 0.0, 1.0))
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	var mouse_button := event as InputEventMouseButton
+	if mouse_button and mouse_button.button_index == MOUSE_BUTTON_RIGHT:
+		_zoom_held = mouse_button.pressed
+		get_viewport().set_input_as_handled()
+		return
 	if state == DinerState.MENU and not _order_locked:
 		if event.is_action_pressed("menu_option_1"):
 			_choose_order(&"lagman", 0)
@@ -100,19 +195,23 @@ func _unhandled_input(event: InputEvent) -> void:
 	if state == DinerState.AFTER_MEAL and not LostSignalFlow.transition_in_progress:
 		if event.is_action_pressed("restroom"):
 			_go_to_restroom()
+			get_viewport().set_input_as_handled()
+			return
 		elif event.is_action_pressed("interact"):
 			_return_to_car()
-		else:
+			get_viewport().set_input_as_handled()
 			return
-		get_viewport().set_input_as_handled()
-		return
 	if LostSignalInputLock.is_locked():
 		return
 	var motion := event as InputEventMouseMotion
 	if motion:
-		var yaw_limit := 18.0 if _walking else 28.0
-		_yaw_target = clampf(_yaw_target - motion.relative.x * 0.00165, deg_to_rad(-yaw_limit), deg_to_rad(yaw_limit))
-		_pitch_target = clampf(_pitch_target - motion.relative.y * 0.00165, deg_to_rad(-13), deg_to_rad(18))
+		if _is_free_camera_active():
+			_yaw_target -= motion.relative.x * 0.00165
+			_pitch_target = clampf(_pitch_target - motion.relative.y * 0.00165, deg_to_rad(-80), deg_to_rad(80))
+		else:
+			var yaw_limit := 18.0 if _walking else 28.0
+			_yaw_target = clampf(_yaw_target - motion.relative.x * 0.00165, deg_to_rad(-yaw_limit), deg_to_rad(yaw_limit))
+			_pitch_target = clampf(_pitch_target - motion.relative.y * 0.00165, deg_to_rad(-13), deg_to_rad(18))
 
 
 func _build_environment() -> void:
@@ -407,15 +506,42 @@ func _build_characters() -> void:
 	var character_root := Node3D.new()
 	character_root.name = "Characters"
 	add_child(character_root)
-	_cashier = _spawn_animated_character(
-		character_root,
-		"res://assets/lost_signal/diner/quaternius_sushi_restaurant/characters/Rabbit_Grey.gltf",
-		"CashierRabbit", Vector3(-1.4, 0, -9.85), 0.43, 180.0, &"Idle", 0.8
-	)
-	if _cashier == null:
-		_cashier = LostSignalVisualFactory.build_anthro_character(character_root, "CashierFox", Vector3(-1.4, 0, -9.85), Color(0.34, 0.12, 0.055), Color(0.055, 0.09, 0.1), true, true)
-		_cashier.rotation_degrees.y = 180.0
-	_characters.append(_cashier)
+	var waitress_model := WOMAN_WAITRESS_SCENE.instantiate() as Node3D
+	if waitress_model != null:
+		var waitress_route := WomanWaitressRoute.new()
+		waitress_route.name = "WomanCashierAndWaitress"
+		waitress_route.position = WAITRESS_CASHIER_POSITION
+		character_root.add_child(waitress_route)
+		waitress_model.name = "WomanWaitressPBR"
+		waitress_model.scale = Vector3.ONE * WAITRESS_MODEL_SCALE
+		waitress_route.add_child(waitress_model)
+		waitress_route.configure(waitress_model)
+		_cashier = waitress_route
+		_server = waitress_route
+		_server_home = WAITRESS_SERVICE_HOME
+	else:
+		_cashier = _spawn_animated_character(
+			character_root,
+			"res://assets/lost_signal/diner/quaternius_sushi_restaurant/characters/Rabbit_Grey.gltf",
+			"CashierRabbit",
+			WAITRESS_CASHIER_POSITION,
+			0.43,
+			180.0,
+			&"Idle",
+			0.8
+		)
+		if _cashier == null:
+			_cashier = LostSignalVisualFactory.build_anthro_character(
+				character_root,
+				"CashierFox",
+				WAITRESS_CASHIER_POSITION,
+				Color(0.34, 0.12, 0.055),
+				Color(0.055, 0.09, 0.1),
+				true,
+				true
+			)
+			_cashier.rotation_degrees.y = 180.0
+		_characters.append(_cashier)
 	var cat := LostSignalVisualFactory.build_anthro_character(character_root, "CatVisitor", Vector3(-6.6, 0, -3.15), Color(0.18, 0.16, 0.15), Color(0.11, 0.13, 0.14), true, true)
 	cat.scale = Vector3.ONE * 0.92
 	cat.rotation_degrees.y = 12.0
@@ -430,16 +556,19 @@ func _build_characters() -> void:
 		rabbit.scale = Vector3.ONE * 0.95
 		rabbit.rotation_degrees.y = -20.0
 	_characters.append(rabbit)
-	_server = _spawn_animated_character(
-		character_root,
-		"res://assets/lost_signal/diner/quaternius_sushi_restaurant/characters/Rabbit_Cyan.gltf",
-		"RabbitServer", Vector3(3.2, 0, -10.0), 0.43, 180.0, &"Idle_Holding", 4.1
-	)
 	if _server == null:
-		_server = LostSignalVisualFactory.build_anthro_character(character_root, "PandaServer", Vector3(3.2, 0, -10.0), Color(0.78, 0.78, 0.72), Color(0.09, 0.11, 0.12), true, false)
+		_server = LostSignalVisualFactory.build_anthro_character(
+			character_root,
+			"FallbackServer",
+			WAITRESS_SERVICE_HOME,
+			Color(0.78, 0.78, 0.72),
+			Color(0.09, 0.11, 0.12),
+			true,
+			false
+		)
 		_server.rotation_degrees.y = 180.0
-	_server_home = _server.position
-	_characters.append(_server)
+		_characters.append(_server)
+		_server_home = _server.position
 	_build_npc_props(cat, rabbit)
 
 
@@ -508,6 +637,7 @@ func _build_camera_and_paths() -> void:
 	_camera.name = "CinematicCamera"
 	_camera.current = true
 	_camera.fov = 70.0
+	_base_camera_fov = _camera.fov
 	_camera.near = 0.05
 	_camera.far = 180.0
 	_look_pitch.add_child(_camera)
@@ -743,16 +873,23 @@ func _choose_order(order_id: StringName, index: int) -> void:
 	for button in _menu_buttons:
 		button.disabled = true
 	_cashier_press = 0.55
-	_play_character_animation(_cashier, &"Punch")
+	var woman_cashier := _cashier is WomanWaitressRoute
+	if woman_cashier:
+		(_cashier as WomanWaitressRoute).play_gesture(&"Look_Back_Over_Shoulder")
+	else:
+		_play_character_animation(_cashier, &"Punch")
 	LostSignalProceduralAmbience.play_one_shot(
 		self,
 		"res://assets/lost_signal/audio/generated/lost_signal_register_oneshot.wav",
 		&"SFX", -6.0
 	)
 	await get_tree().create_timer(0.58).timeout
-	_play_character_animation(_cashier, &"Idle", 1.3)
+	if not woman_cashier:
+		_play_character_animation(_cashier, &"Idle", 1.3)
 	hud.show_subtitle("Кассир", "Спасибо за выбор. Ас болсын.", 2.8)
 	await get_tree().create_timer(2.85).timeout
+	if woman_cashier:
+		(_cashier as WomanWaitressRoute).play_idle()
 	var tween := create_tween()
 	tween.tween_property(_menu_panel, "modulate:a", 0.0, 0.22)
 	await tween.finished
@@ -788,6 +925,7 @@ func _run_meal_sequence() -> void:
 	_set_meal_stage(&"full")
 	LostSignalFlow.set_state(LostSignalFlow.FlowState.DINER_FOOD_DELIVERED)
 	hud.show_subtitle("Сотрудник", "Ваш заказ.", 2.1)
+	_run_waitress_return_and_foreground_pass()
 	await get_tree().create_timer(2.25).timeout
 	state = DinerState.EATING
 	LostSignalFlow.set_state(LostSignalFlow.FlowState.DINER_EATING)
@@ -802,6 +940,8 @@ func _run_meal_sequence() -> void:
 	hud.set_status("Тихий звон приборов   •   %s" % LostSignalFlow.order_display_name())
 	await get_tree().create_timer(1.45).timeout
 	await _blink_to_meal_stage(&"empty")
+	while _waitress_cycle_running and is_inside_tree():
+		await get_tree().process_frame
 	LostSignalFlow.meal_finished = true
 	LostSignalFlow.set_state(LostSignalFlow.FlowState.DINER_AFTER_MEAL)
 	_pitch_target = deg_to_rad(-5.0)
@@ -811,18 +951,63 @@ func _run_meal_sequence() -> void:
 
 func _start_server_delivery() -> void:
 	_server.position = _server_home
+	_server.rotation.y = 0.0
 	_server.visible = true
-	_play_character_animation(_server, &"Walk_Holding", 0.4)
+	if _server is WomanWaitressRoute:
+		(_server as WomanWaitressRoute).play_idle()
+	else:
+		_play_character_animation(_server, &"Walk_Holding", 0.4)
 
 
 func _move_server_to_table() -> void:
-	var path_points := [Vector3(3.2, 0, -9.8), Vector3(3.1, 0, -6.0), Vector3(2.4, 0, -4.2), Vector3(1.2, 0, -3.1)]
+	if _server is WomanWaitressRoute:
+		await (_server as WomanWaitressRoute).walk_points(WAITRESS_DELIVERY_ROUTE)
+		return
+	var path_points := [
+		Vector3(3.2, 0, -9.8),
+		Vector3(3.1, 0, -6.0),
+		Vector3(2.4, 0, -4.2),
+		Vector3(1.2, 0, -3.1),
+	]
 	for point in path_points:
 		var tween := create_tween()
 		tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 		tween.tween_property(_server, "position", point, 0.55)
 		await tween.finished
 	_play_character_animation(_server, &"Idle_Holding", 0.9)
+
+
+func _run_waitress_return_and_foreground_pass() -> void:
+	if _waitress_cycle_running or not (_server is WomanWaitressRoute):
+		return
+	_waitress_cycle_running = true
+	var waitress := _server as WomanWaitressRoute
+	await get_tree().create_timer(2.2).timeout
+	if not is_inside_tree() or not is_instance_valid(waitress):
+		return
+	await waitress.walk_points(WAITRESS_RETURN_ROUTE, 2.05)
+	if not is_inside_tree() or not is_instance_valid(waitress):
+		return
+	# She remains behind the bar for exactly three seconds before emerging again.
+	await get_tree().create_timer(3.0).timeout
+	if not is_inside_tree() or not is_instance_valid(waitress):
+		return
+	await waitress.walk_points(WAITRESS_FOREGROUND_ROUTE, 2.0)
+	if not is_inside_tree() or not is_instance_valid(waitress):
+		return
+	# The supplied nine-second final clip performs its authored approach, turn,
+	# look and exit as one motion directly in front of the seated player.
+	await waitress.play_longest_sequence(deg_to_rad(-90.0))
+	if not is_inside_tree() or not is_instance_valid(waitress):
+		return
+	# Continue farther across the player's view and finish on the far side of the
+	# table. She remains there, facing the seated player, instead of teleporting.
+	await waitress.walk_points(WAITRESS_FINAL_TABLE_ROUTE, 1.45)
+	if not is_inside_tree() or not is_instance_valid(waitress):
+		return
+	waitress.rotation.y = 0.0
+	waitress.play_idle()
+	_waitress_cycle_running = false
 
 
 func _blink_to_meal_stage(stage: StringName) -> void:
@@ -842,7 +1027,7 @@ func _set_meal_stage(stage: StringName) -> void:
 
 func _enable_after_meal_choice() -> void:
 	state = DinerState.AFTER_MEAL
-	hud.show_prompt("F — зайти в туалет          E — вернуться в машину")
+	hud.show_prompt("WASD — ходить   Ctrl — пригнуться   ПКМ — приблизить   F — туалет   E — машина")
 	hud.set_objective("Выберите, куда идти после еды")
 	hud.set_status("Заказ завершён   •   %s" % LostSignalFlow.order_display_name())
 	if LostSignalFlow.qa_enabled:
@@ -883,6 +1068,11 @@ func _restore_after_restroom() -> void:
 	_camera_rig.global_transform = _table_path.global_transform * end_transform
 	_face_horizontal_target(_meal_root.global_position)
 	_set_meal_stage(&"empty")
+	if _server is WomanWaitressRoute:
+		_server.position = WAITRESS_OPPOSITE_TABLE_POSITION
+		_server.rotation.y = 0.0
+		_server.visible = true
+		(_server as WomanWaitressRoute).play_idle()
 	hud.show_chapter("LOST SIGNAL / 02", "Возвращение в зал", 2.1)
 	if LostSignalFlow.washed_face:
 		hud.show_subtitle("", "Холодная вода немного прояснила голову.", 2.2)

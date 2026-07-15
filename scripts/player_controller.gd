@@ -63,6 +63,43 @@ func _ready() -> void:
 	_steppe_environment = _find_steppe_environment()
 
 
+func set_external_input_locked(locked: bool) -> void:
+	controls_locked = locked
+	if not locked:
+		return
+
+	_aim_zoom_held = false
+	velocity = Vector3.ZERO
+	if is_instance_valid(camera):
+		camera.fov = _default_camera_fov
+	_hide_interaction_prompt()
+
+
+func sync_view_from_camera(camera_transform: Transform3D) -> void:
+	var forward := -camera_transform.basis.z
+	if forward.length_squared() <= 0.000001:
+		if is_instance_valid(camera):
+			camera.transform = Transform3D.IDENTITY
+		return
+
+	forward = forward.normalized()
+	var horizontal_length_squared := forward.x * forward.x + forward.z * forward.z
+	# Preserve the current yaw when looking almost straight up or down; atan2
+	# becomes unstable when the horizontal projection approaches zero.
+	if horizontal_length_squared > 0.000001:
+		rotation.y = atan2(-forward.x, -forward.z)
+
+	pitch = clampf(
+		asin(clampf(forward.y, -1.0, 1.0)),
+		deg_to_rad(-80.0),
+		deg_to_rad(80.0)
+	)
+	if is_instance_valid(head):
+		head.rotation.x = pitch
+	if is_instance_valid(camera):
+		camera.transform = Transform3D.IDENTITY
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F11:
 		_toggle_fullscreen()
@@ -336,6 +373,12 @@ func _update_shovel(delta: float) -> void:
 		return
 
 	_dig_call_cooldown = maxf(0.0, _dig_call_cooldown - delta)
+	if controls_locked:
+		_dig_phase = 0.0
+		_held_shovel.position = _held_shovel.position.lerp(_shovel_rest_position, clampf(delta * 14.0, 0.0, 1.0))
+		_held_shovel.rotation = _held_shovel.rotation.lerp(_shovel_rest_rotation, clampf(delta * 14.0, 0.0, 1.0))
+		return
+
 	var digging := _shovel_equipped and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	if digging:
 		_dig_phase += delta * 9.0

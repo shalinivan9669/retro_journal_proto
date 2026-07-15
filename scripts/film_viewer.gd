@@ -14,6 +14,8 @@ var _base_position := Vector3.ZERO
 var _fully_revealed_hint_shown := false
 var _hint_layer: CanvasLayer
 var _hint_label: Label
+var _visibility_tween: Tween
+var _animation_serial := 0
 
 
 func _ready() -> void:
@@ -44,28 +46,60 @@ func toggle_film() -> void:
 		show_film()
 
 
-func show_film() -> void:
+func show_film() -> bool:
 	if not GameState.film_01_collected:
-		return
+		return false
+
+	var reveal_controller := get_tree().get_first_node_in_group("film_reveal_controller")
+	if reveal_controller != null and reveal_controller.has_method("request_stow"):
+		var stow_result: Variant = reveal_controller.call("request_stow", true)
+		if stow_result is bool and not bool(stow_result):
+			return false
+
+	_animation_serial += 1
+	_kill_visibility_tween()
 	GameState.film_01_viewed = true
 	visible = true
 	position = _base_position + Vector3(0.0, -0.08, 0.04)
 	scale = Vector3.ONE * 0.82
-	var tween := create_tween().set_parallel(true)
-	tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_property(self, "position", _base_position, 0.28)
-	tween.tween_property(self, "scale", Vector3.ONE, 0.28)
+	_visibility_tween = create_tween().set_parallel(true)
+	_visibility_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_visibility_tween.tween_property(self, "position", _base_position, 0.28)
+	_visibility_tween.tween_property(self, "scale", Vector3.ONE, 0.28)
+	return true
 
 
-func hide_film() -> void:
+func hide_film(immediate: bool = false) -> void:
+	_animation_serial += 1
+	var hide_serial := _animation_serial
+	_kill_visibility_tween()
+
+	if immediate:
+		_finish_hidden_state()
+		return
 	if not visible:
 		return
-	var tween := create_tween()
-	tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(self, "scale", Vector3.ONE * 0.84, 0.18)
-	await tween.finished
+	_visibility_tween = create_tween()
+	_visibility_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_visibility_tween.tween_property(self, "scale", Vector3.ONE * 0.84, 0.18)
+	await _visibility_tween.finished
+	if hide_serial != _animation_serial:
+		return
+	_visibility_tween = null
+	_finish_hidden_state()
+
+
+func _kill_visibility_tween() -> void:
+	if _visibility_tween != null and _visibility_tween.is_valid():
+		_visibility_tween.kill()
+	_visibility_tween = null
+
+
+func _finish_hidden_state() -> void:
 	visible = false
+	position = _base_position
 	scale = Vector3.ONE
+	film_pivot.rotation.z = 0.0
 
 
 func _process(delta: float) -> void:

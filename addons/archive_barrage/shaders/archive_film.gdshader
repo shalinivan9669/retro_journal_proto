@@ -2,7 +2,7 @@ shader_type canvas_item;
 render_mode unshaded;
 
 uniform sampler2D screen_texture : hint_screen_texture, repeat_disable, filter_linear;
-uniform float grain_strength = 0.026;
+uniform float grain_strength = 0.014;
 uniform float vignette_strength = 0.04;
 uniform float barrel_distortion = -0.025;
 uniform float viewport_aspect = 1.7777778;
@@ -90,7 +90,7 @@ void fragment() {
 	float neutral_highlight = smoothstep(0.66, 0.94, image);
 	film_color = mix(film_color, vec3(image), neutral_highlight);
 
-	float neutral_flash = clamp(flash_peak * 0.18 + local_afterimage * 0.48, 0.0, 0.88);
+	float neutral_flash = clamp(flash_peak * 0.045 + local_afterimage * 0.18, 0.0, 0.30);
 	film_color = mix(film_color, vec3(1.0), neutral_flash);
 	COLOR = vec4(clamp(film_color, vec3(0.0), vec3(1.0)), 1.0);
 }

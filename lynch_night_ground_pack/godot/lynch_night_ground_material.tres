@@ -1,0 +1,49 @@
+[gd_resource type="ShaderMaterial" load_steps=17 format=3]
+
+[ext_resource type="Shader" path="res://lynch_night_ground_pack/godot/lynch_night_ground.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/processed/hero_night_albedo_4k.jpg" id="2_hero_albedo"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/hero_rocks_ground_08/rocks_ground_08_nor_gl_4k.jpg" id="3_hero_normal"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/hero_rocks_ground_08/rocks_ground_08_rough_4k.jpg" id="4_hero_rough"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/hero_rocks_ground_08/rocks_ground_08_ao_4k.jpg" id="5_hero_ao"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/hero_rocks_ground_08/rocks_ground_08_disp_4k.jpg" id="6_hero_height"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/processed/hero_wet_pockets_mask_4k.png" id="7_wet"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/dry_mud_field_001/dry_mud_field_001_diff_2k.jpg" id="8_dry_albedo"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/dry_mud_field_001/dry_mud_field_001_nor_gl_2k.jpg" id="9_dry_normal"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/dry_mud_field_001/dry_mud_field_001_rough_2k.jpg" id="10_dry_rough"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/dry_mud_field_001/dry_mud_field_001_ao_2k.jpg" id="11_dry_ao"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/muddy_tracks/muddy_tracks_diff_2k.jpg" id="12_mud_albedo"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/muddy_tracks/muddy_tracks_nor_gl_2k.jpg" id="13_mud_normal"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/muddy_tracks/muddy_tracks_rough_2k.jpg" id="14_mud_rough"]
+[ext_resource type="Texture2D" path="res://lynch_night_ground_pack/textures/muddy_tracks/muddy_tracks_ao_2k.jpg" id="15_mud_ao"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/hero_albedo = ExtResource("2_hero_albedo")
+shader_parameter/hero_normal = ExtResource("3_hero_normal")
+shader_parameter/hero_roughness = ExtResource("4_hero_rough")
+shader_parameter/hero_ao = ExtResource("5_hero_ao")
+shader_parameter/hero_height = ExtResource("6_hero_height")
+shader_parameter/wet_pockets_mask = ExtResource("7_wet")
+shader_parameter/dry_albedo = ExtResource("8_dry_albedo")
+shader_parameter/dry_normal = ExtResource("9_dry_normal")
+shader_parameter/dry_roughness = ExtResource("10_dry_rough")
+shader_parameter/dry_ao = ExtResource("11_dry_ao")
+shader_parameter/mud_albedo = ExtResource("12_mud_albedo")
+shader_parameter/mud_normal = ExtResource("13_mud_normal")
+shader_parameter/mud_roughness = ExtResource("14_mud_rough")
+shader_parameter/mud_ao = ExtResource("15_mud_ao")
+shader_parameter/hero_physical_size_m = 3.0
+shader_parameter/dry_physical_size_m = 3.0
+shader_parameter/mud_physical_size_m = 2.3
+shader_parameter/dry_amount = 0.34
+shader_parameter/mud_amount = 0.16
+shader_parameter/wet_amount = 0.52
+shader_parameter/wet_roughness = 0.88
+shader_parameter/normal_strength = 0.88
+shader_parameter/macro_contrast = 0.13
+shader_parameter/vertex_displacement_m = 0.0
+shader_parameter/matte_roughness_floor = 0.9
+shader_parameter/matte_roughness_ceiling = 0.98
+shader_parameter/residual_specular = 0.1
+shader_parameter/cool_neutrality = 0.58
+shader_parameter/dry_micro_contrast = 0.055

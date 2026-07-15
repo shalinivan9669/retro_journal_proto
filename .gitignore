@@ -32,6 +32,9 @@ dist/
 *.png
 !assets/archive/films/film_01_hidden_image.png
 !assets/archive/terminals/terminal_walking_walls.png
+!addons/film_revelation/assets/two_white_horses_negative_master.png
+!assets/film/two_white_horses/negative_initial.png
+!assets/film/two_white_horses/original_revealed.png
 *.jpg
 *.jpeg
 *.webp
@@ -45,6 +48,11 @@ dist/
 *.psd
 *.xcf
 *.png.import
+!addons/film_revelation/assets/two_white_horses_negative_master.png.import
+!assets/film/two_white_horses/negative_initial.png.import
+!assets/film/two_white_horses/original_revealed.png.import
+!assets/film/two_white_horses/riders/*.png
+!assets/film/two_white_horses/riders/*.png.import
 *.jpg.import
 *.jpeg.import
 *.webp.import
@@ -81,6 +89,8 @@ dist/
 !assets/models/blue_legs/
 !assets/models/blue_legs/blue_legs_rigged_animated.glb
 !assets/models/blue_legs/blue_legs_rigged_animated.glb.import
+!assets/film/two_white_horses/riders/*.glb
+!assets/film/two_white_horses/riders/*.glb.import
 !assets/cutscenes/steppe_wolf/
 !assets/cutscenes/steppe_wolf/steppe_wolf.png
 !assets/cutscenes/steppe_wolf/steppe_wolf.png.import

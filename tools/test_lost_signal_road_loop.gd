@@ -25,10 +25,10 @@ func run_test() -> void:
 	positions.sort()
 	var spacing_ok := true
 	for index in positions.size() - 1:
-		if absf((positions[index + 1] - positions[index]) - 60.0) > 0.02:
+		if absf((positions[index + 1] - positions[index]) - 120.0) > 0.02:
 			spacing_ok = false
 	var passed := (
-		road.segments.size() == 6
+		road.segments.size() == 5
 		and original_child_count == road.get_child_count()
 		and original_ids == final_ids
 		and spacing_ok

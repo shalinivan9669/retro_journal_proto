@@ -1,7 +1,11 @@
 class_name BallisticTrail3D
 extends MeshInstance3D
 
-signal impact_reached(world_position: Vector3, visual_importance: float)
+signal impact_reached(
+	world_position: Vector3,
+	impact_velocity: Vector3,
+	visual_importance: float
+)
 
 const TRAIL_SHADER := preload("res://addons/archive_barrage/shaders/tracer_trail.gdshader")
 
@@ -69,7 +73,12 @@ func advance(fx_delta: float) -> void:
 	elapsed += fx_delta
 	if not _impact_emitted and elapsed >= flight_time:
 		_impact_emitted = true
-		impact_reached.emit(_ballistic_position(flight_time, 0.0), importance)
+		var impact_velocity := initial_velocity + gravity * flight_time
+		impact_reached.emit(
+			_ballistic_position(flight_time, 0.0),
+			impact_velocity,
+			importance
+		)
 	_rebuild_mesh()
 
 

@@ -1,0 +1,55 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/lost_signal/road/parallax_backdrop_controller.gd" id="1_controller"]
+[ext_resource type="Script" path="res://scripts/lost_signal/road/backdrop_arc.gd" id="2_arc"]
+[ext_resource type="Material" path="res://materials/lost_signal/road/balkhash_left_backdrop.tres" id="3_left"]
+[ext_resource type="Material" path="res://materials/lost_signal/road/earth_ridge_right_backdrop.tres" id="4_right"]
+[ext_resource type="Material" path="res://materials/lost_signal/road/front_transition_backdrop.tres" id="5_front"]
+
+[node name="BackdropRig" type="Node3D"]
+script = ExtResource("1_controller")
+left_material = ExtResource("3_left")
+right_material = ExtResource("4_right")
+left_motion_factor = 0.012
+right_motion_factor = 0.045
+left_panorama_span_m = 6702.0
+right_panorama_span_m = 3072.0
+
+[node name="LeftLakeArc" type="MeshInstance3D" parent="."]
+scale = Vector3(0.09, 0.09, 0.09)
+material_override = ExtResource("3_left")
+cast_shadow = 0
+extra_cull_margin = 32.0
+script = ExtResource("2_arc")
+radius_m = 2400.0
+start_angle_degrees = -155.0
+end_angle_degrees = 5.0
+bottom_height_m = -1040.0
+visual_height_m = 2200.0
+subdivisions = 96
+
+[node name="FrontTransitionArc" type="MeshInstance3D" parent="."]
+scale = Vector3(0.118, 0.118, 0.118)
+material_override = ExtResource("5_front")
+cast_shadow = 0
+extra_cull_margin = 32.0
+script = ExtResource("2_arc")
+radius_m = 1500.0
+start_angle_degrees = -28.0
+end_angle_degrees = 28.0
+bottom_height_m = -860.0
+visual_height_m = 1800.0
+subdivisions = 48
+
+[node name="RightRidgeArc" type="MeshInstance3D" parent="."]
+scale = Vector3(0.17, 0.17, 0.17)
+material_override = ExtResource("4_right")
+cast_shadow = 0
+extra_cull_margin = 32.0
+script = ExtResource("2_arc")
+radius_m = 1100.0
+start_angle_degrees = -5.0
+end_angle_degrees = 155.0
+bottom_height_m = -600.0
+visual_height_m = 1250.0
+subdivisions = 96

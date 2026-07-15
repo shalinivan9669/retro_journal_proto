@@ -152,7 +152,6 @@ func _build_dashcam(parent: Node, metal: Material, dark: Material, screen: Mater
 	dashcam_screen_mesh = LostSignalVisualFactory.box(root, "Screen", Vector3(0.26, 0.12, 0.012), Vector3(0, 0, -0.058), screen, Vector3(-3, 0, 0), false)
 	dashcam_screen_mesh.set_layer_mask_value(1, false)
 	dashcam_screen_mesh.set_layer_mask_value(4, true)
-	LostSignalVisualFactory.cylinder(root, "Lens", 0.045, 0.035, Vector3(0.12, 0.0, 0.07), metal, Vector3(90, 0, 0), 16)
 	LostSignalVisualFactory.cylinder(root, "Mount", 0.025, 0.22, Vector3(0, 0.20, 0.03), metal, Vector3.ZERO, 10)
 	dashcam_focus_anchor = Marker3D.new()
 	dashcam_focus_anchor.name = "DashcamFocusAnchor"

@@ -16,6 +16,8 @@ const SLOWMO_HOLD_SECONDS := 0.30
 const SLOWMO_RECOVERY_SECONDS := 1.25
 const SLOWMO_COOLDOWN_MSEC := 1800
 
+@export var slow_motion_enabled := false
+
 var camera: Camera3D
 var player: CharacterBody3D
 var terrain: BarrageTerrain
@@ -94,7 +96,8 @@ func _exit_tree() -> void:
 func _process(delta: float) -> void:
 	if camera == null:
 		return
-	_update_slow_motion()
+	if slow_motion_enabled:
+		_update_slow_motion()
 	var fx_delta := delta * FX_TIME_SCALE
 	event_time += fx_delta
 
@@ -108,44 +111,48 @@ func _process(delta: float) -> void:
 		_spawn_distant_event(_distant_schedule[_next_distant_event])
 		_next_distant_event += 1
 
-	for trail in _trails.duplicate():
+	for index in range(_trails.size() - 1, -1, -1):
+		var trail := _trails[index]
 		if not is_instance_valid(trail):
-			_trails.erase(trail)
+			_trails.remove_at(index)
 			continue
 		trail.advance(fx_delta)
 		if trail.is_finished():
 			trail.recycle()
-			_trails.erase(trail)
+			_trails.remove_at(index)
 			_trail_pool.append(trail)
 
-	for smoke in _smoke_columns.duplicate():
+	for index in range(_smoke_columns.size() - 1, -1, -1):
+		var smoke := _smoke_columns[index]
 		if not is_instance_valid(smoke):
-			_smoke_columns.erase(smoke)
+			_smoke_columns.remove_at(index)
 			continue
 		smoke.advance(fx_delta)
 		if smoke.is_finished():
 			smoke.recycle()
-			_smoke_columns.erase(smoke)
+			_smoke_columns.remove_at(index)
 			_smoke_pool.append(smoke)
 
-	for burst in _bursts.duplicate():
+	for index in range(_bursts.size() - 1, -1, -1):
+		var burst := _bursts[index]
 		if not is_instance_valid(burst):
-			_bursts.erase(burst)
+			_bursts.remove_at(index)
 			continue
 		burst.advance(fx_delta)
 		if burst.is_finished():
 			burst.recycle()
-			_bursts.erase(burst)
+			_bursts.remove_at(index)
 			_burst_pool.append(burst)
 
-	for dirt_spray in _dirt_sprays.duplicate():
+	for index in range(_dirt_sprays.size() - 1, -1, -1):
+		var dirt_spray = _dirt_sprays[index]
 		if not is_instance_valid(dirt_spray):
-			_dirt_sprays.erase(dirt_spray)
+			_dirt_sprays.remove_at(index)
 			continue
 		dirt_spray.advance(fx_delta)
 		if dirt_spray.is_finished():
 			dirt_spray.recycle()
-			_dirt_sprays.erase(dirt_spray)
+			_dirt_sprays.remove_at(index)
 			_dirt_spray_pool.append(dirt_spray)
 
 	light_pool.advance(fx_delta, _trails, camera)
@@ -285,7 +292,7 @@ func _on_trail_impact(
 	)
 	_smoke_columns.append(smoke)
 
-	if visible_strength >= 0.56 and visual_importance >= 0.64:
+	if slow_motion_enabled and visible_strength >= 0.56 and visual_importance >= 0.64:
 		_trigger_slow_motion(visible_strength)
 
 
@@ -410,6 +417,8 @@ func _spawn_dirt_spray(
 
 
 func _trigger_slow_motion(strength: float) -> void:
+	if not slow_motion_enabled:
+		return
 	var now := Time.get_ticks_msec()
 	if _slowmo_active:
 		_slowmo_strength = maxf(_slowmo_strength, strength)

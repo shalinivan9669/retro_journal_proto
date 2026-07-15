@@ -388,10 +388,12 @@ func _ensure_film_height_field() -> void:
 	_film_height_field.film_safe_inner_radius_m = 32.0
 	_film_height_field.film_safe_outer_radius_m = 52.0
 	_film_height_field.hill_distance_m = 92.0
-	_film_height_field.hill_height_m = 33.0
-	_film_height_field.hill_forward_sigma_m = 18.0
-	_film_height_field.hill_lateral_sigma_m = 31.0
-	_film_height_field.hill_shoulder_height_m = 6.4
+	_film_height_field.hill_height_m = 16.5
+	_film_height_field.hill_forward_sigma_m = 48.0
+	_film_height_field.hill_lateral_sigma_m = 62.0
+	_film_height_field.hill_top_forward_radius_m = 12.0
+	_film_height_field.hill_top_lateral_radius_m = 23.0
+	_film_height_field.hill_shoulder_height_m = 3.2
 
 
 func _load_baked_mesh() -> ArrayMesh:

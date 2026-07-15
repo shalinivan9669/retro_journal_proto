@@ -34,10 +34,12 @@ extends Resource
 
 @export_group("Hero hill opposite moon")
 @export_range(20.0, 250.0, 1.0) var hill_distance_m: float = 92.0
-@export_range(1.0, 40.0, 0.1) var hill_height_m: float = 33.0
-@export_range(5.0, 80.0, 0.5) var hill_forward_sigma_m: float = 18.0
-@export_range(5.0, 100.0, 0.5) var hill_lateral_sigma_m: float = 31.0
-@export_range(0.0, 10.0, 0.1) var hill_shoulder_height_m: float = 6.4
+@export_range(1.0, 40.0, 0.1) var hill_height_m: float = 16.5
+@export_range(5.0, 80.0, 0.5) var hill_forward_sigma_m: float = 48.0
+@export_range(5.0, 100.0, 0.5) var hill_lateral_sigma_m: float = 62.0
+@export_range(2.0, 40.0, 0.5) var hill_top_forward_radius_m: float = 12.0
+@export_range(2.0, 60.0, 0.5) var hill_top_lateral_radius_m: float = 23.0
+@export_range(0.0, 10.0, 0.1) var hill_shoulder_height_m: float = 3.2
 
 var _macro := FastNoiseLite.new()
 var _meso := FastNoiseLite.new()
@@ -376,12 +378,29 @@ func _sample_hero_hill_height(world_xz: Vector2, warp_vector: Vector2) -> float:
 	var hill_local := world_xz - hill_center_xz() + warp_vector * 0.16
 	var forward_m := hill_local.dot(hill_dir)
 	var lateral_m := hill_local.dot(hill_side)
-	var gaussian_power := 0.5 * (
-		pow(forward_m / hill_forward_sigma_m, 2.0)
-		+ pow(lateral_m / hill_lateral_sigma_m, 2.0)
+
+	# A broad, nearly level crown with a controlled earthen slope. The former
+	# Gaussian peak read as a tall mountain; this profile is a low raised plateau
+	# and keeps the rider staging area flat enough to read as a single crest.
+	var radial_length := Vector2(forward_m, lateral_m).length()
+	var profile := 1.0
+	if radial_length > 0.0001:
+		var radial_direction := Vector2(forward_m, lateral_m) / radial_length
+		var inner_radius := 1.0 / sqrt(
+			pow(radial_direction.x / maxf(hill_top_forward_radius_m, 0.1), 2.0)
+			+ pow(radial_direction.y / maxf(hill_top_lateral_radius_m, 0.1), 2.0)
+		)
+		var outer_radius := 1.0 / sqrt(
+			pow(radial_direction.x / maxf(hill_forward_sigma_m, hill_top_forward_radius_m + 0.1), 2.0)
+			+ pow(radial_direction.y / maxf(hill_lateral_sigma_m, hill_top_lateral_radius_m + 0.1), 2.0)
+		)
+		profile = 1.0 - smoothstep(inner_radius, outer_radius, radial_length)
+	var edge_breakup := 1.0 + (
+		0.045
+		* _meso.get_noise_2d(warped.x + 82.0, warped.y - 51.0)
+		* (1.0 - profile)
 	)
-	var broken_factor := 1.0 + 0.15 * _meso.get_noise_2d(warped.x + 82.0, warped.y - 51.0)
-	var hero_hill := hill_height_m * exp(-gaussian_power) * broken_factor
+	var hero_hill := hill_height_m * profile * edge_breakup
 
 	var shoulder_local := hill_local - hill_side * 27.0 + hill_dir * 8.0
 	var shoulder_power := 0.5 * (

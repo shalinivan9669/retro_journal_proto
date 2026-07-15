@@ -25,13 +25,19 @@ enum State {
 }
 
 const LARGE_WALL_GAP_S := 0.25
-const CARD_HEIGHT_RATIO := 0.58
+const CARD_HEIGHT_RATIO := 0.64
 const CARD_BOTTOM_MARGIN_RATIO := 0.0555556
 const AIM_INDICATOR_SIZE_PX := 4.0
-const TARGET_REACTION_RADIATION_PEAK := 0.18
-const PARTICLE_AMOUNT_PEAK_MULTIPLIER := 1.40
-const HUM_PEAK_BOOST_DB := 3.5
 const DEFAULT_POST_REVEAL_HOLD_S := 1.05
+const CONTINUOUS_SHAKE_RATIO := 0.20
+const IMPULSE_WIDTH_PROGRESS := 0.022
+const IMPULSE_PROGRESS := Vector3(0.18, 0.52, 0.82)
+const CARD_IMPULSE_1 := Vector2(0.88, -0.34)
+const CARD_IMPULSE_2 := Vector2(-0.58, 0.92)
+const CARD_IMPULSE_3 := Vector2(0.42, -0.72)
+const CAMERA_IMPULSE_1 := Vector2(0.70, -0.32)
+const CAMERA_IMPULSE_2 := Vector2(-0.48, 0.78)
+const CAMERA_IMPULSE_3 := Vector2(0.36, -0.62)
 
 @export var profile: FilmRevealProfile
 @export var camera: Camera3D
@@ -65,6 +71,7 @@ var _completion_stow_in_progress: bool = false
 var _final_reveal_emitted: bool = false
 var _application_focused: bool = true
 var _owns_external_lock: bool = false
+var _radiation_release_started_usec: int = -1
 
 var _film_material: ShaderMaterial
 var _film_base_position: Vector2
@@ -107,10 +114,14 @@ func _ready() -> void:
 		push_error("FilmRevealController: film_rect needs film_reveal.gdshader")
 
 	if is_instance_valid(radiation_particles):
-		_particles_base_amount_ratio = radiation_particles.amount_ratio
+		_particles_base_amount_ratio = clampf(profile.radiation_idle_ratio, 0.0, 1.0)
+		radiation_particles.amount_ratio = _particles_base_amount_ratio
 		_particles_base_speed_scale = radiation_particles.speed_scale
 	if is_instance_valid(low_frequency_hum):
 		_hum_base_volume_db = low_frequency_hum.volume_db
+	if is_instance_valid(geiger_emitter):
+		geiger_emitter.peak_rate_hz = profile.geiger_peak_rate_hz
+		geiger_emitter.peak_volume_boost_db = profile.geiger_peak_volume_boost_db
 	if is_instance_valid(aim_indicator):
 		_aim_indicator_base_modulate = aim_indicator.modulate
 		_aim_indicator_base_scale = aim_indicator.scale
@@ -125,13 +136,13 @@ func _ready() -> void:
 	_update_film_layout()
 	_update_aim_indicator(0.0, false)
 
-	_set_shader_float(&"reveal_progress", 1.0 if is_instance_valid(target) and target.developed else 0.0)
-	_set_shader_float(&"ghost_amount", profile.undeveloped_trace)
-	_set_shader_float(&"film_opacity", profile.film_opacity)
-	_set_shader_float(&"exposure_gain", profile.exposure_gain)
-	_set_shader_float(&"bleach_low", profile.bleach_low)
-	_set_shader_float(&"bleach_high", profile.bleach_high)
+	_set_shader_float(
+		&"reveal_progress",
+		1.0 if is_instance_valid(target) and target.developed else 0.0
+	)
+	_apply_profile_to_shader()
 	_set_shader_float(&"aim_strength", 0.0)
+	_set_shader_float(&"capture_flash", 0.0)
 	_set_shader_texture(&"original_revealed_texture", revealed_texture)
 	_set_shader_float(&"equip_alpha", 0.0)
 
@@ -256,6 +267,9 @@ func configure_film(
 		return false
 	if new_profile != null:
 		profile = new_profile
+	if is_instance_valid(radiation_particles):
+		_particles_base_amount_ratio = clampf(profile.radiation_idle_ratio, 0.0, 1.0)
+		radiation_particles.amount_ratio = _particles_base_amount_ratio
 	film_rect.texture = new_texture
 	if new_revealed_texture != null:
 		revealed_texture = new_revealed_texture
@@ -264,11 +278,10 @@ func configure_film(
 	_reset_acquisition()
 	_reveal_progress = 1.0 if target.developed else 0.0
 	_set_shader_float(&"reveal_progress", _reveal_progress)
-	_set_shader_float(&"ghost_amount", profile.undeveloped_trace)
-	_set_shader_float(&"film_opacity", profile.film_opacity)
-	_set_shader_float(&"exposure_gain", profile.exposure_gain)
-	_set_shader_float(&"bleach_low", profile.bleach_low)
-	_set_shader_float(&"bleach_high", profile.bleach_high)
+	_apply_profile_to_shader()
+	if is_instance_valid(geiger_emitter):
+		geiger_emitter.peak_rate_hz = profile.geiger_peak_rate_hz
+		geiger_emitter.peak_volume_boost_db = profile.geiger_peak_volume_boost_db
 	state = _state_for_equipped_target() if _equipped else State.STOWED
 	_update_aim_indicator(0.0, _equipped and _is_scanning_state())
 	return true
@@ -375,6 +388,7 @@ func _begin_camera_lock(now_usec: int) -> void:
 	_set_target_reaction_strength(1.0)
 	_camera_lock_from = camera.global_transform
 	_camera_lock_to = camera.global_transform.looking_at(target.get_aim_point(), Vector3.UP)
+	_set_shader_float(&"capture_flash", 0.0)
 	_acquire_external_lock()
 
 
@@ -383,7 +397,12 @@ func _update_camera_lock(now_usec: int) -> void:
 		_abort_and_stow()
 		return
 	var phase_s := float(now_usec - _phase_started_usec) / 1000000.0
-	var linear_t := clampf(phase_s / maxf(profile.camera_lock_s, 0.001), 0.0, 1.0)
+	var flash_duration_s := maxf(profile.capture_flash_s, 0.001)
+	var flash_t := clampf(phase_s / flash_duration_s, 0.0, 1.0)
+	var flash_pulse := sin(PI * flash_t) * profile.capture_flash_strength
+	_set_shader_float(&"capture_flash", flash_pulse)
+	var camera_phase_s := maxf(phase_s - flash_duration_s, 0.0)
+	var linear_t := clampf(camera_phase_s / maxf(profile.camera_lock_s, 0.001), 0.0, 1.0)
 	var eased_t := 1.0 - pow(1.0 - linear_t, 3.0)
 	var from_q := _camera_lock_from.basis.get_rotation_quaternion()
 	var to_q := _camera_lock_to.basis.get_rotation_quaternion()
@@ -391,6 +410,7 @@ func _update_camera_lock(now_usec: int) -> void:
 	frame.basis = Basis(from_q.slerp(to_q, eased_t))
 	camera.global_transform = frame
 	if linear_t >= 1.0:
+		_set_shader_float(&"capture_flash", 0.0)
 		camera.global_transform = _camera_lock_to
 		_begin_reveal(now_usec)
 
@@ -406,6 +426,7 @@ func _begin_reveal(now_usec: int) -> void:
 	_final_reveal_emitted = false
 	_set_target_reaction_strength(0.0)
 	reveal_started.emit(target.film_id)
+	_set_shader_float(&"capture_flash", 0.0)
 	_set_shader_float(&"reveal_active", 1.0)
 
 
@@ -419,10 +440,9 @@ func _update_reveal(now_usec: int) -> void:
 	reveal_progress_changed.emit(target.film_id, _reveal_progress)
 
 	var envelope := _reveal_envelope(_reveal_progress)
-	var radiation := profile.radiation_peak * envelope
-	_set_radiation_intensity(radiation)
-	_apply_card_shake(envelope)
-	_apply_camera_shake(envelope)
+	_set_radiation_intensity(envelope)
+	_apply_card_shake(_reveal_progress)
+	_apply_camera_shake(_reveal_progress)
 
 	if _reveal_progress >= 1.0:
 		_finish_reveal(now_usec)
@@ -443,7 +463,8 @@ func _finish_reveal(now_usec: int) -> void:
 	_reveal_progress = 1.0
 	_set_shader_float(&"reveal_progress", 1.0)
 	_set_shader_float(&"reveal_active", 0.0)
-	_set_radiation_intensity(0.0)
+	_set_radiation_intensity(1.0)
+	_radiation_release_started_usec = now_usec
 	_card_shake_offset = Vector2.ZERO
 	_card_shake_rotation = 0.0
 	camera.global_transform = _camera_lock_to
@@ -456,6 +477,7 @@ func _finish_reveal(now_usec: int) -> void:
 
 
 func _update_complete(now_usec: int) -> void:
+	_update_radiation_release(now_usec)
 	if _unlock_deadline_usec >= 0 and now_usec >= _unlock_deadline_usec:
 		_begin_completion_stow()
 
@@ -501,6 +523,7 @@ func _clear_completion_hold_state() -> void:
 	_completion_reached_usec = -1
 	_post_reveal_extra_hold_s = 0.0
 	_completion_stow_in_progress = false
+	_radiation_release_started_usec = -1
 
 
 func _get_angular_aim_strength() -> float:
@@ -569,27 +592,81 @@ func _is_target_under_crosshair(angle_threshold_deg: float) -> bool:
 	return true
 
 
-func _apply_card_shake(envelope: float) -> void:
+func _apply_card_shake(progress: float) -> void:
 	var x_noise := sin(_visual_clock_s * 41.7) * 0.58 + sin(_visual_clock_s * 73.1 + 1.4) * 0.27
 	var y_noise := sin(_visual_clock_s * 47.3 + 2.2) * 0.54 + sin(_visual_clock_s * 89.7) * 0.25
 	var rotation_noise := sin(_visual_clock_s * 29.3 + 0.7) * 0.68 + sin(_visual_clock_s * 61.9) * 0.22
-	_card_shake_offset = Vector2(x_noise, y_noise) * profile.film_shake_px * envelope
-	_card_shake_rotation = deg_to_rad(rotation_noise * profile.film_tilt_deg * envelope)
+	var continuous := _continuous_shake_envelope(progress)
+	var impulses := _reveal_impulses(progress)
+	var impulse_offset := (
+		CARD_IMPULSE_1 * impulses.x
+		+ CARD_IMPULSE_2 * impulses.y
+		+ CARD_IMPULSE_3 * impulses.z
+	)
+	_card_shake_offset = (
+		Vector2(x_noise, y_noise) * continuous + impulse_offset
+	) * profile.film_shake_px
+	var impulse_tilt := impulses.x * 0.72 - impulses.y + impulses.z * 0.62
+	_card_shake_rotation = deg_to_rad(
+		(rotation_noise * continuous + impulse_tilt) * profile.film_tilt_deg
+	)
 
 
-func _apply_camera_shake(envelope: float) -> void:
+func _apply_camera_shake(progress: float) -> void:
 	if not is_instance_valid(camera):
 		return
-	var pitch := deg_to_rad(sin(_visual_clock_s * 36.1) * profile.camera_shake_deg * envelope)
-	var yaw := deg_to_rad(sin(_visual_clock_s * 31.7 + 1.1) * profile.camera_shake_deg * envelope)
+	var continuous := _continuous_shake_envelope(progress)
+	var impulses := _reveal_impulses(progress)
+	var impulse_rotation := (
+		CAMERA_IMPULSE_1 * impulses.x
+		+ CAMERA_IMPULSE_2 * impulses.y
+		+ CAMERA_IMPULSE_3 * impulses.z
+	)
+	var pitch := deg_to_rad(
+		(sin(_visual_clock_s * 36.1) * continuous + impulse_rotation.y)
+		* profile.camera_shake_deg
+	)
+	var yaw := deg_to_rad(
+		(sin(_visual_clock_s * 31.7 + 1.1) * continuous + impulse_rotation.x)
+		* profile.camera_shake_deg
+	)
 	var frame := _camera_lock_to
 	frame.basis = frame.basis * Basis(Vector3.RIGHT, pitch) * Basis(Vector3.UP, yaw)
+	var impulse_translation := (
+		CARD_IMPULSE_1 * impulses.x
+		+ CARD_IMPULSE_2 * impulses.y
+		+ CARD_IMPULSE_3 * impulses.z
+	) * 0.72
 	frame.origin += frame.basis * Vector3(
-		sin(_visual_clock_s * 27.9) * profile.camera_shake_m * envelope,
-		sin(_visual_clock_s * 42.7 + 0.4) * profile.camera_shake_m * 0.55 * envelope,
+		(
+			sin(_visual_clock_s * 27.9) * continuous
+			+ impulse_translation.x
+		) * profile.camera_shake_m,
+		(
+			sin(_visual_clock_s * 42.7 + 0.4) * continuous * 0.55
+			+ impulse_translation.y
+		) * profile.camera_shake_m,
 		0.0
 	)
 	camera.global_transform = frame
+
+
+func _continuous_shake_envelope(progress: float) -> float:
+	var attack := smoothstep(0.04, 0.14, progress)
+	var release := 1.0 - smoothstep(0.86, 1.0, progress)
+	return attack * release * CONTINUOUS_SHAKE_RATIO
+
+
+func _reveal_impulses(progress: float) -> Vector3:
+	return Vector3(
+		_exp_impulse(progress, IMPULSE_PROGRESS.x),
+		_exp_impulse(progress, IMPULSE_PROGRESS.y),
+		_exp_impulse(progress, IMPULSE_PROGRESS.z)
+	)
+
+
+func _exp_impulse(progress: float, center: float) -> float:
+	return exp(-pow((progress - center) / IMPULSE_WIDTH_PROGRESS, 2.0))
 
 
 func _update_equip_animation(delta_s: float) -> void:
@@ -668,7 +745,17 @@ func _reset_acquisition() -> void:
 func _set_target_reaction_strength(value: float) -> void:
 	var normalized := clampf(value, 0.0, 1.0)
 	_set_shader_float(&"aim_strength", normalized)
-	_set_radiation_intensity(normalized * TARGET_REACTION_RADIATION_PEAK)
+	var idle_ratio := clampf(profile.radiation_idle_ratio, 0.0, 1.0)
+	var peak_ratio := maxf(idle_ratio, clampf(profile.radiation_peak, 0.0, 1.0))
+	var aim_ratio := lerpf(
+		idle_ratio,
+		clampf(profile.radiation_aim_ratio, idle_ratio, peak_ratio),
+		normalized
+	)
+	var feedback_intensity := (
+		(aim_ratio - idle_ratio) / maxf(peak_ratio - idle_ratio, 0.001)
+	)
+	_set_radiation_intensity(feedback_intensity)
 
 
 func _set_radiation_intensity(value: float) -> void:
@@ -676,9 +763,9 @@ func _set_radiation_intensity(value: float) -> void:
 	if is_instance_valid(geiger_emitter):
 		geiger_emitter.intensity = normalized
 	if is_instance_valid(radiation_particles):
-		var particle_peak := minf(
-			_particles_base_amount_ratio * PARTICLE_AMOUNT_PEAK_MULTIPLIER,
-			1.0
+		var particle_peak := maxf(
+			_particles_base_amount_ratio,
+			clampf(profile.radiation_peak, 0.0, 1.0)
 		)
 		radiation_particles.amount_ratio = lerpf(
 			_particles_base_amount_ratio,
@@ -687,8 +774,24 @@ func _set_radiation_intensity(value: float) -> void:
 		)
 		radiation_particles.speed_scale = _particles_base_speed_scale * lerpf(1.0, 1.12, normalized)
 	if is_instance_valid(low_frequency_hum):
-		low_frequency_hum.volume_db = _hum_base_volume_db + HUM_PEAK_BOOST_DB * normalized
+		low_frequency_hum.volume_db = (
+			_hum_base_volume_db + profile.hum_peak_boost_db * normalized
+		)
 	radiation_intensity_changed.emit(normalized)
+
+
+func _update_radiation_release(now_usec: int) -> void:
+	if _radiation_release_started_usec < 0:
+		return
+	var elapsed_s := float(now_usec - _radiation_release_started_usec) / 1000000.0
+	var release_t := clampf(
+		elapsed_s / maxf(profile.radiation_release_s, 0.001),
+		0.0,
+		1.0
+	)
+	_set_radiation_intensity(1.0 - smoothstep(0.0, 1.0, release_t))
+	if release_t >= 1.0:
+		_radiation_release_started_usec = -1
 
 
 func _acquire_external_lock() -> void:
@@ -714,6 +817,7 @@ func _release_external_lock(sync_view: bool) -> void:
 
 func _abort_and_stow() -> void:
 	_clear_completion_hold_state()
+	_set_shader_float(&"capture_flash", 0.0)
 	_set_shader_float(&"reveal_active", 0.0)
 	_set_radiation_intensity(0.0)
 	_card_shake_offset = Vector2.ZERO
@@ -727,12 +831,27 @@ func _abort_and_stow() -> void:
 
 
 func _reveal_envelope(progress: float) -> float:
-	var attack := smoothstep(0.02, 0.16, progress)
-	var release := 1.0 - smoothstep(0.84, 1.0, progress)
-	return attack * release
+	return smoothstep(0.02, 0.40, progress)
+
+
+func _apply_profile_to_shader() -> void:
+	_set_shader_float(&"ghost_amount", profile.undeveloped_trace)
+	_set_shader_float(&"film_opacity", profile.film_opacity)
+	_set_shader_float(&"exposure_gain", profile.exposure_gain)
+	_set_shader_float(&"bleach_low", profile.bleach_low)
+	_set_shader_float(&"bleach_high", profile.bleach_high)
+	_set_shader_float(&"aim_brightness_boost", profile.aim_brightness_boost)
+	_set_shader_float(&"aim_contrast_boost", profile.aim_contrast_boost)
+	_set_shader_color(&"cold_negative_tint", profile.cold_negative_tint)
+	_set_shader_color(&"film_base_tint", profile.film_base_tint)
 
 
 func _set_shader_float(parameter: StringName, value: float) -> void:
+	if is_instance_valid(_film_material):
+		_film_material.set_shader_parameter(parameter, value)
+
+
+func _set_shader_color(parameter: StringName, value: Color) -> void:
 	if is_instance_valid(_film_material):
 		_film_material.set_shader_parameter(parameter, value)
 

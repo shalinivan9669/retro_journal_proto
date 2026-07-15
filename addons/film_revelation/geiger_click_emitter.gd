@@ -8,11 +8,12 @@ const CLICK_MIX_RATE := 22050
 const CLICK_DURATION_S := 0.012
 const CLICK_IMPULSE_HZ := 2400.0
 const SYNTHESIZED_VOLUME_DB := -20.0
+const MAX_OUTPUT_VOLUME_DB := -6.0
 
 @export var click_player: AudioStreamPlayer
 @export_range(0.1, 30.0, 0.1) var base_rate_hz: float = 4.5
-@export_range(0.1, 50.0, 0.1) var peak_rate_hz: float = 13.0
-@export_range(0.0, 8.0, 0.1) var peak_volume_boost_db: float = 3.2
+@export_range(0.1, 50.0, 0.1) var peak_rate_hz: float = 22.0
+@export_range(0.0, 8.0, 0.1) var peak_volume_boost_db: float = 5.8
 @export_range(0.0, 1.0, 0.01) var intensity: float = 0.0:
 	set(value):
 		intensity = clampf(value, 0.0, 1.0)
@@ -47,7 +48,10 @@ func _process(_delta: float) -> void:
 	if now_usec < _next_click_deadline_usec:
 		return
 	click_player.pitch_scale = _rng.randf_range(0.93, 1.08)
-	click_player.volume_db = _base_volume_db + peak_volume_boost_db * intensity
+	click_player.volume_db = minf(
+		_base_volume_db + peak_volume_boost_db * intensity,
+		MAX_OUTPUT_VOLUME_DB
+	)
 	click_player.play()
 	_schedule_next_click(now_usec)
 

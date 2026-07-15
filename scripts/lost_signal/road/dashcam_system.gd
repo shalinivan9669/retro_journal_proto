@@ -179,20 +179,17 @@ func _build_screen() -> void:
 	add_child(layer)
 	_screen = PanelContainer.new()
 	_screen.name = "DashcamFocusScreen"
-	_screen.set_anchors_preset(Control.PRESET_CENTER)
-	_screen.position = Vector2(-480, -292)
-	_screen.size = Vector2(960, 540)
+	# Focus mode is the recorder's live view, so the feed must fill the whole
+	# display instead of remaining trapped in a small 960 x 540 prop panel.
+	_screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var frame_style := StyleBoxFlat.new()
-	frame_style.bg_color = Color(0.006, 0.009, 0.012, 0.98)
-	frame_style.border_color = Color(0.12, 0.15, 0.16)
-	frame_style.set_border_width_all(18)
-	frame_style.set_corner_radius_all(22)
-	frame_style.shadow_color = Color(0, 0, 0, 0.8)
-	frame_style.shadow_size = 28
+	frame_style.bg_color = Color.BLACK
+	frame_style.set_content_margin_all(0.0)
 	_screen.add_theme_stylebox_override("panel", frame_style)
 	_screen.visible = false
 	layer.add_child(_screen)
 	var viewport_frame := Control.new()
+	viewport_frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	viewport_frame.clip_contents = true
 	_screen.add_child(viewport_frame)
 	_front_rect = _make_feed_rect(_front_viewport.get_texture())

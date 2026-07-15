@@ -55,12 +55,13 @@ const ARCHIVE_PLAYER_GROUND_CLEARANCE := 0.22
 const ARCHIVE_INITIAL_LOOK_DOWN_DEGREES := 10.0
 const FILM_TARGET_LAYER := 1 << 26
 const FILM_TARGET_OFFSET_M := 0.45
+const FILM_CARD_HEIGHT_RATIO := 0.64
 const TWO_WHITE_HORSES_FILM_ID := &"two_white_horses"
-const RIDERS_MANIFESTATION_DURATION_S := 1.05
+const RIDERS_MANIFESTATION_DURATION_S := 1.45
 const FILM_HUM_MIX_RATE := 22050
 const FILM_HUM_BASE_VOLUME_DB := -34.0
 
-@export_enum("Cinematic", "Performance") var quality_profile: int = QualityProfile.CINEMATIC
+@export_enum("Cinematic", "Performance") var quality_profile: int = QualityProfile.PERFORMANCE
 
 var _previous_scaling_3d_scale := 1.0
 var _changed_scaling_3d_scale := false
@@ -320,13 +321,15 @@ func _create_film_revelation(
 	profile.set("equip_time_s", 0.22)
 	profile.set("acquire_angle_deg", 12.0)
 	profile.set("release_angle_deg", 18.0)
-	profile.set("dwell_s", 0.16)
+	profile.set("dwell_s", 0.35)
 	profile.set("camera_lock_s", 0.28)
 	profile.set("reveal_s", 4.80)
 	profile.set("post_lock_hold_s", 0.35)
-	profile.set("film_shake_px", 4.6)
-	profile.set("film_tilt_deg", 1.1)
-	profile.set("camera_shake_deg", 0.09)
+	profile.set("film_shake_px", 7.0)
+	profile.set("film_tilt_deg", 1.35)
+	profile.set("camera_shake_deg", 0.12)
+	profile.set("camera_shake_m", 0.0035)
+	profile.set("film_opacity", 0.52)
 	profile.set("radiation_peak", 1.0)
 
 	controller.set("profile", profile)
@@ -461,7 +464,7 @@ func _create_film_radiation_particles(
 	particles.name = "FilmRadiationParticles"
 	particles.position = Vector3(0.0, 1.8, 0.0)
 	particles.amount = 180 if performance_mode else 320
-	particles.amount_ratio = 0.65
+	particles.amount_ratio = 0.12
 	particles.lifetime = 2.1
 	particles.preprocess = 1.4
 	particles.local_coords = false
@@ -501,7 +504,7 @@ func _create_film_radiation_particles(
 
 func _layout_film_card(film_card: TextureRect) -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
-	var side := viewport_size.y * 0.58
+	var side := viewport_size.y * FILM_CARD_HEIGHT_RATIO
 	var bottom_margin := viewport_size.y * 0.0555556
 	film_card.position = Vector2(
 		(viewport_size.x - side) * 0.5,

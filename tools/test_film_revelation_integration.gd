@@ -233,7 +233,7 @@ func _assert_ui(
 	)
 	var viewport_height := controller.get_viewport().get_visible_rect().size.y
 	var viewport_width := controller.get_viewport().get_visible_rect().size.x
-	var expected_card_side := viewport_height * 0.58
+	var expected_card_side := viewport_height * 0.64
 	_check(
 		absf(film_card.size.x - expected_card_side) <= 0.05,
 		"FilmCard side must track viewport height, expected %.3f got %.3f"
@@ -291,8 +291,8 @@ func _assert_ui(
 	_check(geiger is GeigerClickEmitter, "ClickPlayer parent must be GeigerClickEmitter")
 	if geiger is GeigerClickEmitter:
 		_assert_float_property(geiger, &"base_rate_hz", 4.5)
-		_assert_float_property(geiger, &"peak_rate_hz", 13.0)
-		_assert_float_property(geiger, &"peak_volume_boost_db", 3.2)
+		_assert_float_property(geiger, &"peak_rate_hz", 22.0)
+		_assert_float_property(geiger, &"peak_volume_boost_db", 5.8)
 	var click_wave := click_player.stream as AudioStreamWAV
 	_check(click_wave != null, "Geiger click must be synthesized as AudioStreamWAV")
 	if click_wave != null:
@@ -402,7 +402,7 @@ func _assert_shader_contract(shader: Shader) -> void:
 	)
 	_check(
 		code.contains("calculate_reveal_mask")
-		and code.contains("mix(aimed_negative, original_photo.rgb, reveal_mask)"),
+		and code.contains("mix(aimed_negative, transition_original, reveal_mask)"),
 		"Film shader must transform between both photographs through a reveal mask"
 	)
 	_check(
@@ -413,6 +413,23 @@ func _assert_shader_contract(shader: Shader) -> void:
 	_check(
 		code.contains("aim_strength") and code.contains("light_bleach"),
 		"Aiming feedback and external-light bleaching must remain independent"
+	)
+	_check(
+		code.contains("inner_edge")
+		and code.contains("outer_edge")
+		and code.contains("trailing_band"),
+		"Film shader lacks the cold two-layer front and trailing emulsion wake"
+	)
+	_check(
+		code.contains("front_micro_dots")
+		and code.contains("front_branch_tracks")
+		and code.contains("0.0022"),
+		"Film shader lacks localized chemical detail or front-only UV deformation"
+	)
+	_check(
+		code.contains("negative_ghost = texture(TEXTURE")
+		and code.contains("completion_gate"),
+		"Negative ghosting must stay on the source negative and vanish at completion"
 	)
 
 
@@ -525,14 +542,25 @@ func _assert_controller_profile(controller: CanvasLayer) -> void:
 	_assert_float_property(profile, &"equip_time_s", 0.22)
 	_assert_float_property(profile, &"acquire_angle_deg", 12.0)
 	_assert_float_property(profile, &"release_angle_deg", 18.0)
-	_assert_float_property(profile, &"dwell_s", 0.16)
+	_assert_float_property(profile, &"dwell_s", 0.35)
 	_assert_float_property(profile, &"camera_lock_s", 0.28)
 	_assert_float_property(profile, &"reveal_s", 4.80)
 	_assert_float_property(profile, &"post_lock_hold_s", 0.35)
-	_assert_float_property(profile, &"film_shake_px", 4.60)
-	_assert_float_property(profile, &"film_tilt_deg", 1.10)
-	_assert_float_property(profile, &"camera_shake_deg", 0.09)
+	_assert_float_property(profile, &"film_shake_px", 7.0)
+	_assert_float_property(profile, &"film_tilt_deg", 1.35)
+	_assert_float_property(profile, &"camera_shake_deg", 0.12)
+	_assert_float_property(profile, &"camera_shake_m", 0.0035)
+	_assert_float_property(profile, &"capture_flash_s", 0.085)
+	_assert_float_property(profile, &"film_opacity", 0.52)
+	_assert_float_property(profile, &"aim_brightness_boost", 0.28)
+	_assert_float_property(profile, &"aim_contrast_boost", 0.18)
+	_assert_float_property(profile, &"radiation_idle_ratio", 0.12)
+	_assert_float_property(profile, &"radiation_aim_ratio", 0.35)
 	_assert_float_property(profile, &"radiation_peak", 1.0)
+	_assert_float_property(profile, &"radiation_release_s", 0.65)
+	_assert_float_property(profile, &"hum_peak_boost_db", 7.0)
+	_assert_float_property(profile, &"geiger_peak_rate_hz", 22.0)
+	_assert_float_property(profile, &"geiger_peak_volume_boost_db", 5.8)
 
 
 func _assert_state_enum_contract() -> void:
@@ -838,14 +866,21 @@ func _assert_particles(
 		% [expected_amount, particles.amount]
 	)
 	_check(
-		absf(particles.amount_ratio - 0.65) <= 0.0001,
-		"Particle amount_ratio must start at 0.65, got %.4f" % particles.amount_ratio
+		absf(particles.amount_ratio - 0.12) <= 0.0001,
+		"Particle amount_ratio must start at 0.12, got %.4f" % particles.amount_ratio
 	)
+	if controller.has_method("_set_target_reaction_strength"):
+		controller.call("_set_target_reaction_strength", 1.0)
+		_check(
+			absf(particles.amount_ratio - 0.35) <= 0.005,
+			"Particle aim amount_ratio must be about 0.35, got %.4f"
+			% particles.amount_ratio
+		)
 	if controller.has_method("_set_radiation_intensity"):
 		controller.call("_set_radiation_intensity", 1.0)
 		_check(
-			absf(particles.amount_ratio - 0.91) <= 0.005,
-			"Particle peak amount_ratio must be about 0.91 (+40%%), got %.4f"
+			absf(particles.amount_ratio - 1.0) <= 0.005,
+			"Particle peak amount_ratio must reach 1.0, got %.4f"
 			% particles.amount_ratio
 		)
 		_check(
@@ -863,8 +898,8 @@ func _assert_particles(
 		_check(hum != null, "Controller low-frequency hum assignment is missing")
 		if hum != null:
 			_check(
-				absf(hum.volume_db - (-30.5)) <= 0.001,
-				"Low-frequency hum peak must be +3.5 dB, got %.3f dB" % hum.volume_db
+				absf(hum.volume_db - (-27.0)) <= 0.001,
+				"Low-frequency hum peak must be +7 dB, got %.3f dB" % hum.volume_db
 			)
 		controller.call("_set_radiation_intensity", 0.0)
 		if hum != null:
@@ -970,7 +1005,7 @@ func _assert_final_reveal_hold_contract(
 		signal_capture["film_id"] = film_id
 		signal_capture["texture"] = texture
 		signal_capture["hold_accepted"] = bool(
-			controller.call("request_post_reveal_hold", 1.05)
+			controller.call("request_post_reveal_hold", 1.45)
 		)
 		var material := film_card.material as ShaderMaterial
 		if material != null:
@@ -1013,8 +1048,8 @@ func _assert_final_reveal_hold_contract(
 	)
 	var deadline_usec := int(controller.get("_unlock_deadline_usec"))
 	_check(
-		abs(deadline_usec - completion_usec - 1_400_000) <= 2,
-		"Manifestation 1.05 s + post-hold 0.35 s deadline is incorrect"
+		abs(deadline_usec - completion_usec - 1_800_000) <= 2,
+		"Manifestation 1.45 s + post-hold 0.35 s deadline is incorrect"
 	)
 	_check(
 		bool(controller.call("request_post_reveal_hold", 0.50)),
@@ -1147,8 +1182,8 @@ func _assert_wall_clock_timeline(
 	_check(saw_completion_stow, "Wall-clock test did not retain lock through card stow")
 	_check(stow_rejected_during_lock, "Slot 4 stow was accepted while the camera lock was owned")
 	_check(
-		absf(elapsed_s - 6.70) <= 0.32,
-		"0.28 + 4.80 + 1.05 + 0.35 + 0.22 second timeline took %.3f wall seconds"
+		absf(elapsed_s - 7.185) <= 0.32,
+		"0.085 + 0.28 + 4.80 + 1.45 + 0.35 + 0.22 second timeline took %.3f wall seconds"
 		% elapsed_s
 	)
 	_check(riders != null, "Integrated wall-clock test lacks RidersManifestation")

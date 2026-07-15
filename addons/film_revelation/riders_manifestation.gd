@@ -17,21 +17,61 @@ const MANIFESTATION_SHADER: Shader = preload(
 	"res://addons/film_revelation/riders_manifestation.gdshader"
 )
 
-const DEFAULT_DURATION_S := 1.05
+const DEFAULT_DURATION_S := 1.45
 const RIDER_LATERAL_OFFSET_M := 2.2
 const BLACK_RIDER_DEPTH_OFFSET_M := 0.7
 const WHITE_RIDER_SOURCE_SCALE := 2.38098
 const BLACK_RIDER_SOURCE_SCALE := 2.36681
 const GROUND_RAY_ORIGIN_HEIGHT_M := 10.0
 const GROUND_RAY_LENGTH_M := 30.0
-const SILHOUETTE_HOLD_S := 0.05
-const BLACK_RIDER_DELAY_S := 0.11
+const SILHOUETTE_HOLD_S := 0.10
+const BLACK_RIDER_DELAY_S := 0.14
 const DEFAULT_COLD_RENDER_LAYER := 1 << 19
+const WHITE_RIDER_LIGHT_LAYER := 1 << 18
+const BLACK_RIDER_LIGHT_LAYER := 1 << 17
 
 @export var ground_collision_mask: int = 1
 @export var cold_rim_render_layer: int = DEFAULT_COLD_RENDER_LAYER
-@export var cold_rim_energy: float = 0.22
+@export var cold_rim_energy: float = 0.30
 @export var cold_rim_range_m: float = 8.0
+
+@export_group("Rider light layers")
+@export var white_rider_light_layer: int = WHITE_RIDER_LIGHT_LAYER
+@export var black_rider_light_layer: int = BLACK_RIDER_LIGHT_LAYER
+
+@export_group("White rider eyes")
+@export var rider_face_anchor_normalized := Vector3(0.50, 0.90, 0.96)
+@export_range(0.005, 0.08, 0.001) var white_eye_local_x_offset_m := 0.025
+@export_range(0.005, 0.05, 0.001) var white_eye_radius_m := 0.018
+@export_range(0.005, 0.08, 0.001) var white_eye_height_m := 0.032
+@export var white_eye_color := Color(0.24, 0.58, 1.0)
+@export_range(0.0, 8.0, 0.05) var white_eye_emission_energy := 3.0
+@export_range(0.0, 1.0, 0.01) var white_eye_reveal_start := 0.58
+
+@export_group("White rider face and key")
+@export_range(0.0, 2.0, 0.01) var white_face_bounce_energy := 0.16
+@export_range(0.1, 4.0, 0.05) var white_face_bounce_range_m := 0.85
+@export_range(0.1, 8.0, 0.1) var white_face_bounce_attenuation := 2.4
+@export_range(0.0, 3.0, 0.01) var white_cold_key_energy := 0.55
+@export_range(0.5, 15.0, 0.1) var white_cold_key_range_m := 6.0
+@export_range(1.0, 90.0, 0.5) var white_cold_key_angle_deg := 38.0
+@export_range(0.1, 8.0, 0.1) var white_cold_key_attenuation := 1.7
+@export var white_cold_key_offset_m := Vector3(-0.65, 0.80, 1.35)
+
+@export_group("Black rider face and rim")
+@export var black_face_light_color := Color(1.0, 0.035, 0.012)
+@export_range(0.0, 3.0, 0.01) var black_face_light_energy := 0.65
+@export_range(0.5, 8.0, 0.1) var black_face_light_range_m := 2.2
+@export_range(1.0, 90.0, 0.5) var black_face_light_angle_deg := 27.0
+@export_range(0.1, 8.0, 0.1) var black_face_light_attenuation := 2.2
+@export var black_face_light_offset_m := Vector3(0.0, -0.12, 0.25)
+@export_range(0.0, 1.0, 0.01) var black_face_reveal_start := 0.72
+@export var black_cold_rim_color := Color(0.20, 0.29, 0.48)
+@export_range(0.0, 3.0, 0.01) var black_cold_rim_energy := 0.30
+@export_range(0.5, 15.0, 0.1) var black_cold_rim_range_m := 5.5
+@export_range(1.0, 90.0, 0.5) var black_cold_rim_angle_deg := 44.0
+@export_range(0.1, 8.0, 0.1) var black_cold_rim_attenuation := 1.6
+@export var black_cold_rim_offset_m := Vector3(0.75, 0.72, -1.10)
 
 var riders_manifested: bool = false
 
@@ -44,6 +84,17 @@ var black_rider: Node3D
 var _white_ground_ray: RayCast3D
 var _black_ground_ray: RayCast3D
 var _cold_rim_light: OmniLight3D
+var _white_rider_lighting: Node3D
+var _white_eye_glow_root: Node3D
+var _left_eye_core: MeshInstance3D
+var _right_eye_core: MeshInstance3D
+var _white_eye_material: StandardMaterial3D
+var _white_eye_face_bounce: OmniLight3D
+var _white_rider_cold_key: SpotLight3D
+var _black_rider_lighting: Node3D
+var _black_rider_red_face_light: SpotLight3D
+var _black_rider_cold_rim: SpotLight3D
+var _lighting_tween: Tween
 var _camera: Camera3D
 var _player: Node3D
 var _terrain: Node
@@ -79,6 +130,8 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	_manifesting = false
 	set_process(false)
+	if _lighting_tween != null and _lighting_tween.is_valid():
+		_lighting_tween.kill()
 	_restore_source_materials()
 
 
@@ -126,6 +179,7 @@ func manifest(duration_s: float = DEFAULT_DURATION_S) -> bool:
 	_update_transition_world_bounds()
 	_set_riders_visible(true)
 	_cold_rim_light.visible = true
+	_begin_cinematic_lighting_reveal(duration_s)
 	_manifest_duration_s = maxf(
 		duration_s,
 		BLACK_RIDER_DELAY_S + SILHOUETTE_HOLD_S + 0.001
@@ -149,6 +203,8 @@ func show_immediate() -> void:
 	_restore_source_materials()
 	_set_riders_visible(true)
 	_cold_rim_light.visible = true
+	_set_cinematic_lighting_visible(true)
+	_set_cinematic_lighting_immediate()
 	riders_manifested = true
 	manifestation_finished.emit()
 
@@ -189,8 +245,8 @@ func _build_runtime_tree() -> void:
 
 	_white_rider_base_transform = white_rider.transform
 	_black_rider_base_transform = black_rider.transform
-	_prepare_static_model(white_rider)
-	_prepare_static_model(black_rider)
+	_prepare_static_model(white_rider, white_rider_light_layer)
+	_prepare_static_model(black_rider, black_rider_light_layer)
 
 	_cold_rim_light = OmniLight3D.new()
 	_cold_rim_light.name = "ColdRimLight"
@@ -204,6 +260,7 @@ func _build_runtime_tree() -> void:
 	_cold_rim_light.position = Vector3(-2.2, 3.0, -2.6)
 	_cold_rim_light.visible = false
 	riders_center.add_child(_cold_rim_light)
+	_build_cinematic_lighting()
 
 
 func _create_ground_ray(node_name: StringName) -> RayCast3D:
@@ -219,7 +276,7 @@ func _create_ground_ray(node_name: StringName) -> RayCast3D:
 	return ray
 
 
-func _prepare_static_model(model_root: Node3D) -> void:
+func _prepare_static_model(model_root: Node3D, rider_light_layer: int) -> void:
 	model_root.visible = false
 	model_root.process_mode = Node.PROCESS_MODE_DISABLED
 	for descendant in model_root.find_children("*", "", true, false):
@@ -242,7 +299,91 @@ func _prepare_static_model(model_root: Node3D) -> void:
 		if descendant is MeshInstance3D:
 			var mesh_instance := descendant as MeshInstance3D
 			mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			mesh_instance.layers |= cold_rim_render_layer
+			mesh_instance.layers |= cold_rim_render_layer | rider_light_layer
+
+
+func _build_cinematic_lighting() -> void:
+	_white_rider_lighting = Node3D.new()
+	_white_rider_lighting.name = "WhiteRiderLighting"
+	riders_center.add_child(_white_rider_lighting)
+	_white_eye_glow_root = Node3D.new()
+	_white_eye_glow_root.name = "WhiteEyeGlowRoot"
+	_white_rider_lighting.add_child(_white_eye_glow_root)
+
+	_white_eye_material = StandardMaterial3D.new()
+	_white_eye_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_white_eye_material.albedo_color = white_eye_color
+	_white_eye_material.emission_enabled = true
+	_white_eye_material.emission = white_eye_color
+	_white_eye_material.emission_energy_multiplier = 0.0
+	_left_eye_core = _create_eye_core("LeftEyeCore")
+	_right_eye_core = _create_eye_core("RightEyeCore")
+	_white_eye_glow_root.add_child(_left_eye_core)
+	_white_eye_glow_root.add_child(_right_eye_core)
+
+	_white_eye_face_bounce = OmniLight3D.new()
+	_white_eye_face_bounce.name = "WhiteEyeFaceBounce"
+	_white_eye_face_bounce.light_color = white_eye_color
+	_white_eye_face_bounce.light_energy = 0.0
+	_white_eye_face_bounce.omni_range = white_face_bounce_range_m
+	_white_eye_face_bounce.omni_attenuation = white_face_bounce_attenuation
+	_configure_rider_light(_white_eye_face_bounce, white_rider_light_layer)
+	_white_rider_lighting.add_child(_white_eye_face_bounce)
+
+	_white_rider_cold_key = SpotLight3D.new()
+	_white_rider_cold_key.name = "WhiteRiderColdKey"
+	_white_rider_cold_key.light_color = Color(0.48, 0.67, 0.96)
+	_white_rider_cold_key.light_energy = 0.0
+	_white_rider_cold_key.spot_range = white_cold_key_range_m
+	_white_rider_cold_key.spot_angle = white_cold_key_angle_deg
+	_white_rider_cold_key.spot_angle_attenuation = white_cold_key_attenuation
+	_configure_rider_light(_white_rider_cold_key, white_rider_light_layer)
+	_white_rider_lighting.add_child(_white_rider_cold_key)
+
+	_black_rider_lighting = Node3D.new()
+	_black_rider_lighting.name = "BlackRiderLighting"
+	riders_center.add_child(_black_rider_lighting)
+	_black_rider_red_face_light = SpotLight3D.new()
+	_black_rider_red_face_light.name = "BlackRiderRedFaceLight"
+	_black_rider_red_face_light.light_color = black_face_light_color
+	_black_rider_red_face_light.light_energy = 0.0
+	_black_rider_red_face_light.spot_range = black_face_light_range_m
+	_black_rider_red_face_light.spot_angle = black_face_light_angle_deg
+	_black_rider_red_face_light.spot_angle_attenuation = black_face_light_attenuation
+	_configure_rider_light(_black_rider_red_face_light, black_rider_light_layer)
+	_black_rider_lighting.add_child(_black_rider_red_face_light)
+
+	_black_rider_cold_rim = SpotLight3D.new()
+	_black_rider_cold_rim.name = "BlackRiderColdRim"
+	_black_rider_cold_rim.light_color = black_cold_rim_color
+	_black_rider_cold_rim.light_energy = 0.0
+	_black_rider_cold_rim.spot_range = black_cold_rim_range_m
+	_black_rider_cold_rim.spot_angle = black_cold_rim_angle_deg
+	_black_rider_cold_rim.spot_angle_attenuation = black_cold_rim_attenuation
+	_configure_rider_light(_black_rider_cold_rim, black_rider_light_layer)
+	_black_rider_lighting.add_child(_black_rider_cold_rim)
+	_set_cinematic_lighting_visible(false)
+
+
+func _create_eye_core(node_name: StringName) -> MeshInstance3D:
+	var eye := MeshInstance3D.new()
+	eye.name = node_name
+	var sphere := SphereMesh.new()
+	sphere.radius = white_eye_radius_m
+	sphere.height = white_eye_height_m
+	sphere.radial_segments = 12
+	sphere.rings = 6
+	eye.mesh = sphere
+	eye.material_override = _white_eye_material
+	eye.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	eye.layers = white_rider_light_layer
+	return eye
+
+
+func _configure_rider_light(light: Light3D, cull_mask: int) -> void:
+	light.shadow_enabled = false
+	light.light_cull_mask = cull_mask
+	light.light_volumetric_fog_energy = 0.0
 
 
 func _apply_setup() -> void:
@@ -278,6 +419,7 @@ func _apply_setup() -> void:
 	_cold_rim_light.omni_range = cold_rim_range_m
 	_cold_rim_light.light_cull_mask = cold_rim_render_layer
 	_ground_pair()
+	_position_cinematic_lighting()
 	_update_transition_world_bounds()
 
 
@@ -313,6 +455,142 @@ func _ground_point(point: Node3D, model: Node3D, ray: RayCast3D) -> void:
 	var bounds := _visual_bounds_in_space(model, point)
 	if bounds.size != Vector3.ZERO:
 		model.global_position += Vector3.UP * -bounds.position.y
+
+
+func _position_cinematic_lighting() -> void:
+	if not is_inside_tree():
+		return
+	var white_face_local := _normalized_point_in_bounds(
+		white_rider, rider_face_anchor_normalized
+	)
+	var black_face_local := _normalized_point_in_bounds(
+		black_rider, rider_face_anchor_normalized
+	)
+	var left_eye_world := white_rider.to_global(
+		white_face_local + Vector3(-white_eye_local_x_offset_m, 0.0, 0.0)
+	)
+	var right_eye_world := white_rider.to_global(
+		white_face_local + Vector3(white_eye_local_x_offset_m, 0.0, 0.0)
+	)
+	var white_face_world := white_rider.to_global(white_face_local)
+	var black_face_world := black_rider.to_global(black_face_local)
+	var white_basis := white_rider.global_basis.orthonormalized()
+	var black_basis := black_rider.global_basis.orthonormalized()
+	var white_right := white_basis.x.normalized()
+	var white_up := white_basis.y.normalized()
+	var white_front := white_basis.z.normalized()
+	var black_right := black_basis.x.normalized()
+	var black_up := black_basis.y.normalized()
+	var black_front := black_basis.z.normalized()
+
+	_left_eye_core.global_position = left_eye_world
+	_left_eye_core.global_basis = white_basis
+	_right_eye_core.global_position = right_eye_world
+	_right_eye_core.global_basis = white_basis
+	_white_eye_face_bounce.global_position = white_face_world + white_front * 0.10
+
+	_white_rider_cold_key.global_position = (
+		white_face_world
+		+ white_right * white_cold_key_offset_m.x
+		+ white_up * white_cold_key_offset_m.y
+		+ white_front * white_cold_key_offset_m.z
+	)
+	_aim_light_at(_white_rider_cold_key, white_face_world)
+
+	_black_rider_red_face_light.global_position = (
+		black_face_world
+		+ black_right * black_face_light_offset_m.x
+		+ black_up * black_face_light_offset_m.y
+		+ black_front * black_face_light_offset_m.z
+	)
+	_aim_light_at(_black_rider_red_face_light, black_face_world)
+
+	_black_rider_cold_rim.global_position = (
+		black_face_world
+		+ black_right * black_cold_rim_offset_m.x
+		+ black_up * black_cold_rim_offset_m.y
+		+ black_front * black_cold_rim_offset_m.z
+	)
+	_aim_light_at(_black_rider_cold_rim, black_face_world + black_up * 0.10)
+
+
+func _normalized_point_in_bounds(model: Node3D, normalized_point: Vector3) -> Vector3:
+	var bounds := _visual_bounds_in_space(model, model)
+	if bounds.size == Vector3.ZERO:
+		return Vector3.ZERO
+	var safe_point := normalized_point.clamp(Vector3.ZERO, Vector3.ONE)
+	return bounds.position + bounds.size * safe_point
+
+
+func _aim_light_at(light: Node3D, target_world: Vector3) -> void:
+	var direction := target_world - light.global_position
+	if direction.length_squared() < 0.000001:
+		return
+	var up := Vector3.UP
+	if absf(direction.normalized().dot(up)) > 0.98:
+		up = Vector3.FORWARD
+	light.look_at(target_world, up)
+
+
+func _begin_cinematic_lighting_reveal(duration_s: float) -> void:
+	if _lighting_tween != null and _lighting_tween.is_valid():
+		_lighting_tween.kill()
+	_set_cinematic_lighting_visible(true)
+	_set_white_eye_amount(0.0)
+	_set_black_face_amount(0.0)
+	_set_key_light_amount(0.0)
+	var safe_duration := maxf(duration_s, 0.001)
+	var white_delay := safe_duration * clampf(white_eye_reveal_start, 0.0, 0.99)
+	var black_delay := safe_duration * clampf(black_face_reveal_start, 0.0, 0.99)
+	var key_delay := safe_duration * 0.42
+	_lighting_tween = create_tween().set_parallel(true)
+	_lighting_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_lighting_tween.tween_method(
+		Callable(self, "_set_white_eye_amount"), 0.0, 1.0,
+		maxf(safe_duration - white_delay, 0.001)
+	).set_delay(white_delay)
+	_lighting_tween.tween_method(
+		Callable(self, "_set_black_face_amount"), 0.0, 1.0,
+		maxf(safe_duration - black_delay, 0.001)
+	).set_delay(black_delay)
+	_lighting_tween.tween_method(
+		Callable(self, "_set_key_light_amount"), 0.0, 1.0,
+		maxf(safe_duration - key_delay, 0.001)
+	).set_delay(key_delay)
+
+
+func _set_cinematic_lighting_immediate() -> void:
+	if _lighting_tween != null and _lighting_tween.is_valid():
+		_lighting_tween.kill()
+	_set_white_eye_amount(1.0)
+	_set_black_face_amount(1.0)
+	_set_key_light_amount(1.0)
+
+
+func _set_white_eye_amount(amount: float) -> void:
+	var safe_amount := clampf(amount, 0.0, 1.0)
+	_white_eye_material.emission_energy_multiplier = white_eye_emission_energy * safe_amount
+	_white_eye_glow_root.visible = safe_amount > 0.001
+	_white_eye_face_bounce.light_energy = white_face_bounce_energy * safe_amount
+
+
+func _set_black_face_amount(amount: float) -> void:
+	_black_rider_red_face_light.light_energy = (
+		black_face_light_energy * clampf(amount, 0.0, 1.0)
+	)
+
+
+func _set_key_light_amount(amount: float) -> void:
+	var safe_amount := clampf(amount, 0.0, 1.0)
+	_white_rider_cold_key.light_energy = white_cold_key_energy * safe_amount
+	_black_rider_cold_rim.light_energy = black_cold_rim_energy * safe_amount
+
+
+func _set_cinematic_lighting_visible(visible_state: bool) -> void:
+	_white_rider_lighting.visible = visible_state
+	_black_rider_lighting.visible = visible_state
+	if not visible_state:
+		_white_eye_glow_root.visible = false
 
 
 func _prepare_transition_materials() -> void:
@@ -564,6 +842,8 @@ func _visual_bounds_in_space(model: Node3D, space: Node3D) -> AABB:
 func _set_riders_visible(visible_state: bool) -> void:
 	white_rider.visible = visible_state
 	black_rider.visible = visible_state
+	if not visible_state:
+		_set_cinematic_lighting_visible(false)
 
 
 func _finish_manifestation(emit_finished: bool) -> void:
@@ -572,6 +852,8 @@ func _finish_manifestation(emit_finished: bool) -> void:
 	_restore_source_materials()
 	_set_riders_visible(true)
 	_cold_rim_light.visible = true
+	_set_cinematic_lighting_visible(true)
+	_set_cinematic_lighting_immediate()
 	riders_manifested = true
 	if emit_finished:
 		manifestation_finished.emit()

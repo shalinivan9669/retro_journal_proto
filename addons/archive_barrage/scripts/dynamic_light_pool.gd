@@ -24,9 +24,12 @@ func configure_quality(
 	_tracer_light_count = 6 if use_performance_profile else 10
 	_launch_light_count = 4 if use_performance_profile else 6
 	_impact_light_count = 4 if use_performance_profile else 6
-	_max_shadowed_tracers = 1 if use_performance_profile else 3
+	# Dynamic omni shadows are the largest impact-time spike in this scene.
+	# The performance profile keeps the flashes themselves but makes them
+	# shadowless; the moon remains the stable shadow-casting key light.
+	_max_shadowed_tracers = 0 if use_performance_profile else 3
 	_max_shadowed_launches = 0 if use_performance_profile else 1
-	_max_shadowed_impacts = 1 if use_performance_profile else 2
+	_max_shadowed_impacts = 0 if use_performance_profile else 2
 	_tracer_fog_energy = 0.035 if use_performance_profile else 0.06
 
 

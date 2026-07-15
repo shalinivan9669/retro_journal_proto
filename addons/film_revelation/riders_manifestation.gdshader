@@ -36,8 +36,8 @@ uniform float world_top_y = 3.0;
 uniform float dither_band : hint_range(0.001, 0.25) = 0.075;
 uniform float reveal_edge_width : hint_range(0.001, 0.25) = 0.055;
 uniform vec3 cold_rim_color : source_color = vec3(0.36, 0.62, 0.94);
-uniform float cold_rim_strength : hint_range(0.0, 2.0) = 0.18;
-uniform float reveal_edge_strength : hint_range(0.0, 4.0) = 0.75;
+uniform float cold_rim_strength : hint_range(0.0, 2.0) = 0.30;
+uniform float reveal_edge_strength : hint_range(0.0, 4.0) = 1.25;
 
 varying float world_height;
 

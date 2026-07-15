@@ -91,6 +91,7 @@ func _run() -> void:
 	)
 	_assert_crest_placement_and_grounding(riders, terrain, target, player)
 	_assert_cold_light_and_render_isolation(riders)
+	_assert_manifestation_profile(riders)
 
 	# Stop unrelated barrage simulation while exercising the synchronous
 	# one-shot and immediate material-restore contract.
@@ -393,6 +394,31 @@ func _assert_cold_light_and_render_isolation(riders: RidersManifestation) -> voi
 				== GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,
 				"%s must not cast shadows" % mesh_instance.name
 			)
+
+
+func _assert_manifestation_profile(riders: RidersManifestation) -> void:
+	_check(
+		is_equal_approx(RidersManifestation.DEFAULT_DURATION_S, 1.45),
+		"default manifestation duration must be 1.45 s"
+	)
+	_check(
+		is_equal_approx(RidersManifestation.SILHOUETTE_HOLD_S, 0.10),
+		"silhouette hold must be 0.10 s"
+	)
+	_check(
+		is_equal_approx(RidersManifestation.BLACK_RIDER_DELAY_S, 0.14),
+		"black rider delay must be 0.14 s"
+	)
+	_check(
+		is_equal_approx(riders.cold_rim_energy, 0.30),
+		"cold rider rim energy must be 0.30"
+	)
+	var shader_code := RidersManifestation.MANIFESTATION_SHADER.code
+	_check(
+		shader_code.contains("cold_rim_strength : hint_range(0.0, 2.0) = 0.30")
+		and shader_code.contains("reveal_edge_strength : hint_range(0.0, 4.0) = 1.25"),
+		"manifestation shader cold rim/edge strengths are incorrect"
+	)
 
 
 func _assert_one_shot_and_immediate_restore(riders: RidersManifestation) -> void:
